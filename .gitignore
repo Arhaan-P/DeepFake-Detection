@@ -50,6 +50,7 @@ htmlcov/
 # Data directories and files (large)
 data/videos/
 data/deepfake/
+data/deepfake_videos/
 data/augmented_videos/
 data/gait_features/
 data/*.npy
@@ -69,11 +70,16 @@ outputs/checkpoints/
 outputs/tensorboard/
 outputs/evaluation/
 outputs/loocv/
+outputs/ablation/
+outputs/gradcam/
 outputs/training_history.json
 outputs/model_config.json
 results/
 output/
 logs/
+
+# TensorBoard events
+events.out.tfevents.*
 
 # Checkpoints
 checkpoints/

@@ -5,8 +5,8 @@ Extract and store reference gait features for each identity.
 These enrolled features will be used for verification.
 
 Usage:
-    python enroll_identities.py --videos_dir data/videos
-    python enroll_identities.py --features_dir data/gait_features --output enrolled_identities.pkl
+    python scripts/enrollment/enroll_identities.py --videos_dir data/videos
+    python scripts/enrollment/enroll_identities.py --features_dir data/gait_features --output enrolled_identities.pkl
 
 Author: DeepFake Detection Project
 """

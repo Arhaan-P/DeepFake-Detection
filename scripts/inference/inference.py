@@ -5,8 +5,8 @@ Predict whether a video is AUTHENTIC or DEEPFAKE
 based on the claimed identity.
 
 Usage:
-    python inference.py --video path/to/video.mp4 --claimed_identity "PersonName"
-    python inference.py --video path/to/video.mp4 --claimed_identity "Arhaan" --visualize
+    python scripts/inference/inference.py --video path/to/video.mp4 --claimed_identity "PersonName"
+    python scripts/inference/inference.py --video path/to/video.mp4 --claimed_identity "Arhaan" --visualize
 
 Author: DeepFake Detection Project
 """

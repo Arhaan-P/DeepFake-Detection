@@ -5,9 +5,9 @@ Extract pose landmarks and gait features from all videos
 and save them for training.
 
 Usage:
-    python preprocess_videos.py --videos_dir data/videos
-    python preprocess_videos.py --videos_dir data/videos --augmented_dir data/augmented
-    python preprocess_videos.py --videos_dir data/videos --use_gpu  # Use TensorFlow MoveNet on GPU
+    python scripts/preprocessing/preprocess_videos.py --videos_dir data/videos
+    python scripts/preprocessing/preprocess_videos.py --videos_dir data/videos --augmented_dir data/augmented
+    python scripts/preprocessing/preprocess_videos.py --videos_dir data/videos --use_gpu  # Use TensorFlow MoveNet on GPU
 
 Author: DeepFake Detection Project
 """

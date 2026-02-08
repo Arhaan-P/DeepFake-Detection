@@ -5,9 +5,9 @@ Comprehensive evaluation with multiple metrics and visualizations.
 Supports Leave-One-Out Cross-Validation (LOOCV) with subject-level splits.
 
 Usage:
-    python evaluate.py --checkpoint outputs/checkpoints/checkpoint_epoch_best.pth
-    python evaluate.py --checkpoint outputs/checkpoints/checkpoint_epoch_best.pth --save_plots
-    python evaluate.py --loocv --features_file data/gait_features/gait_features.pkl
+    python scripts/evaluation/evaluate.py --checkpoint outputs/checkpoints/checkpoint_epoch_best.pth
+    python scripts/evaluation/evaluate.py --checkpoint outputs/checkpoints/checkpoint_epoch_best.pth --save_plots
+    python scripts/evaluation/evaluate.py --loocv --features_file data/gait_features/gait_features.pkl
 
 Author: DeepFake Detection Project
 """

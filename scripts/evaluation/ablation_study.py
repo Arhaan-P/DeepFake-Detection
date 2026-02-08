@@ -12,7 +12,7 @@ All variants use the SAME difference-based verification approach and
 train/val split for fair comparison.
 
 Usage:
-    python ablation_study.py --features_file data/gait_features/gait_features.pkl --epochs 50
+    python scripts/evaluation/ablation_study.py --features_file data/gait_features/gait_features.pkl --epochs 50
 
 Author: DeepFake Detection Project
 """

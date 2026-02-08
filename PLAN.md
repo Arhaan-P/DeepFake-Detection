@@ -103,12 +103,12 @@ MediaPipe knee joint angle errors are significantly lower than MoveNet Lightning
 #### Step 1: Switch pose backend to MediaPipe
 
 - All feature extraction uses `utils/pose_extraction.py` (78-dim)
-- Update `input_dim` from 36 → 78 in model config and `train.py`
+- Update `input_dim` from 36 → 78 in model config and `scripts/training/train.py`
 
 #### Step 2: Re-extract gait features
 
-- Run `preprocess_videos.py` with MediaPipe on all 1,056 augmented + 66 original videos
-- Re-enroll all 13 identities via `enroll_identities.py`
+- Run `scripts/preprocessing/preprocess_videos.py` with MediaPipe on all 1,056 augmented + 66 original videos
+- Re-enroll all 13 identities via `scripts/enrollment/enroll_identities.py`
 - Overwrites `data/gait_features/gait_features.pkl` and `enrolled_identities.pkl`
 
 #### Step 3: Fix class imbalance in data loader
@@ -120,7 +120,7 @@ MediaPipe knee joint angle errors are significantly lower than MoveNet Lightning
 
 #### Step 4: Fix inference feature pipeline
 
-- File: `inference.py`
+- File: `scripts/inference/inference.py`
 - Ensure `load_enrolled_identity()` and video feature extraction both use MediaPipe 78-dim features consistently
 - No more hardcoded MediaPipe indices that mismatch with MoveNet data
 
@@ -237,7 +237,7 @@ Add to `evaluate.py`:
 #### Step 13: Add GradCAM visualization ✅ DONE
 
 - Created `utils/gradcam.py` with GaitGradCAM + JointImportanceAnalyzer
-- Created `run_gradcam.py` for aggregate analysis across 26 samples (13 identities)
+- Created `scripts/evaluation/run_gradcam.py` for aggregate analysis across 26 samples (13 identities)
 - **Key Findings (GradCAM):**
   - Top joints: L_Shoulder (1.00), R_Heel (0.94), L_Foot (0.93), L_Knee (0.90), R_Shoulder (0.87)
   - Feature group contribution: Coordinates 47.7%, Velocities 37.4%, Joint Angles 14.9%
@@ -246,7 +246,7 @@ Add to `evaluate.py`:
 
 #### Step 14: Comparative analysis (ablation study) ✅ DONE
 
-- Created `ablation_study.py` with 4 model variants, same data/splits/seed
+- Created `scripts/evaluation/ablation_study.py` with 4 model variants, same data/splits/seed
 - **Ablation Results:**
 
 | Variant              | Params  | Accuracy   | F1         | AUC        | Precision  | Recall     |
@@ -330,23 +330,27 @@ Only if single model doesn't reach >90%:
 
 ### Phase 6 — Cleanup & GitHub
 
-#### Step 18: Refactor codebase
+#### Step 18: Refactor codebase ✅ DONE
 
-- Replace all `sys.path.insert(0, ...)` with proper relative imports
-- Add consistent Google-style docstrings + type hints
-- Standardize logging via `utils/logger.py`
-- Remove `__pycache__/` directories
+- Moved all scripts into `scripts/` subdirectories (preprocessing, training, evaluation, inference, enrollment)
+- Added `pyproject.toml` for `pip install -e .` — eliminates `sys.path.insert` hacks
+- Deleted dead files: `test.py`, `deepfake_generator.py`, `IMPLEMENTATION_GUIDE.md`, `SESSION_PROGRESS.md`
+- Cleaned `requirements.txt` — removed unused packages (TensorFlow, keras-tuner, pytube, etc.)
+- Added module docstrings to `models/__init__.py` and `utils/__init__.py`
+- Updated `scripts/run_pipeline.py` with correct subprocess paths
 
-#### Step 19: Add README.md
+#### Step 19: Add README.md ✅ DONE
 
-- Project overview, architecture diagram, setup instructions
-- Usage for each pipeline step
-- Results table, example inference output
-- Citation format for research paper
+- Updated project structure to match new `scripts/` layout
+- Added actual LOOCV results table (AUC=94.95%, EER=13.19%)
+- Added ablation study and GradCAM results
+- Updated all usage commands with `scripts/` paths
+- Added `pip install -e .` to installation instructions
+- Referenced `LITERATURE_REVIEW.md`
 
-#### Step 20: Add .gitignore
+#### Step 20: Add .gitignore ✅ DONE
 
-Exclude: `data/`, `outputs/`, `logs/`, `__pycache__/`, `*.pkl`, `*.pth`, `.env`, TensorBoard events, IDE folders
+- Added missing entries: `outputs/ablation/`, `outputs/gradcam/`, `data/deepfake_videos/`, `events.out.tfevents.*`
 
 ---
 
@@ -388,13 +392,13 @@ Exclude: `data/`, `outputs/`, `logs/`, `__pycache__/`, `*.pkl`, `*.pth`, `.env`,
 | 16. Hyperparameter tuning | ✅ Skip | 94.95% AUC exceeds research threshold — not needed            |
 | 17. Ensemble methods      | ✅ Skip | LOOCV mean already >90%; ensemble unlikely to improve further |
 
-### Phase 6: Cleanup & GitHub ⏳ 50% COMPLETE
+### Phase 6: Cleanup & GitHub ✅ COMPLETE
 
-| Step                  | Status  | Details                                                         |
-| --------------------- | ------- | --------------------------------------------------------------- |
-| 18. Refactor codebase | ❌ TODO | Standardize imports, add docstrings, use logger.py consistently |
-| 19. README.md         | ✅ DONE | Already exists; update with LOOCV final results                 |
-| 20. .gitignore        | ✅ DONE | Already in place                                                |
+| Step                  | Status  | Details                                                                       |
+| --------------------- | ------- | ----------------------------------------------------------------------------- |
+| 18. Refactor codebase | ✅ DONE | Scripts in `scripts/`, pyproject.toml, dead files removed, requirements clean |
+| 19. README.md         | ✅ DONE | Updated with results, new structure, pip install -e ., literature ref         |
+| 20. .gitignore        | ✅ DONE | Added ablation, gradcam, deepfake_videos, tfevents entries                    |
 
 ---
 
@@ -452,7 +456,7 @@ facefusion
 
 ```bash
 # Test each deepfake
-python inference.py --video data/deepfake/Arhaan_body_Devika_face.mp4 --claimed_identity Devika
+python scripts/inference/inference.py --video data/deepfake/Arhaan_body_Devika_face.mp4 --claimed_identity Devika
 # Expected: IDENTITY MISMATCH (gait=Arhaan, claimed=Devika) or SUSPECTED DEEPFAKE
 
 # Record results in evaluation report

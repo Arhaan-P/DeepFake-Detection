@@ -5,9 +5,9 @@ Generates explainability visualizations for the trained model.
 Produces temporal heatmaps, joint importance, and feature group charts.
 
 Usage:
-    python run_gradcam.py
-    python run_gradcam.py --video data/videos/Arhaan_S1.mp4 --claimed_identity Aarav
-    python run_gradcam.py --all_identities
+    python scripts/evaluation/run_gradcam.py
+    python scripts/evaluation/run_gradcam.py --video data/videos/Arhaan_S1.mp4 --claimed_identity Aarav
+    python scripts/evaluation/run_gradcam.py --all_identities
 
 Author: DeepFake Detection Project
 """

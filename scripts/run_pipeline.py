@@ -4,12 +4,12 @@ Main Pipeline Script - Gait-Based Deepfake Detection
 Orchestrates the entire pipeline from raw videos to trained model.
 
 Usage:
-    python run_pipeline.py --mode full          # Run entire pipeline
-    python run_pipeline.py --mode augment       # Only data augmentation
-    python run_pipeline.py --mode preprocess    # Only feature extraction
-    python run_pipeline.py --mode train         # Only training
-    python run_pipeline.py --mode evaluate      # Only evaluation
-    python run_pipeline.py --mode demo          # Run demo inference
+    python scripts/run_pipeline.py --mode full          # Run entire pipeline
+    python scripts/run_pipeline.py --mode augment       # Only data augmentation
+    python scripts/run_pipeline.py --mode preprocess    # Only feature extraction
+    python scripts/run_pipeline.py --mode train         # Only training
+    python scripts/run_pipeline.py --mode evaluate      # Only evaluation
+    python scripts/run_pipeline.py --mode demo          # Run demo inference
 
 Author: DeepFake Detection Project
 """
@@ -18,6 +18,10 @@ import os
 import sys
 import argparse
 import subprocess
+
+# Resolve project root (one level up from scripts/)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+os.chdir(PROJECT_ROOT)
 from pathlib import Path
 import time
 
@@ -68,7 +72,7 @@ def run_command(command: list, description: str):
 def stage_augment(videos_dir: str, output_dir: str):
     """Stage 1: Data Augmentation."""
     return run_command(
-        [sys.executable, 'augment_videos.py',
+        [sys.executable, 'scripts/preprocessing/augment_videos.py',
          '--input_dir', videos_dir,
          '--output_dir', output_dir],
         "Stage 1: Data Augmentation"
@@ -77,7 +81,7 @@ def stage_augment(videos_dir: str, output_dir: str):
 
 def stage_preprocess(videos_dir: str, augmented_dir: str, output_file: str):
     """Stage 2: Feature Extraction."""
-    cmd = [sys.executable, 'preprocess_videos.py',
+    cmd = [sys.executable, 'scripts/preprocessing/preprocess_videos.py',
            '--videos_dir', videos_dir,
            '--output', output_file]
     
@@ -91,7 +95,7 @@ def stage_train(features_file: str, enrolled_file: str,
                 output_dir: str, epochs: int, batch_size: int):
     """Stage 3: Model Training."""
     return run_command(
-        [sys.executable, 'train.py',
+        [sys.executable, 'scripts/training/train.py',
          '--features_file', features_file,
          '--enrolled_file', enrolled_file,
          '--output_dir', output_dir,
@@ -105,7 +109,7 @@ def stage_evaluate(checkpoint: str, features_file: str,
                    enrolled_file: str, output_dir: str):
     """Stage 4: Model Evaluation."""
     return run_command(
-        [sys.executable, 'evaluate.py',
+        [sys.executable, 'scripts/evaluation/evaluate.py',
          '--checkpoint', checkpoint,
          '--features_file', features_file,
          '--enrolled_file', enrolled_file,
@@ -120,7 +124,7 @@ def stage_demo(checkpoint: str, enrolled_file: str,
                video_path: str, claimed_identity: str):
     """Stage 5: Demo Inference."""
     return run_command(
-        [sys.executable, 'inference.py',
+        [sys.executable, 'scripts/inference/inference.py',
          '--video', video_path,
          '--claimed_identity', claimed_identity,
          '--checkpoint', checkpoint,
