@@ -6,7 +6,7 @@ applyTo: "**"
 
 ## Project Context
 
-This is a **gait-analysis-based deepfake detection** system. Given a video and a claimed identity, the model extracts skeletal pose keypoints (MediaPipe, 78-dim), analyzes walking patterns via a CNN+BiLSTM+Transformer hybrid, and outputs AUTHENTIC or DEEPFAKE.
+This is a **gait-analysis-based deepfake detection** system. Given a video and a claimed identity, the model extracts skeletal pose keypoints (MediaPipe, 78-dim), analyzes walking patterns via a CNN+BiLSTM+Transformer hybrid, and outputs AUTHENTIC or DEEPFAKE. REMEMBER IM ON POWERSHELL NOT LINUX. ALSO DONT EVER CREATE .BAT FILES.
 
 **Read `PLAN.md` at project root for the full implementation roadmap before starting any major work.**
 

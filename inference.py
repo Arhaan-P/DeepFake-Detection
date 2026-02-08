@@ -188,8 +188,8 @@ def extract_video_features(video_path: str,
 def predict(model: GaitDeepfakeDetector,
             video_features: torch.Tensor,
             claimed_features: torch.Tensor,
-            threshold: float = 0.5) -> dict:
-    """Make prediction for a single identity comparison."""
+            threshold: float = 0.7737) -> dict:
+    """Make prediction for a single identity comparison (threshold from LOOCV)."""
     model.eval()
     
     with torch.no_grad():
@@ -216,7 +216,7 @@ def check_all_identities(model: GaitDeepfakeDetector,
                          enrolled_file: str,
                          device: torch.device,
                          feature_stats: dict = None,
-                         threshold: float = 0.5) -> dict:
+                         threshold: float = 0.7737) -> dict:
     """Check video against ALL enrolled identities to distinguish
     identity mismatch from suspected deepfake.
     
@@ -394,8 +394,8 @@ def main():
                         help='Path to enrolled identities file')
     
     # Options
-    parser.add_argument('--threshold', type=float, default=0.5,
-                        help='Decision threshold (higher = stricter)')
+    parser.add_argument('--threshold', type=float, default=0.7737,
+                        help='Decision threshold (default 0.7737 from LOOCV Youden)')
     parser.add_argument('--sequence_length', type=int, default=60,
                         help='Sequence length for feature extraction')
     parser.add_argument('--visualize', action='store_true',
