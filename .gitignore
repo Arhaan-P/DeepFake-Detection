@@ -1,0 +1,80 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.agent/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
+.hypothesis/
+htmlcov/
+.coverage
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ============================================
+# LARGE FILES - DO NOT COMMIT
+# ============================================
+
+# Video files
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.flv
+*.wmv
+
+# Data directories and files (large)
+data/videos/
+data/deepfake/
+data/augmented_videos/
+data/gait_features/
+data/*.npy
+data/*.npz
+data/*.pkl
+
+# Model files (large, retrain instead)
+models/*.pth
+models/*.pt
+models/*.h5
+models/*.keras
+models/*.joblib
+models/*.pkl
+
+# Results and outputs (regenerate with scripts)
+outputs/checkpoints/
+outputs/tensorboard/
+outputs/evaluation/
+outputs/loocv/
+outputs/training_history.json
+outputs/model_config.json
+results/
+output/
+logs/
+
+# Checkpoints
+checkpoints/
+*.ckpt
