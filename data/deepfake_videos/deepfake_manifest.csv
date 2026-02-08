@@ -1,9 +1,0 @@
-test_id,deepfake_video,body_source_identity,body_source_video,face_source_identity,face_source_video,expected_gait_match,description
-1,deepfake_1_arhaan_body_aarav_face.mp4,Arhaan,data/videos/Arhaan_S1.mp4,Aarav,data/videos/Aarav_S1.mp4,Arhaan,"Body: Arhaan's gait | Face: Aarav's face. Expect detection of Arhaan's gait."
-2,deepfake_2_aarav_body_arhaan_face.mp4,Aarav,data/videos/Aarav_F1.mp4,Arhaan,data/videos/Arhaan_F1.mp4,Aarav,"Body: Aarav's gait | Face: Arhaan's face. Expect detection of Aarav's gait."
-3,deepfake_3_vedant_body_teja_face.mp4,Vedant,data/videos/Vedant_S2.mp4,Teja,data/videos/Teja_S2.mp4,Vedant,"Body: Vedant's gait | Face: Teja's face. Expect detection of Vedant's gait."
-4,deepfake_4_teja_body_vedant_face.mp4,Teja,data/videos/Teja_F2.mp4,Vedant,data/videos/Vedant_F2.mp4,Teja,"Body: Teja's gait | Face: Vedant's face. Expect detection of Teja's gait."
-5,deepfake_5_bharti_body_som_face.mp4,Bharti,data/videos/Bharti_S1.mp4,Som,data/videos/Som_S1.mp4,Bharti,"Body: Bharti's gait | Face: Som's face. Expect detection of Bharti's gait."
-6,deepfake_6_som_body_bharti_face.mp4,Som,data/videos/Som_F2.mp4,Bharti,data/videos/Bharti_F2.mp4,Som,"Body: Som's gait | Face: Bharti's face. Expect detection of Som's gait."
-7,deepfake_7_prakhar_body_prayag_face.mp4,Prakhar,data/videos/Prakhar_S3.mp4,Prayag,data/videos/Prayag_S3.mp4,Prakhar,"Body: Prakhar's gait | Face: Prayag's face. Expect detection of Prakhar's gait."
-8,deepfake_8_ananya_body_devika_face.mp4,Ananya,data/videos/Ananya_S1.mp4,Devika,data/videos/Devika_S1.mp4,Ananya,"Body: Ananya's gait | Face: Devika's face. Expect detection of Ananya's gait."
