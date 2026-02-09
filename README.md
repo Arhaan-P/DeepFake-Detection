@@ -166,6 +166,20 @@ python scripts/evaluation/run_gradcam.py
 
 # 9. Inference on a single video
 python scripts/inference/inference.py --video path/to/video.mp4 --claimed_identity "PersonName"
+
+# 10. Generate deepfakes using FaceFusion
+# First, activate FaceFusion environment and run GUI (manual process)
+cd ../facefusion
+conda activate facefusion
+python facefusion.py run --ui-layouts default
+# Then configure: inswapper_128_fp16 model, strict memory, face-only mask
+# Generate face-swaps: save as data/deepfake/{BodyPerson}_body_{FacePerson}_face.mp4
+
+# 11. Verify gait preservation in face-swapped videos
+python scripts/evaluation/verify_gait_preservation.py --original_video path/to/original.mp4 --deepfake_video path/to/deepfake.mp4
+
+# 12. Run inference on deepfake video to detect it
+python scripts/inference/inference.py --video data/deepfake/{BodyPerson}_body_{FacePerson}_face.mp4 --claimed_identity "{FacePerson}"
 ```
 
 ### Inference Output
