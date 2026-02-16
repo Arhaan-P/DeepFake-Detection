@@ -84,3 +84,6 @@ events.out.tfevents.*
 # Checkpoints
 checkpoints/
 *.ckpt
+
+Required for Research Paper/
+docs/
