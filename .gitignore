@@ -87,3 +87,6 @@ checkpoints/
 
 Required for Research Paper/
 docs/
+
+.gemini/
+.gsd/
