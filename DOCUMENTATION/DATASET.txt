@@ -1,0 +1,72 @@
+url: https://ieee-dataport.org/documents/deepfake-detection-using-gait-analysis
+
+
+"Abstract",
+"This dataset supports the development and evaluation of deepfake detection systems that rely on skeletal gait analysis rather than facial artifact inspection. It comprises walking videos from 13 unique subjects recorded in controlled indoor conditions, with each subject performing multiple walking passes across two camera perspectives: frontal (F) and side-profile (S), yielding approximately 65 raw videos. Through a 16× data augmentation pipeline — including temporal jitter, Gaussian noise injection on keypoints, speed perturbation, horizontal flipping, and occlusion simulation — the dataset expands to 1,056 augmented video samples.",
+
+"For each video, 78-dimensional skeletal gait feature vectors are extracted per frame using MediaPipe Pose, derived from 12 biomechanically relevant keypoints (shoulders, hips, knees, ankles, heels, and foot indices). The feature vector encodes hip-centered 3D coordinates (36 dimensions), six joint flexion angles at the knee, hip, and ankle (6 dimensions), and frame-to-frame velocity signals (36 dimensions). All sequences are normalized to exactly 60 frames (~2 complete gait cycles at 30 fps).",
+
+"The dataset is organized at the subject level to support Leave-One-Out Cross-Validation (LOOCV), ensuring strict subject-level separation to prevent data leakage during model evaluation. Subjects include male and female participants ranging in age from approximately 19–25 years. Videos are stored in MP4 format and follow the naming convention SubjectName_ViewN.mp4. Pre-extracted gait features are provided as a serialized .pkl file containing (sequence, label, subject_id) tuples, ready for direct model training without requiring MediaPipe installation.",
+
+"This dataset was used to train and evaluate a CNN+BiLSTM+Transformer hybrid deepfake detection model, achieving an AUC-ROC of 94.95% ± 2.81% and an F1 score of 86.56% under LOOCV, filling a confirmed research gap where no prior published dataset exists specifically for gait-based deepfake verification.",
+
+
+---
+
+Deepfake Detection using Gait Analysis
+Average: 5 (1 vote)
+Citation Author(s):
+Arhaan Penwala  (Vellore Institute of Technology, Chennai Campus)
+Aditya Bharti  (Vellore Institute of Technology, Chennai Campus)
+Abhishek Arun Raja Kodeeswaran  (Vellore Institute of Technology, Chennai Campus)
+Deepika Roselind Johnson  (Vellore Institute of Technology, Chennai Campus)
+Submitted by:Arhaan PenwalaDate Created:Tue, 03/10/2026 - 08:23Last updated:Tue, 03/10/2026 - 11:18DOI:10.21227/ngh5-b637Data Format:
+*.mp4
+
+---
+
+Dataport Analysis:
+
+**"Deepfake Detection Using Gait Analysis"** on IEEE DataPort.
+
+From the available metadata, this is **not a research paper** but a **dataset/resource page** intended for researchers working on deepfake detection using a person's gait (walking pattern). ([DOI][1])
+
+### What is the idea?
+
+Instead of analyzing a person's **face**, this approach analyzes **how they walk**.
+
+The underlying assumption is:
+
+* Deepfake videos can create highly realistic faces.
+* However, generating a person's **natural body movement and gait** consistently across frames is much harder.
+* Every person has unique walking characteristics:
+
+  * stride length
+  * hip movement
+  * arm swing
+  * body posture
+  * walking rhythm
+
+### Why this is interesting
+
+Most deepfake detectors examine:
+
+* facial artifacts
+* eye blinking
+* lighting inconsistencies
+* compression artifacts
+
+Those methods often fail when newer generators remove these artifacts.
+
+Gait is **behavioral**, not purely visual. Even if a face looks perfect, reproducing a person's authentic movement remains a challenging problem, making gait a complementary signal for deepfake detection. Research on motion-based forensic methods has similarly shown that temporal motion cues can improve generalization beyond appearance-based detectors. ([PubMed][2])
+
+---
+
+Some more facts about the project:
+
+we are using synthetic datasets
+we already have a IEEE dataport with our professor for this project
+So then yeah we plan on collecting more data, various demographics, various age groups and various countries (we have friends from other universities who offered to help aka my friends)
+is it feasible to do and continue our project with RPA and using some sort of embedded system like borrowing a Jetson
+We could expand our problem statement of "Deepfake Detection using Gait Analysis" as a survellience/fake video detector (politics or any important field) as the domain we wish to help in
+we plan on using Process Automation for Robotics
