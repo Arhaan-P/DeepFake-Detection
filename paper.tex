@@ -88,10 +88,11 @@ attribution despite occupying only 6 of 78 input dimensions. On three
 FaceFusion-generated face-swap clips, the system rejected the claimed identity
 in all three cases and matched the true body source with similarity above
 $0.9998$, an existence check consistent with the core hypothesis though too
-small to be a powered claim. We further report, rather than conceal, a
-negative methodological result: the four variants of our
-architectural ablation share an identical decision path, so their $1.58$-point
-accuracy spread measures training variance and not component contribution. We
+small to be a powered claim. An ablation over 13 folds and 3 seeds finds that wiring a
+CNN, BiLSTM or Transformer encoder onto the decision path costs $2.5$ to $5.9$
+ROC-AUC points against this minimal design (all $p < 10^{-3}$, paired), while
+removing the raw per-timestep comparison collapses performance to chance---so
+the simplicity of the verification network is a result, not a concession. We
 position the work as occupying an under-explored niche rather than an empty
 one, and delimit it against the behavioural-biometric and whole-body motion
 forensics literature.
@@ -177,11 +178,14 @@ returns to what this rules in and out.
       model attending to biomechanically sensible structures, and which
       quantifies the disproportionate value of the six joint-angle dimensions
       (Section~\ref{sec:explain}).
-\item \textbf{An explicit negative result.} Our architectural ablation does not
-      support the conclusion it was designed to test, because all four variants
-      share an identical decision path. We report this, quantify it, and
-      identify the corrected experiment (Sections~\ref{sec:ablation-results}
-      and~\ref{sec:threats}).
+\item \textbf{An ablation that justifies the architecture by refuting the
+      alternative.} Across 13 folds and 3 seeds, wiring the CNN, BiLSTM or
+      Transformer stack onto the decision path costs $2.5$ to $5.9$ ROC-AUC
+      points against the deployed model (all $p < 10^{-3}$, paired), and
+      removing the raw per-timestep comparison collapses performance to
+      chance. The minimal difference network is not a simplification we
+      settled for; it is the best of the configurations tested
+      (Section~\ref{sec:ablation-results}).
 \end{enumerate}
 
 % ===========================================================================
@@ -523,9 +527,20 @@ one to two complete gait cycles~\cite{perry_gait}. Each of the 78 dimensions is
 then z-score normalised,
 $\hat{f}_j = (f_j - \mu_j)/\max(\sigma_j, 10^{-6})$,
 which is necessary because the blocks occupy incommensurate
-scales~\cite{lecun_efficient}. Critically, $\mu_j$ and $\sigma_j$ are estimated
-on the training split alone and applied unchanged to held-out data; under LOOCV
-they are recomputed inside every fold.
+scales~\cite{lecun_efficient}. Under LOOCV, $\mu_j$ and $\sigma_j$ are
+recomputed inside every fold.
+
+We record one protocol detail for reproducibility. The evaluation script that
+produced our headline LOOCV figures normalises the held-out subject using that
+subject's own statistics rather than the training split's---a transductive
+choice, and not the one a strict reading of the protocol would imply. We
+measured what it is worth by running the deployed model both ways across all 13
+folds: training statistics yield $94.67\% \pm 3.06\%$ ROC-AUC against
+$94.97\% \pm 2.90\%$ for the shipped behaviour, a difference of $0.30$ points
+that is not statistically significant ($p = 0.73$, paired, $n = 13$). The
+headline result is therefore insensitive to this choice, and all ablation
+comparisons in Section~\ref{sec:ablation-results} use training statistics
+throughout.
 
 \subsection{Identity Enrolment}
 \label{sec:enrollment}
@@ -653,9 +668,12 @@ signal from the training objective. Of the model's $848{,}614$ parameters,
 $133{,}058$ ($15.7\%$) lie on the decision path.
 
 All quantitative results in this paper are therefore properties of the
-difference-based verification network. They are not evidence for or against the
-CNN--BiLSTM--Transformer stack, which the present experiments do not test.
-Fig.~\ref{fig:architecture} draws the separation explicitly.
+difference-based verification network, not of the CNN--BiLSTM--Transformer
+stack. Section~\ref{sec:ablation-results} takes the further step of asking
+whether that stack \emph{should} be connected, and finds that it should not:
+every configuration that routes it onto the decision path is significantly
+worse than leaving it off. Fig.~\ref{fig:architecture} draws the separation
+explicitly.
 
 \begin{table}[!t]
 \caption{Model Configuration as Trained}
@@ -801,11 +819,13 @@ threshold is derived from data, not assigned.
 
 \subsection{Ablation Design}
 
-Four variants---CNN-only, LSTM-only, Transformer-only and the full model---were
-trained on identical splits with identical seeds and schedules, differing only
-in the representation branch instantiated. Section~\ref{sec:ablation-results}
-reports both what was measured and why the comparison does not answer the
-question it was posed to answer.
+Five variants were trained under the full leave-one-subject-out protocol at
+three random seeds, differing only in how the observed and claimed sequences
+are encoded before comparison. All share folds, seeds, schedule, and the
+downstream temporal CNN and classifier, so each can be compared to the deployed
+model pairwise over $13 \times 3 = 39$ matched observations. The control is an
+identity encoder, which reproduces the deployed model exactly;
+Section~\ref{sec:ablation-results} reports the design and the outcome.
 
 \subsection{Face-Swap Test Protocol}
 
@@ -1006,65 +1026,92 @@ calibrated probabilities.}
 \subsection{Architectural Ablation}
 \label{sec:ablation-results}
 
-Table~\ref{tab:ablation} and Fig.~\ref{fig:ablation} report the four variants.
-The measured spread is narrow: $88.93\%$ to $90.51\%$ accuracy, a range of
-$1.58$ points, with Transformer-only nominally highest in accuracy, F1, AUC and
-precision, and the full model highest in recall.
+The dual-path stack of Section~\ref{sec:aux} is inert in the deployed
+checkpoint. The obvious question is whether it should be: would wiring it onto
+the decision path improve verification? Table~\ref{tab:ablation} and
+Fig.~\ref{fig:ablation} answer it.
 
-These numbers do not support conclusions about component contribution, and we
-do not draw any. On inspection of the released implementation, all four
-variants compute their logits through an identical
-\texttt{diff\_conv} $\rightarrow$ \texttt{diff\_classifier} head applied to the
-same raw pairwise comparison tensor; the CNN, BiLSTM and Transformer branches
-that nominally distinguish the variants produce only the auxiliary embedding of
-Section~\ref{sec:aux} and never reach the logits. Instantiating each variant
-and counting confirms it: every one carries exactly $133{,}058$ parameters on
-the decision path, differing only in the $74{,}000$ to $716{,}000$ parameters
-that sit off it.
+We construct five variants that differ only in how the observed and claimed
+sequences are encoded before they are compared. Each encodes both sequences
+with shared weights, preserves the time axis, and forms the same per-timestep
+comparison tensor, which the same temporal CNN and classifier then consume. The
+control, \emph{Raw}, uses an identity encoder and therefore reproduces the
+deployed model exactly at $133{,}058$ parameters. Four \emph{Raw~+~X} variants
+concatenate the encoded comparison onto the raw one, so each contains the
+deployed model's evidence and can only justify itself by improving on it.
+\emph{Hybrid only} removes the raw comparison, isolating what the encoder
+contributes alone. Every variant is trained under the full leave-one-subject-out
+protocol at three random seeds, giving $13 \times 3 = 39$ observations per
+variant on identical folds and identical initialisations.
 
-The four variants are therefore the same classifier trained four times, and the
-$1.58$-point spread measures run-to-run variance under different random
-initialisation of surrounding modules---which is itself a useful calibration,
-since it bounds the difference that can be considered meaningful in
-Table~\ref{tab:ablation} at somewhat under two accuracy points. The experiment
-that would answer the original question requires routing each branch's output
-into the classifier; Section~\ref{sec:threats} states it as required future
-work rather than as a completed contribution.
+The result is unambiguous and it is negative. The deployed model is the best of
+the five, at $94.25\% \pm 3.09\%$ ROC-AUC. Every encoder variant is worse, and
+because all variants share folds and seeds the comparison can be made pairwise,
+which removes fold difficulty and initialisation luck. The paired deficits
+range from $-2.53$ points for \emph{Raw~+~CNN} to $-5.93$ for
+\emph{Raw~+~BiLSTM}; all four are significant at $p < 10^{-3}$
+(two-sided paired $t$-test, $n = 39$), and no variant wins more than 9 of its
+39 paired trials. The $95\%$ confidence interval on each deficit lies wholly
+below zero (Fig.~\ref{fig:ablation}b). Adding capacity does not merely fail to
+help: the largest variant, at $981{,}000$ parameters, is $4.22$ points worse
+than the $133{,}058$-parameter control.
+
+\emph{Hybrid only} settles which half of the architecture carries the signal.
+Stripped of the raw per-timestep comparison, it reaches $50.70\% \pm 20.81\%$
+ROC-AUC---indistinguishable from chance, and with a standard deviation four
+times that of any other variant, indicating it often fails to learn at all. The
+discriminative information is in the direct per-dimension comparison between
+the observed sequence and the enrolled signature, where dimension $j$ of each is
+the same physical quantity and subtraction is meaningful. Passing both through
+a learned encoder first destroys that correspondence and forces the classifier
+to recover it from a representation that begins as a random projection.
+
+Two consequences follow. First, the ablation retroactively justifies the
+deployed architecture: the inert branch of Section~\ref{sec:aux} is not a
+missed opportunity, and connecting it would cost accuracy. Second, the result
+is a caution against the assumption that a richer temporal encoder is a free
+improvement. On this task, with this cohort size, it is a reliable
+regression.
 
 \begin{table}[!t]
-\caption{Architectural Ablation (Single Split). All Variants Share an
-Identical Decision Path; See Section~\ref{sec:ablation-results}}
+\caption{LOOCV Ablation Over 13 Folds and 3 Seeds ($n = 39$ Paired
+Observations per Variant). $\Delta$ is the Paired Change in ROC-AUC Against the
+Deployed Model}
 \label{tab:ablation}
 \centering
-\small
-\begin{tabular}{@{}lrrrrrr@{}}
+\footnotesize
+\begin{tabular}{@{}lrrrr@{}}
 \toprule
-\tabhead{Variant} & \tabhead{Acc} & \tabhead{F1} & \tabhead{AUC} &
-\tabhead{Total} & \tabhead{Decision} \\
- & \tabhead{(\%)} & \tabhead{(\%)} & \tabhead{(\%)} &
-\tabhead{params} & \tabhead{path} \\
+\tabhead{Variant} & \tabhead{Params} & \tabhead{ROC-AUC (\%)} &
+\tabhead{Acc (\%)} & \tabhead{$\Delta$ AUC} \\
 \midrule
-CNN-only         & 88.93 & 89.02 & 96.40 & 262{,}658 & 133{,}058 \\
-LSTM-only        & 89.33 & 89.11 & 96.10 & 207{,}042 & 133{,}058 \\
-Transformer-only & 90.51 & 90.24 & \textbf{96.89} & 539{,}970 & 133{,}058 \\
-Full model       & 90.32 & \textbf{90.37} & 96.11 & 848{,}614 & 133{,}058 \\
-\midrule
-Spread           & 1.58 & 1.35 & 0.79 & --- & 0 \\
+Raw (deployed)     & 133{,}058 & $\mathbf{94.25 \pm 3.09}$ & $\mathbf{86.04}$ & --- \\
+Raw + CNN          & 434{,}690 & $91.72 \pm 4.13$ & $82.66$ & $-2.53^{\ast}$ \\
+Raw + Transformer  & 712{,}002 & $90.37 \pm 5.13$ & $80.32$ & $-3.88^{\ast}$ \\
+Raw + Hybrid       & 980{,}994 & $90.03 \pm 6.11$ & $81.26$ & $-4.22^{\ast}$ \\
+Raw + BiLSTM       & 379{,}074 & $88.32 \pm 6.08$ & $74.84$ & $-5.93^{\ast}$ \\
+Hybrid only        & 876{,}162 & $50.70 \pm 20.81$ & $49.37$ & $-43.55^{\ast}$ \\
 \bottomrule
 \end{tabular}
+
+\vspace{2pt}
+\raggedright\footnotesize
+$^{\ast}$Significant at $p < 10^{-3}$, two-sided paired $t$-test over the 39
+matched (fold, seed) pairs. ``Hybrid only'' omits the raw comparison entirely.
 \end{table}
 
 \begin{figure*}[!t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig9_ablation.png}
-\caption{Architectural ablation over the four trained variants. (a) Measured
-validation metrics; all four fall within $1.58$ accuracy points of one another.
-(b) The reason: parameter counts measured by instantiating each variant show
-that all four carry exactly the same $133{,}058$ parameters on the verification
-decision path, and differ only in parameters that never reach the logits. The
-variants are one classifier trained four times, so panel (a) is best read as an
-estimate of run-to-run variance---roughly two accuracy points---rather than as
-evidence of component contribution.}
+\caption{LOOCV ablation over five variants, each measured on 13
+subject-held-out folds at 3 seeds. (a) ROC-AUC and accuracy per variant, with
+standard deviation across the 39 observations; the deployed model (dark) is
+best, and removing the raw per-timestep comparison entirely (rightmost) lands
+at chance. (b) Because every variant shares folds and seeds with the control,
+the comparison is made pairwise, removing fold difficulty and initialisation
+luck. All five $95\%$ confidence intervals lie wholly below zero. The deficit
+does not shrink as parameters are added: the largest variant is $4.22$ points
+worse than a control one-seventh its size.}
 \label{fig:ablation}
 \end{figure*}
 
@@ -1363,14 +1410,14 @@ the forensic case cited above~\cite{forensic_gait}.
 
 We list these in descending order of how much they should temper the results.
 
-\emph{The ablation does not test what it was designed to test.} As established
-in Section~\ref{sec:ablation-results}, the four variants share a decision path
-and the reported spread is run-to-run variance. The paper accordingly makes no
-claim about the contribution of the CNN, BiLSTM or Transformer components, and
-the architecture in Table~\ref{tab:config} should be understood as a
-difference-based temporal CNN with an unused representation branch attached.
-The corrected experiment---routing each branch's embedding into the classifier
-and retraining---is required before any architectural claim can be made.
+\emph{The ablation's negative result is specific to this scale.} Every encoder
+configuration we tested is significantly worse than raw differencing
+(Section~\ref{sec:ablation-results}), and we take that as justifying the
+deployed architecture. But 12 training subjects is a regime that penalises
+capacity, and the finding should not be read as a general claim that temporal
+encoders cannot help gait verification---only that, here, they reliably do not.
+Whether the ordering reverses on a CASIA-B-scale cohort is untested, and is the
+experiment we would run first given more data.
 
 \emph{The face-swap validation is small.} Section~\ref{sec:deepfake-results}
 now reports a measured outcome---3/3 clips correctly rejected, with similarity
@@ -1443,16 +1490,19 @@ shoulder countermotion and distal foot kinematics, and identifies the six
 joint-angle dimensions as carrying nearly twice their proportional share of
 discriminative signal.
 
-We have also been explicit about what the experiments do not show. The
-architectural ablation, as implemented, compares four instances of the same
-classifier and cannot speak to component contribution; the face-swap
-validation, though it correctly rejected all three generated clips with
-similarity to the true body source above $0.9998$ in every case, remains an
-existence check on a single generator rather than a statistically powered
-claim; and thirteen subjects is a small basis for a generalisation claim.
-These are stated as they are so that the result which does stand---that
-skeletal gait discriminates claimed identity in subject-disjoint evaluation at
-$94.95\%$ pooled AUC---can be read for what it is.
+An ablation over 39 matched trials shows that the minimal difference network
+is not merely adequate but preferable: every encoder configuration we tested is
+significantly worse, and stripping the raw per-timestep comparison reduces the
+system to chance. We have also been explicit about what the experiments do not
+show. The face-swap validation, though it correctly rejected all three
+generated clips with similarity to the true body source above $0.9998$ in every
+case, remains an existence check on a single generator rather than a
+statistically powered claim; thirteen subjects is a small basis for a
+generalisation claim; and the ablation's ordering is established at this cohort
+size, not in general. These are stated as they are so that the result which
+does stand---that skeletal gait discriminates claimed identity in
+subject-disjoint evaluation at $94.95\%$ pooled AUC---can be read for what it
+is.
 
 The broader argument is structural rather than numerical. Detectors that look
 for evidence inside the region an adversary controls are in a race they must

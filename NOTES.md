@@ -13,7 +13,7 @@ the figure/table inventory.
 3. Apply the verification report's three must-fix corrections.
 
 **Build status.** `paper.tex` compiles clean with the MiKTeX 25.12 toolchain
-installed into this session: 14 pages, 0 errors, 0 LaTeX warnings, 0 overfull
+installed into this session: 15 pages, 0 errors, 0 LaTeX warnings, 0 overfull
 boxes, 0 undefined citations or references.
 
 ```
@@ -129,6 +129,32 @@ section and it was sitting unnoticed in the existing JSON.
   `checkpoint_epoch_46_best.pth` (`val_accuracy` 93.9216, `train_accuracy`
   98.3815; stored `epoch` is 45 because it is zero-indexed).
 
+### 1.6 LOOCV normalization is transductive --- real, but worth 0.30 points
+
+`scripts/evaluation/evaluate.py` never passes `feature_stats`, so
+`GaitDataset` falls back to computing z-score statistics **from the held-out
+subject's own data**. The paper's feature-normalization text implied training
+statistics. The committed `loocv_results.json` was produced the first way.
+
+I flagged this as potentially serious. It is not. Running the deployed model
+both ways across all 13 folds:
+
+| Normalization | per-fold ROC-AUC |
+|---|---|
+| Training statistics (correct) | 94.67 +/- 3.06 |
+| Held-out subject's own (as shipped) | 94.97 +/- 2.90 |
+
+**Inflation: +0.30 points, p = 0.73 (paired, n = 13) --- not significant.**
+
+The headline is insensitive to the choice. The paper now states the protocol
+detail and this measurement explicitly rather than claiming training-only
+statistics. All ablation comparisons use training statistics.
+
+**Bonus: the headline number reproduced independently.** The legacy arm of the
+new script gives per-fold 94.97 +/- 2.90 / pooled 94.83, against the committed
+95.10 +/- 3.08 / pooled 94.95 --- within 0.13 points, from a different code
+path and a fresh training run.
+
 ---
 
 ## 2. Architecture: what the code actually does
@@ -180,29 +206,77 @@ wrong, and so is the "difference-based CNN plus hybrid classifier" reading —
 the difference CNN is the *entire* classifier. `encoder_output_dim=128` from
 `outputs/model_config.json` is used throughout, not the code defaults of 256.
 
-### 2.2 The ablation study does not measure what it claims
+### 2.2 The ablation study did not measure what it claimed --- NOW RESOLVED
 
-All four variants in `scripts/evaluation/ablation_study.py` — `CNNOnlyModel`,
-`LSTMOnlyModel`, `TransformerOnlyModel` and the full model — compute their
-logits through an **identical** `diff_conv` → `diff_classifier` head on the same
-raw comparison tensor. The named branch produces only an unused
-`video_embedding`. I verified by instantiation: **every variant carries exactly
-133,058 parameters on the decision path.**
+**Original problem.** All four variants in `scripts/evaluation/ablation_study.py`
+computed their logits through an identical `diff_conv` -> `diff_classifier` head
+on the same raw comparison tensor. The named branch produced only an unused
+`video_embedding`. Verified by instantiation: **every variant carried exactly
+133,058 parameters on the decision path.** The four "variants" were one
+classifier trained four times, and the 88.93-90.51% spread (1.58 points) was
+run-to-run variance, not component contribution.
 
-The four "variants" are therefore one classifier trained four times. The
-88.93 → 90.51% spread (1.58 points) is run-to-run variance from different random
-initialisation of the surrounding modules, not component contribution.
+**Two fix attempts, and why the first was also wrong.**
 
-**Resolution:** Table IX and Fig. 9 report the measured numbers, plus a
-decision-path parameter column that makes the problem visible; Section V-D
-states plainly that no component-contribution conclusion follows, and reuses the
-spread as a useful noise-floor estimate (~2 accuracy points). Section VII-C
-lists the corrected experiment — route each branch's embedding into the
-classifier and retrain — as required future work.
+- *v2* (`ablation_study.py`, corrected) put each branch on the decision path by
+  mean-pooling each sequence to an embedding and comparing embeddings. It
+  removed the bug but introduced a worse one: pooling discards the per-timestep
+  alignment between the observed sequence and the enrolled signature, which is
+  the signal the deployed model actually uses. Every variant landed at 40-79%
+  AUC. That measured how hard metric learning is on 10 training subjects, not
+  which encoder helps. Superseded; the script is kept only for provenance.
 
-**If you want the real ablation**, that is the change to make, and it is small:
-concatenate `video_embedding` (or the branch's sequence output) into the
-classifier input. I did not make it, per your option 1.
+- *v3* (`scripts/evaluation/ablation_loocv.py`) is the definitive experiment.
+  Each variant encodes both sequences with shared weights, **keeps the time
+  axis**, then classifies the per-timestep comparison. The control is an
+  identity encoder, which reproduces `models/full_pipeline.py` exactly at
+  133,058 parameters. Four `Raw + X` arms concatenate the encoded comparison
+  onto the raw one, so each contains the deployed model's evidence and can only
+  justify itself by beating it. A `Hybrid only` arm drops the raw comparison to
+  isolate the encoder's standalone contribution.
+
+**Protocol.** Full 13-fold LOOCV at 3 seeds = 39 observations per variant on
+identical folds and identical initialisations, so every comparison to the
+control is *paired*. Model state selected on training loss only, never on test.
+247 runs, 4h26m on an RTX 3050.
+
+**Result (the encoder stack should NOT be connected).**
+
+| Variant | Params | ROC-AUC | Paired delta | p (paired t, n=39) | Wins |
+|---|---|---|---|---|---|
+| **Raw (deployed)** | **133,058** | **94.25 +/- 3.09** | --- | --- | --- |
+| Raw + CNN | 434,690 | 91.72 +/- 4.13 | -2.53 | 2.9e-04 | 9/39 |
+| Raw + Transformer | 712,002 | 90.37 +/- 5.13 | -3.88 | 3.5e-05 | 7/39 |
+| Raw + Hybrid | 980,994 | 90.03 +/- 6.11 | -4.22 | 3.7e-04 | 9/39 |
+| Raw + BiLSTM | 379,074 | 88.32 +/- 6.08 | -5.93 | 1.7e-07 | 5/39 |
+| Hybrid only (no raw) | 876,162 | 50.70 +/- 20.81 | -43.55 | 1.1e-15 | 0/39 |
+
+Every 95% CI lies wholly below zero. Adding capacity monotonically hurts: the
+981k-parameter variant is 4.22 points worse than a control one-seventh its
+size. Stripping the raw comparison drops the system to chance.
+
+**Why this is the right answer, not a failure.** The raw comparison subtracts
+dimension j of the observed sequence from dimension j of the signature, where
+both are the same physical quantity, so the difference is meaningful at
+initialisation. A freshly initialised encoder turns that into a random
+projection the classifier must undo. At 12 training subjects there is not
+enough data to relearn what raw differencing gives for free.
+
+**Caveat recorded in the paper.** This ordering is established at this cohort
+size. It is not a general claim that temporal encoders cannot help gait
+verification. Whether it reverses on a CASIA-B-scale cohort is untested.
+
+**Where this landed:** paper Section V-D, Table IX, Fig. 9, contribution 5,
+abstract, conclusion, and Section VII-C (the old "ablation is invalid"
+limitation is replaced by the cohort-size caveat).
+
+**Warning.** An earlier complete 13-fold run was destroyed on 2026-08-28 by
+starting a second run over it: `Tee-Object` truncates the log, and the script
+rewrites its results JSON after every fold, so a finished result silently
+became a 1-fold result. `ablation_loocv.py` now archives any existing results
+to `.<timestamp>.bak.json` on startup. Do not run two instances over one output
+path.
+
 
 ### 2.3 Attribution is gradient×input, not Grad-CAM
 
@@ -308,14 +382,15 @@ source. Table XII now uses verified rows only.
 
 ---
 
-## 4. The face-swap validation has no quantitative result
+## 4. The face-swap validation --- RESOLVED, 3/3 correctly rejected
 
 `methodology.tex` says the system "was additionally validated on AI-generated
 face-swapped deepfake videos, confirming that the gait signature of the source
 body is preserved through the face-swap process and can reliably expose the
 forgery."
 
-**I could not find any artefact backing that claim.** `data/deepfake/` has the
+**As originally written, no artefact backed that claim.** It does now --- see
+the resolution at the end of this section --- but the original gap was real: `data/deepfake/` has the
 three clips; there is no scored output JSON, no log of inference on them, and no
 gait-preservation report. `verify_gait_preservation.py` exists but I found no
 evidence of its output. I could not run it myself: **MediaPipe is broken in this
@@ -335,6 +410,48 @@ n = 3 it is an existence check rather than a measurement — I would generate
 20–30 clips across at least two face-swap models before calling it validation.
 
 ---
+
+
+### Resolution (2026-08-28)
+
+MediaPipe was never broken. `import mediapipe` fails only on the **global**
+Python 3.11, where a mismatched `pyOpenSSL 24.2.1` / `cryptography 50.0.0` pair
+raises inside `OpenSSL.crypto`, reached transitively via
+TensorFlow -> googleapiclient -> oauth2client. The repo's `venv/` is clean
+(mediapipe 0.10.32, protobuf 6.33.2, torch 2.10.0+cu130 with CUDA). Use
+`venv/Scripts/python.exe` and set `PYTHONPATH` to the repo root; the venv has no
+editable install, so `utils` will not import otherwise.
+
+Feature-schema compatibility was checked before scoring: the checkpoint's
+`feature_stats` is 78-dim, `model_config.json` has `input_dim=78`, and
+`enrolled_identities.pkl` gives 36 + 6 + 36 = 78. No mismatch.
+
+Results, at the LOOCV Youden threshold tau* = 0.7737, saved to
+`outputs/evaluation/deepfake_test/faceswap_validation_results.json`:
+
+| Clip (body_face) | Claimed | Sim. to claimed | Verdict | Matched | Sim. |
+|---|---|---|---|---|---|
+| Subject6_Subject3 | Subject 3 | 0.0057 | IDENTITY_MISMATCH | Subject 6 | 0.9999 |
+| Subject7_Subject11 | Subject 11 | 0.0003 | IDENTITY_MISMATCH | Subject 7 | 0.9999 |
+| Subject8_Subject5 | Subject 5 | <0.0001 | IDENTITY_MISMATCH | Subject 8 | 0.99999 |
+
+**3/3 correctly rejected**, and in each case the system positively identified
+the true body source. Frame extraction succeeded on the full length of all
+three clips (135, 149, 327 valid frames), so this is not partial-pose failure.
+
+**One caveat worth keeping.** On `Subject8_body_Subject5_face`, the correct
+match (Subject 8, 0.99999) is nearly tied by an impostor score for Subject 10
+(0.99986) --- the closest margin in the whole validation, four orders of
+magnitude tighter than any other pair. The clip is still handled correctly, but
+the embedding space is not uniformly separated across all subject pairs.
+
+**Still only n = 3, one generator, one masking configuration.** This is an
+existence check, not a powered validation. The JSON was anonymized to
+"Subject N" via the `_SUBJECT_ANON` map in `figstyle.py`; the raw filenames in
+`data/deepfake/` are unchanged, since they are source data rather than a
+publication artefact.
+
+Written into paper Section V-E, Table X, the abstract, and the conclusion.
 
 ## 5. Figures
 
@@ -358,7 +475,7 @@ generated from the real JSON by `scripts/generate_figures/`.
 | `fig6_confusion.png` | `loocv_results.json` | Both operating points side by side — the only way to make the τ=0.5 vs τ\* confusion (§1.2) visible rather than buried in prose. |
 | `fig7_score_distribution.png` | `loocv_results.json` | Explains why two very different thresholds give similar accuracy: only 86 pairs (3.8%) lie between them. Also shows scores are uncalibrated. |
 | `fig8_loocv_spread.png` | `loocv_results.json` | Directly answers "is the ±std hiding an outlier fold" — it is unimodal with one low subject (Subject 12), named rather than anonymous. |
-| `fig9_ablation.png` | `ablation_results.json` + live param counts | Panel (b) measures the decision-path split by instantiating each variant, making §2.2 checkable by running the script. |
+| `fig9_ablation.png` | `ablation_loocv_results.json` | Panel (b) is a *paired* comparison against the deployed model: every variant shares folds and seeds with the control, so fold difficulty and seed luck cancel. All five 95% CIs fall below zero. |
 | `fig10_joint_importance.png` | `gradcam_results.json` + `enrolled_identities.pkl` | Skeleton geometry is the mean of all 13 enrolment signatures, so even the layout is data-derived rather than drawn by hand. |
 | `fig11_feature_groups.png` | `gradcam_results.json` | Carries the 1.94× joint-angle finding (§1.4) — the paper's most actionable explainability result. |
 
@@ -398,10 +515,13 @@ times, which is the fastest way to see §2.2.
 
 ## 7. Things I did not do
 
-- **Did not re-run the ablation.** Your option 1. Also: torch here is CPU-only
-  (`2.4.0+cpu`, `cuda False`), so retraining four variants would have been slow.
-- **Did not run inference on the face-swap clips.** MediaPipe is broken in this
-  environment (§4).
+- **The ablation was re-run** (§2.2) --- 247 runs, 13 folds, 3 seeds, 4h26m on
+  the RTX 3050 via `venv/Scripts/python.exe`, which has `torch 2.10.0+cu130`
+  with CUDA. My earlier note that torch was CPU-only referred to the *global*
+  interpreter, not the venv.
+- **The face-swap clips were scored** (§4). MediaPipe was never actually broken;
+  the failure was the global interpreter's `pyOpenSSL`/`cryptography` pair,
+  reached transitively through TensorFlow. The venv is fine.
 - **Did not touch the IEEE DataPort record**, which still carries the stale
   metrics (§1.1) and the wrong augmentation list (§1.5).
 - **Did not modify** `methodology.tex`, `README.md`, `context.md`, or anything
