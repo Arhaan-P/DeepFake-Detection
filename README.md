@@ -126,7 +126,7 @@ The editable install (`pip install -e .`) makes the `models` and `utils` package
 
 ### Data Preparation
 
-1. Place walking videos in `data/videos/` named as `{Name}_{View}{Number}.mp4` (e.g., `Arhaan_F1.mp4`, `John_S2.mp4`)
+1. Place walking videos in `data/videos/` named as `{Name}_{View}{Number}.mp4` (e.g., `SubjectA_F1.mp4`, `SubjectB_S2.mp4`)
 2. Place deepfake videos in `data/deepfake/`
 
 ## Usage
@@ -140,14 +140,14 @@ python scripts/run_pipeline.py --videos_dir data/videos --augmented_dir data/aug
 ### Step-by-Step
 
 ```bash
-# 1. Augment videos (16x)
-python scripts/preprocessing/augment_videos.py --input_dir data/videos --output_dir data/augmented_videos
+# 1. Augment videos (16x) -- reads data/videos, writes data/augmented_videos (hardcoded in the script)
+python scripts/preprocessing/augment_videos.py
 
 # 2. Extract gait features (MediaPipe, 78-dim)
-python scripts/preprocessing/preprocess_videos.py --input_dir data/augmented_videos --output_file data/gait_features/gait_features.pkl
+python scripts/preprocessing/preprocess_videos.py --videos_dir data/videos --augmented_dir data/augmented_videos --output data/gait_features/gait_features.pkl
 
-# 3. Enroll identities
-python scripts/enrollment/enroll_identities.py --features_file data/gait_features/gait_features.pkl
+# 3. Enroll identities (--from_features required, otherwise this defaults to re-processing raw videos)
+python scripts/enrollment/enroll_identities.py --from_features --features_file data/gait_features/gait_features.pkl
 
 # 4. Train model
 python scripts/training/train.py --features_file data/gait_features/gait_features.pkl --epochs 50
@@ -175,8 +175,9 @@ python facefusion.py run --ui-layouts default
 # Then configure: inswapper_128_fp16 model, strict memory, face-only mask
 # Generate face-swaps: save as data/deepfake/{BodyPerson}_body_{FacePerson}_face.mp4
 
-# 11. Verify gait preservation in face-swapped videos
-python scripts/evaluation/verify_gait_preservation.py --original_video path/to/original.mp4 --deepfake_video path/to/deepfake.mp4
+# 11. Verify gait preservation in face-swapped videos -- takes no arguments,
+# auto-discovers all data/deepfake/*_body_*_face.mp4 pairs
+python scripts/evaluation/verify_gait_preservation.py
 
 # 12. Run inference on deepfake video to detect it
 python scripts/inference/inference.py --video data/deepfake/{BodyPerson}_body_{FacePerson}_face.mp4 --claimed_identity "{FacePerson}"
@@ -185,8 +186,8 @@ python scripts/inference/inference.py --video data/deepfake/{BodyPerson}_body_{F
 ### Inference Output
 
 ```
-AUTHENTIC — Verified as Arhaan    (similarity: 0.87, confidence: 0.92)
-DEEPFAKE OF Arhaan                (similarity: 0.23, confidence: 0.95)
+AUTHENTIC — Verified as SubjectA    (similarity: 0.87, confidence: 0.92)
+DEEPFAKE OF SubjectA                (similarity: 0.23, confidence: 0.95)
 ```
 
 ## Evaluation Metrics
@@ -227,4 +228,4 @@ If you use this work, please cite:
 
 ## License
 
-This project is for academic/research purposes.
+MIT — see [LICENSE](LICENSE).
