@@ -6,7 +6,36 @@ build-backend = "setuptools.build_meta"
 name = "gait-deepfake-detection"
 version = "1.0.0"
 description = "Gait-based deepfake detection using CNN+BiLSTM+Transformer hybrid architecture"
+readme = "README.md"
 requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+    { name = "Arhaan Penwala" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "torch==2.10.0",
+    "torchvision==0.25.0",
+    "torchaudio==2.10.0",
+    "opencv-python==4.12.0.88",
+    "mediapipe==0.10.32",
+    "albumentations==2.0.8",
+    "pandas==2.3.3",
+    "numpy==2.2.6",
+    "matplotlib==3.10.8",
+    "seaborn==0.13.2",
+    "tqdm==4.67.1",
+    "tensorboard==2.20.0",
+    "scikit-learn==1.8.0",
+]
+
+[project.urls]
+Repository = "https://github.com/Arhaan-P/DeepFake-Detection"
 
 [tool.setuptools.packages.find]
 include = ["models*", "utils*"]
