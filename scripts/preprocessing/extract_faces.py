@@ -8,13 +8,15 @@ Usage:
     python scripts/preprocessing/extract_faces.py
 """
 
+from pathlib import Path
+
 import cv2
 import numpy as np
-from pathlib import Path
-import sys
 
 
-def extract_best_face_frame(video_path: str, output_path: str, sample_count: int = 20) -> bool:
+def extract_best_face_frame(
+    video_path: str, output_path: str, sample_count: int = 20
+) -> bool:
     """
     Extract the best face frame from a video.
     Samples frames evenly across the video and picks the one with the largest detected face.
@@ -39,13 +41,17 @@ def extract_best_face_frame(video_path: str, output_path: str, sample_count: int
         return False
 
     # Use OpenCV's built-in face detector (Haar cascade)
-    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+    face_cascade = cv2.CascadeClassifier(
+        cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+    )
 
     best_frame = None
     best_face_size = 0
 
     # Sample frames evenly across the video
-    frame_indices = np.linspace(total_frames * 0.1, total_frames * 0.9, sample_count, dtype=int)
+    frame_indices = np.linspace(
+        total_frames * 0.1, total_frames * 0.9, sample_count, dtype=int
+    )
 
     for idx in frame_indices:
         cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
@@ -54,9 +60,11 @@ def extract_best_face_frame(video_path: str, output_path: str, sample_count: int
             continue
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(50, 50))
+        faces = face_cascade.detectMultiScale(
+            gray, scaleFactor=1.1, minNeighbors=5, minSize=(50, 50)
+        )
 
-        for (x, y, w, h) in faces:
+        for x, y, w, h in faces:
             face_size = w * h
             if face_size > best_face_size:
                 best_face_size = face_size
@@ -77,7 +85,7 @@ def extract_best_face_frame(video_path: str, output_path: str, sample_count: int
         cap.release()
         if ret:
             cv2.imwrite(output_path, frame)
-            print(f"  No face detected by Haar; saved middle frame as fallback")
+            print("  No face detected by Haar; saved middle frame as fallback")
             return True
         return False
 
@@ -94,7 +102,7 @@ def main():
     video_files = sorted(videos_dir.glob("*.mp4"))
     identities = set()
     for vf in video_files:
-        name = vf.stem.rsplit("_", 1)[0]  # "Arhaan_F1" -> "Arhaan"
+        name = vf.stem.rsplit("_", 1)[0]  # "SubjectA_F1" -> "SubjectA"
         identities.add(name)
 
     identities = sorted(identities)
@@ -137,33 +145,37 @@ def main():
     print("\n" + "=" * 60)
     print("RECOMMENDED FACE-SWAP PAIRS FOR FACEFUSION")
     print("=" * 60)
-    print(f"{'#':<4} {'Body (gait owner)':<18} {'Face (swap on)':<18} {'Target Video':<20} {'Output Filename'}")
+    print(
+        f"{'#':<4} {'Body (gait owner)':<18} {'Face (swap on)':<18} {'Target Video':<20} {'Output Filename'}"
+    )
     print("-" * 95)
 
-    # Generate diverse swap pairs
+    # Generate diverse swap pairs. Template with placeholder identities --
+    # substitute your own enrolled subjects' names (matching data/videos/
+    # filenames) before running.
     pairs = [
-        ("Arhaan", "Devika", "Arhaan_F1.mp4"),
-        ("Arhaan", "Aarav", "Arhaan_S1.mp4"),
-        ("Aarav", "Ananya", "Aarav_F1.mp4"),
-        ("Devika", "Arhaan", "Devika_F1.mp4"),
-        ("Ananya", "Prakhar", "Ananya_F1.mp4"),
-        ("Prakhar", "Bharti", "Prakhar_F1.mp4"),
-        ("Bharti", "Som", "Bharti_F1.mp4"),
-        ("Som", "Teja", "Som_F1.mp4"),
-        ("Teja", "Vibhav", "Teja_F1.mp4"),
-        ("Vedant", "Prayag", "Vedant_F1.mp4"),
-        ("Prayag", "Vedant2", "Prayag_F1.mp4"),
-        ("Vibhav", "A2", "Vibhav_F1.mp4"),
+        ("SubjectD", "SubjectF", "SubjectD_F1.mp4"),
+        ("SubjectD", "SubjectB", "SubjectD_S1.mp4"),
+        ("SubjectB", "SubjectC", "SubjectB_F1.mp4"),
+        ("SubjectF", "SubjectD", "SubjectF_F1.mp4"),
+        ("SubjectC", "SubjectG", "SubjectC_F1.mp4"),
+        ("SubjectG", "SubjectE", "SubjectG_F1.mp4"),
+        ("SubjectE", "SubjectI", "SubjectE_F1.mp4"),
+        ("SubjectI", "SubjectJ", "SubjectI_F1.mp4"),
+        ("SubjectJ", "SubjectM", "SubjectJ_F1.mp4"),
+        ("SubjectK", "SubjectH", "SubjectK_F1.mp4"),
+        ("SubjectH", "SubjectL", "SubjectH_F1.mp4"),
+        ("SubjectM", "SubjectA", "SubjectM_F1.mp4"),
     ]
 
     for i, (body, face, video) in enumerate(pairs, 1):
         output = f"{body}_body_{face}_face.mp4"
         print(f"{i:<4} {body:<18} {face:<18} {video:<20} {output}")
 
-    print(f"\nUse these pairs in FaceFusion GUI:")
-    print(f"  Source (face donor) = data/deepfake/faces/<Face>.jpg")
-    print(f"  Target (body video) = data/videos/<Target Video>")
-    print(f"  Output             = data/deepfake/<Output Filename>")
+    print("\nUse these pairs in FaceFusion GUI:")
+    print("  Source (face donor) = data/deepfake/faces/<Face>.jpg")
+    print("  Target (body video) = data/videos/<Target Video>")
+    print("  Output             = data/deepfake/<Output Filename>")
 
 
 if __name__ == "__main__":

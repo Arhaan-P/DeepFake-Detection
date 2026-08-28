@@ -20,8 +20,10 @@ sys.path.insert(0, str(REPO))
 
 # The ablation module imports the data loader at module scope, which drags in
 # the whole MediaPipe/TF stack. We only need the nn.Module definitions here.
-for mod, attrs in (("utils.data_loader", ["create_data_loaders"]),
-                   ("utils.logger", ["setup_logging", "close_logging"])):
+for mod, attrs in (
+    ("utils.data_loader", ["create_data_loaders"]),
+    ("utils.logger", ["setup_logging", "close_logging"]),
+):
     if mod not in sys.modules:
         stub = types.ModuleType(mod)
         for a in attrs:
@@ -32,23 +34,44 @@ import torch
 import torch.nn as nn
 
 from scripts.evaluation.ablation_study import (
-    CNNOnlyModel, LSTMOnlyModel, TransformerOnlyModel, FullHybridModel)
+    CNNOnlyModel,
+    FullHybridModel,
+    LSTMOnlyModel,
+    TransformerOnlyModel,
+)
 
 BUILDERS = {
     "CNN-Only": lambda: CNNOnlyModel(
-        input_dim=78, hidden_dims=(64, 128), output_dim=128,
-        verification_hidden=64, dropout=0.1),
+        input_dim=78,
+        hidden_dims=(64, 128),
+        output_dim=128,
+        verification_hidden=64,
+        dropout=0.1,
+    ),
     "LSTM-Only": lambda: LSTMOnlyModel(
-        input_dim=78, lstm_hidden=64, lstm_layers=1,
-        verification_hidden=64, dropout=0.1),
+        input_dim=78, lstm_hidden=64, lstm_layers=1, verification_hidden=64, dropout=0.1
+    ),
     "Transformer-Only": lambda: TransformerOnlyModel(
-        input_dim=78, d_model=128, nhead=4, num_layers=2,
-        verification_hidden=64, dropout=0.1),
+        input_dim=78,
+        d_model=128,
+        nhead=4,
+        num_layers=2,
+        verification_hidden=64,
+        dropout=0.1,
+    ),
     "Full Hybrid": lambda: FullHybridModel(
-        input_dim=78, encoder_hidden_dims=(64, 128), encoder_output_dim=128,
-        lstm_hidden=64, lstm_layers=1, transformer_d_model=128,
-        transformer_heads=4, transformer_layers=2, embedding_dim=128,
-        verification_hidden=64, dropout=0.1),
+        input_dim=78,
+        encoder_hidden_dims=(64, 128),
+        encoder_output_dim=128,
+        lstm_hidden=64,
+        lstm_layers=1,
+        transformer_d_model=128,
+        transformer_heads=4,
+        transformer_layers=2,
+        embedding_dim=128,
+        verification_hidden=64,
+        dropout=0.1,
+    ),
 }
 
 # Which submodule is "the branch under test" for each variant.
@@ -116,7 +139,9 @@ for name, build in BUILDERS.items():
     print(f"    total trainable      {total:>9,d}")
     print(f"    receiving gradient   {on_path:>9,d}  ({pct_path:5.1f}%)")
     print(f"    branch params        {branch_params:>9,d}")
-    print(f"    branch w/ gradient   {branch_grad:>9,d}  ({pct_branch:5.1f}%)  [{status}]")
+    print(
+        f"    branch w/ gradient   {branch_grad:>9,d}  ({pct_branch:5.1f}%)  [{status}]"
+    )
 
 print("\n" + "=" * 74)
 if failures:
