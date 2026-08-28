@@ -1,15 +1,37 @@
 """
 Ablation Study for Gait-Based Deepfake Detection
 =================================================
-Trains and evaluates 4 model variants to demonstrate each component's contribution:
+Trains and evaluates 4 model variants to measure each component's contribution
+to VERIFICATION DISCRIMINATIVENESS:
 
-1. CNN-only:         GaitEncoder → MLP classifier (no temporal modeling)
-2. LSTM-only:        BiLSTM → MLP classifier (no CNN, no Transformer)
-3. Transformer-only: Transformer → MLP classifier (no CNN, no LSTM)
-4. Full Hybrid:      CNN + BiLSTM + Transformer (our proposed model)
+1. CNN-only:         GaitEncoder embedding only (no temporal modeling)
+2. LSTM-only:        BiLSTM embedding only (no CNN, no Transformer)
+3. Transformer-only: Transformer embedding only (no CNN, no LSTM)
+4. Full Hybrid:      CNN -> (BiLSTM + Transformer) fused embedding
 
-All variants use the SAME difference-based verification approach and
-train/val split for fair comparison.
+CORRECTED VERSION (see NOTES.md Section 2.2 in the paper repo). The original
+version of this script computed every variant's verification logits from an
+identical `diff_conv` -> `diff_classifier` head applied to the RAW 78-dim
+(video - claimed) feature difference. Each variant's named branch (CNN /
+LSTM / Transformer) produced an embedding that was returned in the output
+dict but never reached the logits and received no gradient from the
+cross-entropy loss -- so all four variants were, numerically, the same
+classifier trained four times, and the accuracy spread between them measured
+training variance, not component contribution.
+
+This version fixes that: each variant encodes BOTH the video sequence and the
+claimed-identity sequence through its OWN branch (shared weights between the
+two forward passes, i.e. Siamese), then classifies a comparison of the two
+resulting embeddings:
+
+    combined = [e_v || e_c || |e_v - e_c| || e_v * e_c]
+    logits   = MLP(combined)
+
+so the branch under test is now the only thing standing between the input and
+the decision -- exactly what an ablation over "which temporal branch" is
+supposed to isolate. All four variants share this same comparison-and-classify
+head structure (not the same instantiated weights); what differs is only the
+encoder that produces e_v and e_c.
 
 Usage:
     python scripts/evaluation/ablation_study.py --features_file data/gait_features/gait_features.pkl --epochs 50
@@ -39,199 +61,220 @@ from utils.logger import setup_logging, close_logging
 # ============================================================
 # Ablation Model Variants
 # ============================================================
+#
+# Shared comparison-and-classify head. Every variant below builds its own
+# instance of this class -- it is NOT shared weights across variants -- and
+# is fed embeddings from that variant's own encoder branch, applied
+# identically (shared weights) to the video and the claimed sequences.
+
+class EmbeddingComparisonHead(nn.Module):
+    """
+    Classifies a pair of embeddings via [e_v || e_c || |e_v-e_c| || e_v*e_c].
+
+    This is the standard verification comparison signal, operating on
+    embeddings rather than on raw per-timestep features, so that the
+    encoder producing those embeddings is the only thing an ablation
+    swaps out.
+    """
+
+    def __init__(self, embed_dim, hidden=64, dropout=0.1):
+        super().__init__()
+        self.mlp = nn.Sequential(
+            nn.Linear(embed_dim * 4, hidden),
+            nn.ReLU(), nn.Dropout(dropout),
+            nn.Linear(hidden, hidden // 2),
+            nn.ReLU(), nn.Dropout(dropout),
+            nn.Linear(hidden // 2, 2)
+        )
+
+    def forward(self, e_v, e_c):
+        combined = torch.cat([e_v, e_c, torch.abs(e_v - e_c), e_v * e_c], dim=1)
+        return self.mlp(combined)
+
+
+def _init_weights(module):
+    for m in module.modules():
+        if isinstance(m, nn.LSTM):
+            continue  # PyTorch default LSTM init, matches full_pipeline.py
+        if isinstance(m, nn.Linear):
+            nn.init.xavier_uniform_(m.weight)
+            if m.bias is not None:
+                nn.init.zeros_(m.bias)
+        elif isinstance(m, nn.Conv1d):
+            nn.init.kaiming_normal_(m.weight, mode='fan_out')
+            if m.bias is not None:
+                nn.init.zeros_(m.bias)
+
 
 class CNNOnlyModel(nn.Module):
-    """Variant 1: CNN spatial encoder only — no temporal modeling."""
-    
-    def __init__(self, input_dim=78, hidden_dims=(64, 128), output_dim=128, 
+    """Variant 1: CNN spatial encoder only -- no temporal modeling."""
+
+    def __init__(self, input_dim=78, hidden_dims=(64, 128), output_dim=128,
                  verification_hidden=64, dropout=0.1):
         super().__init__()
-        
-        # CNN encoder (same as GaitEncoder)
+
         from models.gait_encoder import GaitEncoder
         self.encoder = GaitEncoder(
             input_dim=input_dim, hidden_dims=hidden_dims,
             output_dim=output_dim, dropout=dropout
         )
-        
-        # Global average pool over time → single vector
-        self.pool = nn.AdaptiveAvgPool1d(1)
-        
-        # Difference-based classifier (same approach as full model)
-        comparison_dim = input_dim * 3  # diff, abs_diff, product
-        self.diff_conv = nn.Sequential(
-            nn.Conv1d(comparison_dim, verification_hidden, kernel_size=7, padding=3),
-            nn.BatchNorm1d(verification_hidden),
-            nn.ReLU(), nn.Dropout(dropout),
-            nn.Conv1d(verification_hidden, verification_hidden, kernel_size=5, padding=2),
-            nn.BatchNorm1d(verification_hidden),
-            nn.ReLU(), nn.Dropout(dropout),
-            nn.Conv1d(verification_hidden, verification_hidden // 2, kernel_size=3, padding=1),
-            nn.BatchNorm1d(verification_hidden // 2),
-            nn.ReLU(), nn.AdaptiveAvgPool1d(1)
-        )
-        self.diff_classifier = nn.Sequential(
-            nn.Linear(verification_hidden // 2, verification_hidden // 2),
-            nn.ReLU(), nn.Dropout(dropout),
-            nn.Linear(verification_hidden // 2, 2)
-        )
-        
-        self._init_weights()
-    
-    def _init_weights(self):
-        for m in self.modules():
-            if isinstance(m, nn.Linear):
-                nn.init.xavier_uniform_(m.weight)
-                if m.bias is not None: nn.init.zeros_(m.bias)
-            elif isinstance(m, nn.Conv1d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out')
-                if m.bias is not None: nn.init.zeros_(m.bias)
-    
+        self.head = EmbeddingComparisonHead(output_dim, verification_hidden, dropout)
+        _init_weights(self)
+
+    def _embed(self, x):
+        # GaitEncoder returns (B, T, output_dim); pool over time to a vector.
+        return self.encoder(x).mean(dim=1)
+
     def forward(self, video_features, claimed_features=None, mode='verification'):
-        if mode == 'verification' and claimed_features is not None:
-            diff = video_features - claimed_features
-            abs_diff = torch.abs(diff)
-            product = video_features * claimed_features
-            combined = torch.cat([diff, abs_diff, product], dim=2)
-            x = combined.permute(0, 2, 1)
-            x = self.diff_conv(x).squeeze(-1)
-            logits = self.diff_classifier(x)
-            probs = F.softmax(logits, dim=1)
-            return {
-                'verification': {'logits': logits, 'probs': probs, 'prediction': probs.argmax(dim=1)},
-                'is_authentic': probs.argmax(dim=1),
-                'similarity': probs[:, 1],
-                'confidence': probs.max(dim=1).values,
-                'video_embedding': self.encoder(video_features).mean(dim=1)
-            }
-        raise ValueError("CNN-only requires verification mode")
+        if mode != 'verification' or claimed_features is None:
+            raise ValueError("CNN-only requires verification mode")
+
+        e_v = self._embed(video_features)
+        e_c = self._embed(claimed_features)
+        logits = self.head(e_v, e_c)
+        probs = F.softmax(logits, dim=1)
+        return {
+            'verification': {'logits': logits, 'probs': probs, 'prediction': probs.argmax(dim=1)},
+            'is_authentic': probs.argmax(dim=1),
+            'similarity': probs[:, 1],
+            'confidence': probs.max(dim=1).values,
+            'video_embedding': e_v
+        }
 
 
 class LSTMOnlyModel(nn.Module):
-    """Variant 2: BiLSTM only — captures local temporal patterns, no CNN/Transformer."""
-    
-    def __init__(self, input_dim=78, lstm_hidden=64, lstm_layers=1, 
+    """Variant 2: BiLSTM only -- local temporal patterns, no CNN/Transformer."""
+
+    def __init__(self, input_dim=78, lstm_hidden=64, lstm_layers=1,
                  verification_hidden=64, dropout=0.1):
         super().__init__()
-        
+
         from models.temporal_model import BiLSTMEncoder
         self.bilstm = BiLSTMEncoder(
             input_dim=input_dim, hidden_dim=lstm_hidden,
             num_layers=lstm_layers, dropout=dropout
         )
-        
-        comparison_dim = input_dim * 3
-        self.diff_conv = nn.Sequential(
-            nn.Conv1d(comparison_dim, verification_hidden, kernel_size=7, padding=3),
-            nn.BatchNorm1d(verification_hidden),
-            nn.ReLU(), nn.Dropout(dropout),
-            nn.Conv1d(verification_hidden, verification_hidden, kernel_size=5, padding=2),
-            nn.BatchNorm1d(verification_hidden),
-            nn.ReLU(), nn.Dropout(dropout),
-            nn.Conv1d(verification_hidden, verification_hidden // 2, kernel_size=3, padding=1),
-            nn.BatchNorm1d(verification_hidden // 2),
-            nn.ReLU(), nn.AdaptiveAvgPool1d(1)
-        )
-        self.diff_classifier = nn.Sequential(
-            nn.Linear(verification_hidden // 2, verification_hidden // 2),
-            nn.ReLU(), nn.Dropout(dropout),
-            nn.Linear(verification_hidden // 2, 2)
-        )
-        
-        self._init_weights()
-    
-    def _init_weights(self):
-        for m in self.modules():
-            if isinstance(m, nn.LSTM): continue
-            if isinstance(m, nn.Linear):
-                nn.init.xavier_uniform_(m.weight)
-                if m.bias is not None: nn.init.zeros_(m.bias)
-            elif isinstance(m, nn.Conv1d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out')
-                if m.bias is not None: nn.init.zeros_(m.bias)
-    
+        embed_dim = self.bilstm.output_dim  # hidden_dim * num_directions
+        self.head = EmbeddingComparisonHead(embed_dim, verification_hidden, dropout)
+        _init_weights(self)
+
+    def _embed(self, x):
+        _, hidden = self.bilstm(x)
+        return hidden
+
     def forward(self, video_features, claimed_features=None, mode='verification'):
-        if mode == 'verification' and claimed_features is not None:
-            diff = video_features - claimed_features
-            abs_diff = torch.abs(diff)
-            product = video_features * claimed_features
-            combined = torch.cat([diff, abs_diff, product], dim=2)
-            x = combined.permute(0, 2, 1)
-            x = self.diff_conv(x).squeeze(-1)
-            logits = self.diff_classifier(x)
-            probs = F.softmax(logits, dim=1)
-            _, lstm_emb = self.bilstm(video_features)
-            return {
-                'verification': {'logits': logits, 'probs': probs, 'prediction': probs.argmax(dim=1)},
-                'is_authentic': probs.argmax(dim=1),
-                'similarity': probs[:, 1],
-                'confidence': probs.max(dim=1).values,
-                'video_embedding': lstm_emb
-            }
-        raise ValueError("LSTM-only requires verification mode")
+        if mode != 'verification' or claimed_features is None:
+            raise ValueError("LSTM-only requires verification mode")
+
+        e_v = self._embed(video_features)
+        e_c = self._embed(claimed_features)
+        logits = self.head(e_v, e_c)
+        probs = F.softmax(logits, dim=1)
+        return {
+            'verification': {'logits': logits, 'probs': probs, 'prediction': probs.argmax(dim=1)},
+            'is_authentic': probs.argmax(dim=1),
+            'similarity': probs[:, 1],
+            'confidence': probs.max(dim=1).values,
+            'video_embedding': e_v
+        }
 
 
 class TransformerOnlyModel(nn.Module):
-    """Variant 3: Transformer only — captures global attention, no CNN/LSTM."""
-    
+    """Variant 3: Transformer only -- global attention, no CNN/LSTM."""
+
     def __init__(self, input_dim=78, d_model=128, nhead=4, num_layers=2,
                  verification_hidden=64, dropout=0.1):
         super().__init__()
-        
+
         from models.temporal_model import TransformerEncoder
         self.transformer = TransformerEncoder(
             input_dim=input_dim, d_model=d_model, nhead=nhead,
             num_layers=num_layers, dropout=dropout
         )
-        
-        comparison_dim = input_dim * 3
-        self.diff_conv = nn.Sequential(
-            nn.Conv1d(comparison_dim, verification_hidden, kernel_size=7, padding=3),
-            nn.BatchNorm1d(verification_hidden),
-            nn.ReLU(), nn.Dropout(dropout),
-            nn.Conv1d(verification_hidden, verification_hidden, kernel_size=5, padding=2),
-            nn.BatchNorm1d(verification_hidden),
-            nn.ReLU(), nn.Dropout(dropout),
-            nn.Conv1d(verification_hidden, verification_hidden // 2, kernel_size=3, padding=1),
-            nn.BatchNorm1d(verification_hidden // 2),
-            nn.ReLU(), nn.AdaptiveAvgPool1d(1)
-        )
-        self.diff_classifier = nn.Sequential(
-            nn.Linear(verification_hidden // 2, verification_hidden // 2),
-            nn.ReLU(), nn.Dropout(dropout),
-            nn.Linear(verification_hidden // 2, 2)
-        )
-        
-        self._init_weights()
-    
-    def _init_weights(self):
-        for m in self.modules():
-            if isinstance(m, nn.Linear):
-                nn.init.xavier_uniform_(m.weight)
-                if m.bias is not None: nn.init.zeros_(m.bias)
-            elif isinstance(m, nn.Conv1d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out')
-                if m.bias is not None: nn.init.zeros_(m.bias)
-    
+        self.head = EmbeddingComparisonHead(d_model, verification_hidden, dropout)
+        _init_weights(self)
+
+    def _embed(self, x):
+        _, emb = self.transformer(x)
+        return emb
+
     def forward(self, video_features, claimed_features=None, mode='verification'):
-        if mode == 'verification' and claimed_features is not None:
-            diff = video_features - claimed_features
-            abs_diff = torch.abs(diff)
-            product = video_features * claimed_features
-            combined = torch.cat([diff, abs_diff, product], dim=2)
-            x = combined.permute(0, 2, 1)
-            x = self.diff_conv(x).squeeze(-1)
-            logits = self.diff_classifier(x)
-            probs = F.softmax(logits, dim=1)
-            _, trans_emb = self.transformer(video_features)
-            return {
-                'verification': {'logits': logits, 'probs': probs, 'prediction': probs.argmax(dim=1)},
-                'is_authentic': probs.argmax(dim=1),
-                'similarity': probs[:, 1],
-                'confidence': probs.max(dim=1).values,
-                'video_embedding': trans_emb
-            }
-        raise ValueError("Transformer-only requires verification mode")
+        if mode != 'verification' or claimed_features is None:
+            raise ValueError("Transformer-only requires verification mode")
+
+        e_v = self._embed(video_features)
+        e_c = self._embed(claimed_features)
+        logits = self.head(e_v, e_c)
+        probs = F.softmax(logits, dim=1)
+        return {
+            'verification': {'logits': logits, 'probs': probs, 'prediction': probs.argmax(dim=1)},
+            'is_authentic': probs.argmax(dim=1),
+            'similarity': probs[:, 1],
+            'confidence': probs.max(dim=1).values,
+            'video_embedding': e_v
+        }
+
+
+class FullHybridModel(nn.Module):
+    """
+    Variant 4: CNN encoder -> (BiLSTM + Transformer) dual-path -> fused
+    embedding, using the SAME EmbeddingComparisonHead as the other three
+    variants, so all four are compared on equal footing.
+
+    Note this is deliberately NOT models.full_pipeline.GaitDeepfakeDetector.
+    That production model's verification-mode logits come from a separate
+    diff_conv/diff_classifier head applied to raw features and never consume
+    this branch's embedding (see NOTES.md Section 2.1) -- reusing it here
+    would just reproduce the original bug for the fourth variant. This class
+    reuses the same GaitEncoder / DualPathTemporalModel building blocks, wired
+    the same way every other variant in this ablation is wired.
+    """
+
+    def __init__(self, input_dim=78, encoder_hidden_dims=(64, 128),
+                 encoder_output_dim=128, lstm_hidden=64, lstm_layers=1,
+                 transformer_d_model=128, transformer_heads=4,
+                 transformer_layers=2, embedding_dim=128,
+                 verification_hidden=64, dropout=0.1):
+        super().__init__()
+
+        from models.gait_encoder import GaitEncoder
+        from models.temporal_model import DualPathTemporalModel
+
+        self.encoder = GaitEncoder(
+            input_dim=input_dim, hidden_dims=encoder_hidden_dims,
+            output_dim=encoder_output_dim, dropout=dropout
+        )
+        self.temporal = DualPathTemporalModel(
+            input_dim=encoder_output_dim,
+            lstm_hidden=lstm_hidden, lstm_layers=lstm_layers,
+            transformer_d_model=transformer_d_model,
+            transformer_heads=transformer_heads,
+            transformer_layers=transformer_layers,
+            output_dim=embedding_dim, dropout=dropout
+        )
+        self.head = EmbeddingComparisonHead(embedding_dim, verification_hidden, dropout)
+        _init_weights(self)
+
+    def _embed(self, x):
+        encoded = self.encoder(x)
+        _, embedding = self.temporal(encoded)
+        return embedding
+
+    def forward(self, video_features, claimed_features=None, mode='verification'):
+        if mode != 'verification' or claimed_features is None:
+            raise ValueError("Full Hybrid requires verification mode")
+
+        e_v = self._embed(video_features)
+        e_c = self._embed(claimed_features)
+        logits = self.head(e_v, e_c)
+        probs = F.softmax(logits, dim=1)
+        return {
+            'verification': {'logits': logits, 'probs': probs, 'prediction': probs.argmax(dim=1)},
+            'is_authentic': probs.argmax(dim=1),
+            'similarity': probs[:, 1],
+            'confidence': probs.max(dim=1).values,
+            'video_embedding': e_v
+        }
 
 
 # ============================================================
@@ -332,7 +375,7 @@ def run_ablation(args):
     warnings.filterwarnings('ignore')
     
     print("\n" + "=" * 70)
-    print("  ABLATION STUDY — Gait-Based Deepfake Detection")
+    print("  ABLATION STUDY -- Gait-Based Deepfake Detection")
     print("=" * 70)
     print(f"  Start: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"  Epochs per variant: {args.epochs}")
@@ -375,7 +418,12 @@ def run_ablation(args):
             input_dim=78, d_model=128, nhead=4, num_layers=2,
             verification_hidden=64, dropout=args.dropout
         ),
-        'Full Hybrid': lambda: _create_full_model(args.dropout)
+        'Full Hybrid': lambda: FullHybridModel(
+            input_dim=78, encoder_hidden_dims=(64, 128), encoder_output_dim=128,
+            lstm_hidden=64, lstm_layers=1, transformer_d_model=128,
+            transformer_heads=4, transformer_layers=2, embedding_dim=128,
+            verification_hidden=64, dropout=args.dropout
+        )
     })
     
     # Results storage
@@ -443,7 +491,7 @@ def run_ablation(args):
                     break
         
         results[name] = best_metrics
-        print(f"\n  ✓ {name} Best: Acc={best_val_acc:.2f}%, F1={best_metrics['f1']:.2f}%, AUC={best_metrics['auc']:.2f}%")
+        print(f"\n  [ok] {name} Best: Acc={best_val_acc:.2f}%, F1={best_metrics['f1']:.2f}%, AUC={best_metrics['auc']:.2f}%")
     
     # ============================================================
     # Summary Table
@@ -460,7 +508,7 @@ def run_ablation(args):
     
     # Highlight best
     best_name = max(results, key=lambda k: results[k]['accuracy'])
-    print(f"\n  ★ Best variant: {best_name} ({results[best_name]['accuracy']:.2f}% accuracy)")
+    print(f"\n  * Best variant: {best_name} ({results[best_name]['accuracy']:.2f}% accuracy)")
     
     # Component contribution analysis
     full = results.get('Full Hybrid', {})
@@ -471,7 +519,7 @@ def run_ablation(args):
                 delta = full['accuracy'] - m['accuracy']
                 sign = '+' if delta >= 0 else ''
                 print(f"    Removing {'CNN' if 'CNN' not in name else 'LSTM' if 'LSTM' not in name else 'Transformer'}: "
-                      f"{name} → {m['accuracy']:.2f}% (Δ = {sign}{delta:.2f}%)")
+                      f"{name} -> {m['accuracy']:.2f}% (delta = {sign}{delta:.2f}%)")
     
     print(f"\n{'='*70}")
     print(f"  Completed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -479,38 +527,30 @@ def run_ablation(args):
     
     # Save results
     results_file = str(output_dir / 'ablation_results.json')
-    serializable = {}
+    serializable = {
+        '_meta': {
+            'schema': 'embedding-comparison-v2',
+            'note': ('Each variant encodes video and claimed sequences through '
+                      'its own branch and classifies a comparison of the two '
+                      'embeddings. Fixes the v1 script, where all four variants '
+                      'shared an identical raw-feature diff_conv/diff_classifier '
+                      'head and the named branch never reached the logits. '
+                      'See NOTES.md Section 2.2 / paper.tex Section V-D.'),
+            'generated': datetime.now().isoformat(),
+        }
+    }
     for name, m in results.items():
-        serializable[name] = {k: float(v) if isinstance(v, (np.floating, float)) else int(v) 
+        serializable[name] = {k: float(v) if isinstance(v, (np.floating, float)) else int(v)
                               for k, v in m.items()}
     with open(results_file, 'w') as f:
         json.dump(serializable, f, indent=2)
     print(f"\n  Results saved to {results_file}")
-    
+
     return results
 
 
-def _create_full_model(dropout):
-    """Create our full hybrid model matching train.py config."""
-    from models.full_pipeline import create_model
-    return create_model({
-        'input_dim': 78,
-        'encoder_hidden_dims': (64, 128),
-        'encoder_output_dim': 128,
-        'lstm_hidden': 64,
-        'lstm_layers': 1,
-        'transformer_d_model': 128,
-        'transformer_heads': 4,
-        'transformer_layers': 2,
-        'embedding_dim': 128,
-        'verification_hidden': 64,
-        'dropout': dropout,
-        'use_multi_scale_encoder': False
-    })
-
-
 def main():
-    parser = argparse.ArgumentParser(description='Ablation Study — Gait Deepfake Detection')
+    parser = argparse.ArgumentParser(description='Ablation Study -- Gait Deepfake Detection')
     parser.add_argument('--features_file', type=str, 
                         default='data/gait_features/gait_features.pkl')
     parser.add_argument('--enrolled_file', type=str,

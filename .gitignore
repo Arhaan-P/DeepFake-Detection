@@ -93,3 +93,11 @@ docs/
 
 *.zip
 screenshots/hero.png
+
+research/
+# LaTeX build artefacts (paper.tex)
+paper.aux
+paper.bbl
+paper.blg
+paper.log
+paper.out

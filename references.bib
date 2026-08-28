@@ -1,0 +1,742 @@
+% ===========================================================================
+% references.bib -- Gait-Based Deepfake Detection
+%
+% Built from the 63 entries in the original methodology write-up, with venues,
+% years and authorship corrected against research/claude_research_verification.md
+% where that report identified an error. Entries whose citation details were
+% changed carry an inline "% VERIFIED:" or "% CORRECTED:" note naming the
+% change, so every deviation from the original list is auditable.
+%
+% Entries added on the strength of the verification report (nearest prior art
+% that the novelty claim must now be positioned against) are grouped at the end
+% under "ADDED".
+% ===========================================================================
+
+% ---------------------------------------------------------------------------
+% Skeleton- and pose-based gait recognition
+% ---------------------------------------------------------------------------
+
+@inproceedings{gaitgraph,
+  author    = {Teepe, Torben and Khan, Ali and Gilg, Johannes and Herzog, Fabian
+               and H{\"o}rmann, Stefan and Rigoll, Gerhard},
+  title     = {{GaitGraph}: Graph Convolutional Network for Skeleton-Based Gait
+               Recognition},
+  booktitle = {Proc. IEEE Int. Conf. Image Processing (ICIP)},
+  pages     = {2314--2318},
+  year      = {2021},
+  doi       = {10.1109/ICIP42928.2021.9506717}
+}
+
+% CORRECTED: arXiv preprint is 2023, but the peer-reviewed venue is IEEE FG 2024.
+% VERIFIED: "82.6% average accuracy on CASIA-B" is quoted verbatim in the paper.
+@inproceedings{gaitpt,
+  author    = {C{\u{a}}tru{\u{n}}{\u{a}}, Andy and Cosma, Adrian and Radoi, Emilian},
+  title     = {{GaitPT}: Skeletons Are All You Need for Gait Recognition},
+  booktitle = {Proc. IEEE Int. Conf. Automatic Face and Gesture Recognition (FG)},
+  year      = {2024},
+  note      = {arXiv:2308.10623}
+}
+
+% CORRECTED: primary publication is Sensors 2022, not 2023. The architecture is a
+% skeleton-sequence Transformer; describing it as a "ViT" was imprecise.
+% VERIFIED: 92.5% on CASIA-B, 85.33% on FVG.
+@article{gaitformer,
+  author  = {Cosma, Adrian and Radoi, Emilian},
+  title   = {Learning Gait Representations with Noisy Multi-Task Learning},
+  journal = {Sensors},
+  volume  = {22},
+  number  = {18},
+  pages   = {6803},
+  year    = {2022},
+  doi     = {10.3390/s22186803}
+}
+
+@inproceedings{gpgait,
+  author    = {Fu, Yang and Meng, Shibei and Hou, Saihui and Hu, Xuecai and
+               Huang, Yongzhen},
+  title     = {{GPGait}: Generalized Pose-Based Gait Recognition},
+  booktitle = {Proc. IEEE/CVF Int. Conf. Computer Vision (ICCV)},
+  pages     = {19595--19604},
+  year      = {2023}
+}
+
+@article{gait_tr,
+  author  = {Zhang, Cun and Chen, Xing-Peng and Han, Guo-Qiang and Liu, Xiang-Jie},
+  title   = {Spatial Transformer Network on Skeleton-Based Gait Recognition},
+  journal = {Expert Systems},
+  volume  = {40},
+  number  = {6},
+  pages   = {e13244},
+  year    = {2023},
+  doi     = {10.1111/exsy.13244}
+}
+
+@article{liao_gait,
+  author  = {Liao, Rijun and Yu, Shiqi and An, Weizhi and Huang, Yongzhen},
+  title   = {A Model-Based Gait Recognition Method with Body Pose and Human
+             Prior Knowledge},
+  journal = {Pattern Recognition},
+  volume  = {98},
+  pages   = {107069},
+  year    = {2020},
+  doi     = {10.1016/j.patcog.2019.107069}
+}
+
+% ---------------------------------------------------------------------------
+% Face-based deepfake detection
+% ---------------------------------------------------------------------------
+
+% VERIFIED: title/authors/venue correct. NOTE: this paper states that prior
+% methods drop to ~60% AUC cross-dataset and positions RECCE as beating that
+% (~70.9% on Celeb-DF-v2). It must not be cited as evidence that the *best*
+% methods reach only ~64%.
+@inproceedings{recce,
+  author    = {Cao, Junyi and Ma, Chao and Yao, Taiping and Chen, Shen and
+               Ding, Shouhong and Yang, Xiaokang},
+  title     = {End-to-End Reconstruction-Classification Learning for Face
+               Forgery Detection},
+  booktitle = {Proc. IEEE/CVF Conf. Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {4113--4122},
+  year      = {2022}
+}
+
+% VERIFIED: CVPR 2023, 3D ConvNet with alternating freezing. Cross-dataset AUCs
+% reported include Celeb-DF 89.5%, DFD 98.5%, DFo 99.3%.
+@inproceedings{altfreezing,
+  author    = {Wang, Zhendong and Bao, Jianmin and Zhou, Wengang and Wang, Weilun
+               and Li, Houqiang},
+  title     = {{AltFreezing} for More General Video Face Forgery Detection},
+  booktitle = {Proc. IEEE/CVF Conf. Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {4129--4138},
+  year      = {2023}
+}
+
+% VERIFIED: ICCV 2021, pp. 15044-15054. Fully Temporal Convolution Network plus
+% Temporal Transformer. Its headline contribution is cross-dataset generalisation
+% (~86-89% AUC on Celeb-DF); high in-dataset FF++ numbers should be labelled as such.
+@inproceedings{ftcn,
+  author    = {Zheng, Yinglin and Bao, Jianmin and Chen, Dong and Zeng, Ming
+               and Wen, Fang},
+  title     = {Exploring Temporal Coherence for More General Video Face Forgery
+               Detection},
+  booktitle = {Proc. IEEE/CVF Int. Conf. Computer Vision (ICCV)},
+  pages     = {15044--15054},
+  year      = {2021}
+}
+
+@inproceedings{multi_attn,
+  author    = {Zhao, Hanqing and Zhou, Wenbo and Chen, Dongdong and Wei, Tianyi
+               and Zhang, Weiming and Yu, Nenghai},
+  title     = {Multi-Attentional Deepfake Detection},
+  booktitle = {Proc. IEEE/CVF Conf. Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {2185--2194},
+  year      = {2021}
+}
+
+@article{fsbi,
+  author  = {Le, Ahmed Abul Hasanaath and Woo, Deok-Kyeong},
+  title   = {{FSBI}: Deepfake Detection with Frequency Enhanced Self-Blended Images},
+  journal = {arXiv preprint arXiv:2406.08625},
+  year    = {2024}
+}
+
+% CORRECTED: this is not merely a Zenodo record. The peer-reviewed version is in
+% Multimedia Tools and Applications (Springer), 2024. Cite the journal version.
+@article{hybrid_face,
+  author  = {Petmezas, Georgios and Vanian, Vazgken and Konstantoudakis, Konstantinos
+             and Almaloglou, Eleftheria E. and Zarpalas, Dimitrios},
+  title   = {Video Deepfake Detection Using a Hybrid {CNN-LSTM-Transformer} Model
+             for Identity Verification},
+  journal = {Multimedia Tools and Applications},
+  year    = {2024},
+  doi     = {10.1007/s11042-024-20342-4}
+}
+
+@article{deepfake_eval,
+  author  = {Chandra, Nuria Alina and Murtfeldt, Ryan and Qiu, Lin and others},
+  title   = {Deepfake-Eval-2024: A Multi-Modal In-the-Wild Benchmark of Deepfakes
+             Circulated in 2024},
+  journal = {arXiv preprint arXiv:2503.02857},
+  year    = {2025}
+}
+
+@article{mmms_ba,
+  author  = {Ilyas, Hafsa and Javed, Ali and Malik, Khalid Mahmood},
+  title   = {Contextual Cross-Modal Attention for Audio-Visual Deepfake Detection
+             and Localization},
+  journal = {arXiv preprint arXiv:2408.01532},
+  year    = {2024}
+}
+
+% ---------------------------------------------------------------------------
+% Behavioural biometrics and body-motion forgery detection (nearest prior art)
+% ---------------------------------------------------------------------------
+
+% ADDED per verification report: the foundational behavioural-biometric deepfake
+% work. Establishes that behavioural cues + deepfake detection dates to 2019.
+@inproceedings{agarwal2019,
+  author    = {Agarwal, Shruti and Farid, Hany and Gu, Yuming and He, Mingming
+               and Nagano, Koki and Li, Hao},
+  title     = {Protecting World Leaders Against Deep Fakes},
+  booktitle = {Proc. IEEE/CVF Conf. Computer Vision and Pattern Recognition
+               Workshops (CVPRW), Media Forensics},
+  pages     = {38--45},
+  year      = {2019}
+}
+
+% ADDED per verification report.
+@inproceedings{agarwal2020,
+  author    = {Agarwal, Shruti and El-Gaaly, Tarek and Farid, Hany and Lim, Ser-Nam},
+  title     = {Detecting Deep-Fake Videos from Appearance and Behavior},
+  booktitle = {Proc. IEEE Int. Workshop on Information Forensics and Security (WIFS)},
+  pages     = {1--6},
+  year      = {2020},
+  note      = {arXiv:2004.14491}
+}
+
+% ADDED per verification report: extends behavioural detection beyond the face to
+% gestural mannerisms.
+@article{agarwal_pnas,
+  author  = {Boh{\'a}{\v{c}}ek, Matyas and Farid, Hany},
+  title   = {Protecting World Leaders Against Deep Fakes Using Facial, Gestural,
+             and Vocal Mannerisms},
+  journal = {Proceedings of the National Academy of Sciences},
+  volume  = {119},
+  number  = {48},
+  pages   = {e2216035119},
+  year    = {2022},
+  doi     = {10.1073/pnas.2216035119}
+}
+
+% ADDED per verification report: detection of AI-generated whole-body human motion.
+@article{humanactionclips,
+  author  = {Boh{\'a}{\v{c}}ek, Matyas and Farid, Hany},
+  title   = {Human Action {CLIPs}: Detecting {AI}-Generated Human Motion},
+  journal = {arXiv preprint arXiv:2412.00526},
+  year    = {2024}
+}
+
+% ADDED per verification report: full-body forgery detection exploiting pose and
+% motion inconsistency. PREPRINT -- confirm final venue before submission.
+@article{ttdf,
+  author  = {Yang, Zhihao and Zhang, Hanlin and Zhou, Jian and Duan, Chenhao
+             and Cao, Xiaochun},
+  title   = {{TT-DF}: A Large-Scale Diffusion-Based Dataset and Benchmark for
+             Human Body Forgery Detection},
+  journal = {arXiv preprint arXiv:2505.08437},
+  year    = {2025}
+}
+
+% ADDED per verification report: whole-body pose keypoints framed explicitly
+% against face-reenactment threats. PREPRINT -- confirm venue.
+@article{convkeypoints,
+  author  = {Chapariniya, Masoumeh and Vukovic, Teodora and Ebling, Sarah and
+             Schmid, Volker},
+  title   = {Two-Stream Spatial-Temporal Transformer Framework for Person
+             Identification via Natural Conversational Keypoints},
+  journal = {arXiv preprint arXiv:2502.20803},
+  year    = {2025}
+}
+
+% ADDED per verification report: the closest gait-and-deepfake intersection
+% located. An evaluation of gait fidelity in generative human animation, not a
+% deployed detector. PREPRINT -- confirm venue before submission.
+@article{gaitfidelity,
+  author  = {DeAndres-Tame, Ivan and Ye, Muhammad and Tolosana, Ruben and
+             Vera-Rodriguez, Ruben and Yu, Shiqi},
+  title   = {Is Visual Realism Enough? Evaluating Gait Biometric Fidelity in
+             Generative {AI} Human Animation},
+  journal = {arXiv preprint arXiv:2512.19275},
+  year    = {2025}
+}
+
+% ---------------------------------------------------------------------------
+% Forensic gait analysis
+% ---------------------------------------------------------------------------
+
+% CORRECTED: this is an industry/news source, not a peer-reviewed benchmark. It is
+% also the SAME source as the "31 parameters / <0.1% EER" datapoint -- the two are
+% one story, not two independent citations. The article additionally reports a more
+% conservative independently measured EER of 1.7% from a single step.
+@misc{forensic_gait,
+  author       = {Burt, Chris},
+  title        = {Gait, Body Structure Biometrics Accepted as Court Evidence in
+                  {EU} Murder Case},
+  howpublished = {Biometric Update},
+  month        = sep,
+  year         = {2025},
+  note         = {Reporting on Cursor Insight; accessed 2026-08-27}
+}
+
+@article{gait_forensic_review,
+  author  = {Khan, Muhammad Hassan and Farid, Muhammad Shahid and Grzegorzek, Marcin},
+  title   = {Gait Analysis Using Deep Learning: A Comprehensive Review for
+             Forensic Applications},
+  journal = {Sensors},
+  volume  = {24},
+  number  = {12},
+  pages   = {3891},
+  year    = {2024}
+}
+
+% ---------------------------------------------------------------------------
+% Pose estimation and gait biomechanics
+% ---------------------------------------------------------------------------
+
+@misc{mediapipe,
+  author       = {{Google}},
+  title        = {{MediaPipe} Pose Landmarker},
+  howpublished = {\url{https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker}},
+  year         = {2023},
+  note         = {Accessed 2026-08-27}
+}
+
+% CORRECTED: this study validated OpenPose against a Vicon MX-T40 system. It does
+% not use MediaPipe, does not use Qualisys, and makes no MoveNet comparison. It
+% supports only the general claim that video pose estimation agrees with lab
+% motion capture to within a few degrees: sagittal hip/knee/ankle MAE 4.0/5.6/7.4 deg.
+@article{stenum2021,
+  author  = {Stenum, Jan and Rossi, Cristina and Roemmich, Ryan T.},
+  title   = {Two-Dimensional Video-Based Analysis of Human Gait Using Pose
+             Estimation},
+  journal = {PLOS Computational Biology},
+  volume  = {17},
+  number  = {4},
+  pages   = {e1008935},
+  year    = {2021},
+  doi     = {10.1371/journal.pcbi.1008935}
+}
+
+@book{perry_gait,
+  author    = {Perry, Jacquelin and Burnfield, Judith M.},
+  title     = {Gait Analysis: Normal and Pathological Function},
+  edition   = {2nd},
+  publisher = {SLACK Incorporated},
+  year      = {2010}
+}
+
+@book{whittle_gait,
+  author    = {Whittle, Michael W.},
+  title     = {Gait Analysis: An Introduction},
+  edition   = {5th},
+  publisher = {Butterworth-Heinemann},
+  year      = {2012}
+}
+
+@book{winter_biomech,
+  author    = {Winter, David A.},
+  title     = {Biomechanics and Motor Control of Human Movement},
+  edition   = {4th},
+  publisher = {John Wiley \& Sons},
+  year      = {2009}
+}
+
+@article{colyer_review,
+  author  = {Colyer, Steffi L. and Evans, Murray and Cosker, Darren P. and
+             Salo, Aki I. T.},
+  title   = {A Review of the Evolution of Vision-Based Motion Analysis and the
+             Integration of Advanced Computer Vision Methods Towards Developing
+             a Markerless System},
+  journal = {Sports Medicine -- Open},
+  volume  = {4},
+  number  = {1},
+  pages   = {24},
+  year    = {2018},
+  doi     = {10.1186/s40798-018-0139-y}
+}
+
+@article{baker_gait,
+  author  = {Baker, Richard},
+  title   = {Gait Analysis Methods in Rehabilitation},
+  journal = {Journal of NeuroEngineering and Rehabilitation},
+  volume  = {3},
+  pages   = {4},
+  year    = {2006},
+  doi     = {10.1186/1743-0003-3-4}
+}
+
+@article{phinyomark,
+  author  = {Phinyomark, Angkoon and Petri, Giovanni and Ib{\'a}{\~n}ez-Marcelo, Esther
+             and Osis, Sean T. and Ferber, Reed},
+  title   = {Analysis of Big Data in Gait Biomechanics: Current Trends and
+             Future Directions},
+  journal = {Journal of Medical and Biological Engineering},
+  volume  = {38},
+  pages   = {244--260},
+  year    = {2018},
+  doi     = {10.1007/s40846-017-0297-2}
+}
+
+@article{menz,
+  author  = {Menz, Hylton B. and Lord, Stephen R. and Fitzpatrick, Richard C.},
+  title   = {Acceleration Patterns of the Head and Pelvis When Walking on Level
+             and Irregular Surfaces},
+  journal = {Gait \& Posture},
+  volume  = {18},
+  number  = {1},
+  pages   = {35--46},
+  year    = {2003},
+  doi     = {10.1016/S0966-6362(02)00159-5}
+}
+
+@inproceedings{andriluka_mpii,
+  author    = {Andriluka, Mykhaylo and Pishchulin, Leonid and Gehler, Peter and
+               Schiele, Bernt},
+  title     = {2D Human Pose Estimation: New Benchmark and State of the Art
+               Analysis},
+  booktitle = {Proc. IEEE Conf. Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {3686--3693},
+  year      = {2014}
+}
+
+% ---------------------------------------------------------------------------
+% Deep learning architecture components
+% ---------------------------------------------------------------------------
+
+@inproceedings{vaswani,
+  author    = {Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob
+               and Jones, Llion and Gomez, Aidan N. and Kaiser, {\L}ukasz and
+               Polosukhin, Illia},
+  title     = {Attention Is All You Need},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  pages     = {5998--6008},
+  year      = {2017}
+}
+
+@inproceedings{resnet,
+  author    = {He, Kaiming and Zhang, Xiangyu and Ren, Shaoqing and Sun, Jian},
+  title     = {Deep Residual Learning for Image Recognition},
+  booktitle = {Proc. IEEE Conf. Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {770--778},
+  year      = {2016}
+}
+
+@article{lstm,
+  author  = {Hochreiter, Sepp and Schmidhuber, J{\"u}rgen},
+  title   = {Long Short-Term Memory},
+  journal = {Neural Computation},
+  volume  = {9},
+  number  = {8},
+  pages   = {1735--1780},
+  year    = {1997},
+  doi     = {10.1162/neco.1997.9.8.1735}
+}
+
+@article{gelu,
+  author  = {Hendrycks, Dan and Gimpel, Kevin},
+  title   = {Gaussian Error Linear Units ({GELUs})},
+  journal = {arXiv preprint arXiv:1606.08415},
+  year    = {2016}
+}
+
+@inproceedings{preln,
+  author    = {Xiong, Ruibin and Yang, Yunchang and He, Di and Zheng, Kai and
+               Zheng, Shuxin and Xing, Chen and Zhang, Huishuai and Lan, Yanyan
+               and Wang, Liwei and Liu, Tie-Yan},
+  title     = {On Layer Normalization in the Transformer Architecture},
+  booktitle = {Proc. Int. Conf. Machine Learning (ICML)},
+  pages     = {10524--10533},
+  year      = {2020}
+}
+
+@inproceedings{glorot_init,
+  author    = {Glorot, Xavier and Bengio, Yoshua},
+  title     = {Understanding the Difficulty of Training Deep Feedforward Neural
+               Networks},
+  booktitle = {Proc. Int. Conf. Artificial Intelligence and Statistics (AISTATS)},
+  pages     = {249--256},
+  year      = {2010}
+}
+
+@inproceedings{he_init,
+  author    = {He, Kaiming and Zhang, Xiangyu and Ren, Shaoqing and Sun, Jian},
+  title     = {Delving Deep into Rectifiers: Surpassing Human-Level Performance
+               on {ImageNet} Classification},
+  booktitle = {Proc. IEEE Int. Conf. Computer Vision (ICCV)},
+  pages     = {1026--1034},
+  year      = {2015}
+}
+
+% ---------------------------------------------------------------------------
+% Optimisation and regularisation
+% ---------------------------------------------------------------------------
+
+@inproceedings{adamw,
+  author    = {Loshchilov, Ilya and Hutter, Frank},
+  title     = {Decoupled Weight Decay Regularization},
+  booktitle = {Proc. Int. Conf. Learning Representations (ICLR)},
+  year      = {2019}
+}
+
+@inproceedings{adam,
+  author    = {Kingma, Diederik P. and Ba, Jimmy},
+  title     = {Adam: A Method for Stochastic Optimization},
+  booktitle = {Proc. Int. Conf. Learning Representations (ICLR)},
+  year      = {2015}
+}
+
+@inproceedings{pascanu,
+  author    = {Pascanu, Razvan and Mikolov, Tomas and Bengio, Yoshua},
+  title     = {On the Difficulty of Training Recurrent Neural Networks},
+  booktitle = {Proc. Int. Conf. Machine Learning (ICML)},
+  pages     = {1310--1318},
+  year      = {2013}
+}
+
+@article{dropout,
+  author  = {Srivastava, Nitish and Hinton, Geoffrey and Krizhevsky, Alex and
+             Sutskever, Ilya and Salakhutdinov, Ruslan},
+  title   = {Dropout: A Simple Way to Prevent Neural Networks from Overfitting},
+  journal = {Journal of Machine Learning Research},
+  volume  = {15},
+  number  = {1},
+  pages   = {1929--1958},
+  year    = {2014}
+}
+
+@inproceedings{gal_dropout,
+  author    = {Gal, Yarin and Ghahramani, Zoubin},
+  title     = {A Theoretically Grounded Application of Dropout in Recurrent
+               Neural Networks},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  pages     = {1019--1027},
+  year      = {2016}
+}
+
+@incollection{prechelt,
+  author    = {Prechelt, Lutz},
+  title     = {Early Stopping --- But When?},
+  booktitle = {Neural Networks: Tricks of the Trade},
+  edition   = {2nd},
+  publisher = {Springer},
+  pages     = {53--67},
+  year      = {2012}
+}
+
+@article{masters_batch,
+  author  = {Masters, Dominic and Luschi, Carlo},
+  title   = {Revisiting Small Batch Training for Deep Neural Networks},
+  journal = {arXiv preprint arXiv:1804.07612},
+  year    = {2018}
+}
+
+@incollection{lecun_efficient,
+  author    = {LeCun, Yann and Bottou, L{\'e}on and Orr, Genevieve B. and
+               M{\"u}ller, Klaus-Robert},
+  title     = {Efficient {BackProp}},
+  booktitle = {Neural Networks: Tricks of the Trade},
+  publisher = {Springer},
+  pages     = {9--50},
+  year      = {1998}
+}
+
+@article{shorten_survey,
+  author  = {Shorten, Connor and Khoshgoftaar, Taghi M.},
+  title   = {A Survey on Image Data Augmentation for Deep Learning},
+  journal = {Journal of Big Data},
+  volume  = {6},
+  number  = {1},
+  pages   = {60},
+  year    = {2019},
+  doi     = {10.1186/s40537-019-0197-0}
+}
+
+% ---------------------------------------------------------------------------
+% Metric learning and verification
+% ---------------------------------------------------------------------------
+
+@inproceedings{facenet,
+  author    = {Schroff, Florian and Kalenichenko, Dmitry and Philbin, James},
+  title     = {{FaceNet}: A Unified Embedding for Face Recognition and Clustering},
+  booktitle = {Proc. IEEE Conf. Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {815--823},
+  year      = {2015}
+}
+
+@article{hermans_triplet,
+  author  = {Hermans, Alexander and Beyer, Lucas and Leibe, Bastian},
+  title   = {In Defense of the Triplet Loss for Person Re-Identification},
+  journal = {arXiv preprint arXiv:1703.07737},
+  year    = {2017}
+}
+
+@inproceedings{hadsell,
+  author    = {Hadsell, Raia and Chopra, Sumit and LeCun, Yann},
+  title     = {Dimensionality Reduction by Learning an Invariant Mapping},
+  booktitle = {Proc. IEEE Conf. Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {1735--1742},
+  year      = {2006}
+}
+
+@inproceedings{koch_siamese,
+  author    = {Koch, Gregory and Zemel, Richard and Salakhutdinov, Ruslan},
+  title     = {Siamese Neural Networks for One-Shot Image Recognition},
+  booktitle = {Proc. ICML Deep Learning Workshop},
+  year      = {2015}
+}
+
+@article{weinberger,
+  author  = {Weinberger, Kilian Q. and Saul, Lawrence K.},
+  title   = {Distance Metric Learning for Large Margin Nearest Neighbor
+             Classification},
+  journal = {Journal of Machine Learning Research},
+  volume  = {10},
+  pages   = {207--244},
+  year    = {2009}
+}
+
+% ---------------------------------------------------------------------------
+% Evaluation methodology and metrics
+% ---------------------------------------------------------------------------
+
+@misc{iso19795,
+  author       = {{ISO/IEC}},
+  title        = {{ISO/IEC} 19795-1:2021 --- Information Technology ---
+                  Biometric Performance Testing and Reporting --- Part 1:
+                  Principles and Framework},
+  howpublished = {International Organization for Standardization},
+  year         = {2021}
+}
+
+@article{youden,
+  author  = {Youden, W. J.},
+  title   = {Index for Rating Diagnostic Tests},
+  journal = {Cancer},
+  volume  = {3},
+  number  = {1},
+  pages   = {32--35},
+  year    = {1950}
+}
+
+@article{fluss,
+  author  = {Fluss, Ronen and Faraggi, David and Reiser, Benjamin},
+  title   = {Estimation of the {Youden} Index and Its Associated Cutoff Point},
+  journal = {Biometrical Journal},
+  volume  = {47},
+  number  = {4},
+  pages   = {458--472},
+  year    = {2005},
+  doi     = {10.1002/bimj.200410135}
+}
+
+@article{fawcett_roc,
+  author  = {Fawcett, Tom},
+  title   = {An Introduction to {ROC} Analysis},
+  journal = {Pattern Recognition Letters},
+  volume  = {27},
+  number  = {8},
+  pages   = {861--874},
+  year    = {2006},
+  doi     = {10.1016/j.patrec.2005.10.010}
+}
+
+@article{taha_metrics,
+  author  = {Taha, Abdel Aziz and Hanbury, Allan},
+  title   = {Metrics for Evaluating 3D Medical Image Segmentation: Analysis,
+             Selection, and Tool},
+  journal = {BMC Medical Imaging},
+  volume  = {15},
+  pages   = {29},
+  year    = {2015},
+  doi     = {10.1186/s12880-015-0068-x}
+}
+
+@book{van_rijsbergen,
+  author    = {van Rijsbergen, C. J.},
+  title     = {Information Retrieval},
+  edition   = {2nd},
+  publisher = {Butterworths},
+  year      = {1979}
+}
+
+@article{varoquaux_small,
+  author  = {Varoquaux, Ga{\"e}l},
+  title   = {Cross-Validation Failure: Small Sample Sizes Lead to Large Error
+             Bars},
+  journal = {NeuroImage},
+  volume  = {180},
+  pages   = {68--77},
+  year    = {2018},
+  doi     = {10.1016/j.neuroimage.2017.06.061}
+}
+
+@misc{nist_biometric,
+  author       = {{NIST}},
+  title        = {Face Recognition Vendor Test ({FRVT})},
+  howpublished = {\url{https://www.nist.gov/programs-projects/face-recognition-vendor-test-frvt}},
+  year         = {2024},
+  note         = {Accessed 2026-08-27}
+}
+
+% ---------------------------------------------------------------------------
+% Explainability
+% ---------------------------------------------------------------------------
+
+@inproceedings{gradcam,
+  author    = {Selvaraju, Ramprasaath R. and Cogswell, Michael and Das, Abhishek
+               and Vedantam, Ramakrishna and Parikh, Devi and Batra, Dhruv},
+  title     = {{Grad-CAM}: Visual Explanations from Deep Networks via
+               Gradient-Based Localization},
+  booktitle = {Proc. IEEE Int. Conf. Computer Vision (ICCV)},
+  pages     = {618--626},
+  year      = {2017}
+}
+
+@inproceedings{shrikumar,
+  author    = {Shrikumar, Avanti and Greenside, Peyton and Kundaje, Anshul},
+  title     = {Learning Important Features Through Propagating Activation
+               Differences},
+  booktitle = {Proc. Int. Conf. Machine Learning (ICML)},
+  pages     = {3145--3153},
+  year      = {2017}
+}
+
+@inproceedings{sundararajan,
+  author    = {Sundararajan, Mukund and Taly, Ankur and Yan, Qiqi},
+  title     = {Axiomatic Attribution for Deep Networks},
+  booktitle = {Proc. Int. Conf. Machine Learning (ICML)},
+  pages     = {3319--3328},
+  year      = {2017}
+}
+
+% ---------------------------------------------------------------------------
+% Deepfake generation tooling
+% ---------------------------------------------------------------------------
+
+@misc{facefusion,
+  author       = {{FaceFusion Contributors}},
+  title        = {{FaceFusion}: Industry-Leading Face Manipulation Platform},
+  howpublished = {\url{https://github.com/facefusion/facefusion}},
+  year         = {2024},
+  note         = {Accessed 2026-08-27}
+}
+
+@misc{insightface,
+  author       = {{InsightFace Contributors}},
+  title        = {{InsightFace}: 2D and 3D Face Analysis Project
+                  ({InSwapper} face-swap model)},
+  howpublished = {\url{https://github.com/deepinsight/insightface}},
+  year         = {2023},
+  note         = {Accessed 2026-08-27}
+}
+
+@inproceedings{simswap,
+  author    = {Chen, Renwang and Chen, Xuanhong and Ni, Bingbing and Ge, Yanhao},
+  title     = {{SimSwap}: An Efficient Framework for High Fidelity Face Swapping},
+  booktitle = {Proc. ACM Int. Conf. Multimedia (ACM MM)},
+  pages     = {2003--2011},
+  year      = {2020}
+}
+
+% ---------------------------------------------------------------------------
+% Dataset artefact
+% ---------------------------------------------------------------------------
+
+@misc{gaitdeepfake13,
+  author = {Penwala, Arhaan and Kodeeswaran, Abhishek Arun Raja and
+            Bharti, Aditya and Johnson, Deepika Roselind},
+  title  = {Deepfake Detection Using Gait Analysis ({GaitDeepfake-13})},
+  year   = {2026},
+  doi    = {10.21227/ngh5-b637},
+  note   = {IEEE DataPort}
+}
