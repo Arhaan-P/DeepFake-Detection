@@ -35,6 +35,7 @@ FIGDIR.mkdir(exist_ok=True)
 
 LOOCV_JSON = REPO / "outputs" / "evaluation" / "loocv" / "loocv_results.json"
 ABLATION_JSON = REPO / "outputs" / "ablation" / "ablation_results.json"
+ABLATION_LOOCV_JSON = REPO / "outputs" / "ablation" / "ablation_loocv_results.json"
 GRADCAM_JSON = REPO / "outputs" / "gradcam" / "aggregate" / "gradcam_results.json"
 CONFIG_JSON = REPO / "outputs" / "model_config.json"
 ENROLLED_PKL = REPO / "data" / "gait_features" / "enrolled_identities.pkl"
@@ -116,20 +117,34 @@ def _require(path):
     return path
 
 
+SUBJECT_MAP_JSON = REPO / "data" / "subject_map.json"
+
 # Subjects are anonymised for publication: real enrolment names are mapped to
 # "Subject N" in the order they appear in the source JSON (already
 # alphabetical by original name), so the mapping is stable across regens.
-_SUBJECT_ANON = {
-    "A2": "Subject 1", "Aarav": "Subject 2", "Ananya": "Subject 3",
-    "Arhaan": "Subject 4", "Bharti": "Subject 5", "Devika": "Subject 6",
-    "Prakhar": "Subject 7", "Prayag": "Subject 8", "Som": "Subject 9",
-    "Teja": "Subject 10", "Vedant": "Subject 11", "Vedant2": "Subject 12",
-    "Vibhav": "Subject 13",
-}
+# The mapping itself is not committed to git -- it is the one artefact that
+# could de-anonymise the paper's "Subject N" labels, so it lives only in the
+# local, gitignored data/ tree (see data/subject_map.json).
+def _load_subject_anon():
+    if not SUBJECT_MAP_JSON.exists():
+        raise FileNotFoundError(
+            "Subject anonymisation map missing: " + str(SUBJECT_MAP_JSON) + "\n"
+            "This file is intentionally gitignored (it maps real enrolment "
+            "names to their published 'Subject N' labels). Recreate it "
+            "locally from your enrolment records before generating figures."
+        )
+    with open(SUBJECT_MAP_JSON) as fh:
+        return json.load(fh)
+
+
+_SUBJECT_ANON = None  # lazily loaded -- only figures that render subject labels need it
 
 
 def load_loocv():
     """Return (aggregate, per_fold, pooled_labels, pooled_scores)."""
+    global _SUBJECT_ANON
+    if _SUBJECT_ANON is None:
+        _SUBJECT_ANON = _load_subject_anon()
     with open(_require(LOOCV_JSON)) as fh:
         d = json.load(fh)
     y = np.asarray(d["pooled_labels"], dtype=float).ravel()
@@ -168,6 +183,42 @@ def fold_slices(per_fold, y, s):
 def load_ablation():
     with open(_require(ABLATION_JSON)) as fh:
         return json.load(fh)
+
+
+def load_ablation_loocv():
+    """
+    Return (meta, per_variant) for the definitive LOOCV ablation.
+
+    per_variant maps variant name -> dict with, for the norm="train" arm,
+    arrays of per-(fold, seed) metrics. Every variant is measured on the same
+    folds and the same seeds, so metrics can be compared pairwise.
+    """
+    with open(_require(ABLATION_LOOCV_JSON)) as fh:
+        d = json.load(fh)
+
+    out = {}
+    for key, r in d["results"].items():
+        if r["norm"] != "train":
+            continue
+        v = r["variant"]
+        rec = out.setdefault(v, {"params": r["aggregate"]["params"],
+                                 "obs": {}})
+        for fold, fm in r["per_fold"].items():
+            rec["obs"][(fold, r["seed"])] = fm
+
+    # legacy-normalization arm, kept separate: it quantifies the protocol
+    # choice in scripts/evaluation/evaluate.py, not a model difference.
+    legacy = {}
+    for key, r in d["results"].items():
+        if r["norm"] == "legacy":
+            legacy[r["variant"]] = r
+    return d["_meta"], out, legacy
+
+
+def variant_metric(rec, metric):
+    """Ordered array of one metric across all (fold, seed) observations."""
+    keys = sorted(rec["obs"])
+    return np.array([rec["obs"][k][metric] for k in keys], dtype=float), keys
 
 
 def load_gradcam():

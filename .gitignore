@@ -56,6 +56,7 @@ data/gait_features/
 data/*.npy
 data/*.npz
 data/*.pkl
+data/subject_map.json
 
 # Model files (large, retrain instead)
 models/*.pth

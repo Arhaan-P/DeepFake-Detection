@@ -16,10 +16,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-import numpy as np
-import matplotlib.pyplot as plt
-
 import figstyle as fs
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 def main():
@@ -34,21 +33,47 @@ def main():
     fig, ax = plt.subplots(figsize=(3.45, 2.75))
     bins = np.linspace(0, 1, 41)
 
-    ax.hist(imp, bins=bins, color=fs.C_FAKE, alpha=0.78, lw=0.4,
-            edgecolor="white",
-            label="Impostor pairs ($n$ = %d)" % imp.size)
-    ax.hist(gen, bins=bins, color=fs.C_AUTH, alpha=0.78, lw=0.4,
-            edgecolor="white",
-            label="Genuine pairs ($n$ = %d)" % gen.size)
+    ax.hist(
+        imp,
+        bins=bins,
+        color=fs.C_FAKE,
+        alpha=0.78,
+        lw=0.4,
+        edgecolor="white",
+        label="Impostor pairs ($n$ = %d)" % imp.size,
+    )
+    ax.hist(
+        gen,
+        bins=bins,
+        color=fs.C_AUTH,
+        alpha=0.78,
+        lw=0.4,
+        edgecolor="white",
+        label="Genuine pairs ($n$ = %d)" % gen.size,
+    )
 
     ax.axvline(thr_eer, color=fs.C_NEUTRAL, lw=1.0, ls=(0, (1, 2)))
     ax.axvline(thr_j, color=fs.C_ACCENT, lw=1.1, ls=(0, (4, 2)))
 
     ymax = ax.get_ylim()[1]
-    ax.text(thr_eer - 0.02, ymax * 0.97, r"EER $\tau$" + "\n%.3f" % thr_eer,
-            fontsize=6.6, ha="right", va="top", color=fs.C_NEUTRAL)
-    ax.text(thr_j + 0.02, ymax * 0.97, r"Youden $\tau^*$" + "\n%.3f" % thr_j,
-            fontsize=6.6, ha="left", va="top", color=fs.C_ACCENT)
+    ax.text(
+        thr_eer - 0.02,
+        ymax * 0.97,
+        r"EER $\tau$" + "\n%.3f" % thr_eer,
+        fontsize=6.6,
+        ha="right",
+        va="top",
+        color=fs.C_NEUTRAL,
+    )
+    ax.text(
+        thr_j + 0.02,
+        ymax * 0.97,
+        r"Youden $\tau^*$" + "\n%.3f" % thr_j,
+        fontsize=6.6,
+        ha="left",
+        va="top",
+        color=fs.C_ACCENT,
+    )
 
     ax.set_xlabel(r"Verification score $P(\mathrm{authentic})$")
     ax.set_ylabel("Verification pairs")
@@ -62,8 +87,10 @@ def main():
     print("    genuine  mean %.4f  median %.4f" % (gen.mean(), np.median(gen)))
     print("    impostor mean %.4f  median %.4f" % (imp.mean(), np.median(imp)))
     band = ((s > min(thr_eer, thr_j)) & (s < max(thr_eer, thr_j))).sum()
-    print("    pairs between the two thresholds: %d (%.1f%%)"
-          % (band, 100 * band / s.size))
+    print(
+        "    pairs between the two thresholds: %d (%.1f%%)"
+        % (band, 100 * band / s.size)
+    )
 
 
 if __name__ == "__main__":

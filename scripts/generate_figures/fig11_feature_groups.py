@@ -16,10 +16,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-import numpy as np
-import matplotlib.pyplot as plt
-
 import figstyle as fs
+import matplotlib.pyplot as plt
+import numpy as np
 
 # (json key, display name, dimensions, index range) -- ranges per the feature
 # layout in utils/pose_extraction.py
@@ -30,9 +29,12 @@ GROUPS = [
 ]
 
 ANGLE_LABEL = {
-    "L_Knee_Angle": "L Knee", "R_Knee_Angle": "R Knee",
-    "L_Hip_Angle": "L Hip", "R_Hip_Angle": "R Hip",
-    "L_Ankle_Angle": "L Ankle", "R_Ankle_Angle": "R Ankle",
+    "L_Knee_Angle": "L Knee",
+    "R_Knee_Angle": "R Knee",
+    "L_Hip_Angle": "L Hip",
+    "R_Hip_Angle": "R Hip",
+    "L_Ankle_Angle": "L Ankle",
+    "R_Ankle_Angle": "R Ankle",
 }
 
 
@@ -44,7 +46,8 @@ def main():
     total_dim = sum(d for _, _, d, _ in GROUPS)
 
     fig, (ax1, ax2) = plt.subplots(
-        1, 2, figsize=(7.16, 2.85), gridspec_kw={"width_ratios": [1.15, 1.0]})
+        1, 2, figsize=(7.16, 2.85), gridspec_kw={"width_ratios": [1.15, 1.0]}
+    )
 
     # ---------------- (a) attribution share vs. dimensional share ----------
     names = [n for _, n, _, _ in GROUPS]
@@ -54,20 +57,52 @@ def main():
 
     x = np.arange(len(GROUPS))
     w = 0.36
-    ax1.bar(x - w / 2, attrib, w, color=fs.C_AUTH, edgecolor="white",
-            label="Share of attribution")
-    ax1.bar(x + w / 2, dimshare, w, color="#c8d8e4", edgecolor="white",
-            label="Share of input dimensions")
+    ax1.bar(
+        x - w / 2,
+        attrib,
+        w,
+        color=fs.C_AUTH,
+        edgecolor="white",
+        label="Share of attribution",
+    )
+    ax1.bar(
+        x + w / 2,
+        dimshare,
+        w,
+        color="#c8d8e4",
+        edgecolor="white",
+        label="Share of input dimensions",
+    )
 
     for xi, (a, d, (_, _, nd, rng)) in enumerate(zip(attrib, dimshare, GROUPS)):
-        ax1.text(xi - w / 2, a + 0.9, "%.1f%%" % a, ha="center", va="bottom",
-                 fontsize=7, color=fs.C_NEUTRAL)
-        ax1.text(xi + w / 2, d + 0.9, "%.1f%%" % d, ha="center", va="bottom",
-                 fontsize=7, color=fs.C_NEUTRAL)
+        ax1.text(
+            xi - w / 2,
+            a + 0.9,
+            "%.1f%%" % a,
+            ha="center",
+            va="bottom",
+            fontsize=7,
+            color=fs.C_NEUTRAL,
+        )
+        ax1.text(
+            xi + w / 2,
+            d + 0.9,
+            "%.1f%%" % d,
+            ha="center",
+            va="bottom",
+            fontsize=7,
+            color=fs.C_NEUTRAL,
+        )
         ratio = a / d
-        ax1.text(xi, -7.5, "%d dims %s\n%.2f$\\times$ per dim"
-                 % (nd, rng, ratio), ha="center", va="top", fontsize=6.1,
-                 color=fs.C_ACCENT if ratio > 1 else "#8c8c8c")
+        ax1.text(
+            xi,
+            -7.5,
+            "%d dims %s\n%.2f$\\times$ per dim" % (nd, rng, ratio),
+            ha="center",
+            va="top",
+            fontsize=6.1,
+            color=fs.C_ACCENT if ratio > 1 else "#8c8c8c",
+        )
 
     ax1.set_xticks(x, labels=names)
     ax1.set_ylabel("Share (%)")
@@ -84,8 +119,9 @@ def main():
 
     ax2.barh(ypos, vals, height=0.66, color=fs.C_AUTH, edgecolor="white")
     for i, v in enumerate(vals):
-        ax2.text(v + 0.014, i, "%.3f" % v, va="center", fontsize=6.6,
-                 color=fs.C_NEUTRAL)
+        ax2.text(
+            v + 0.014, i, "%.3f" % v, va="center", fontsize=6.6, color=fs.C_NEUTRAL
+        )
 
     ax2.set_yticks(ypos, labels=[ANGLE_LABEL.get(k, k) for k in keys])
     ax2.set_xlim(0, 1.16)
@@ -98,8 +134,10 @@ def main():
     fs.save(fig, "fig11_feature_groups.png")
 
     for (k, n, d, rng), a, ds in zip(GROUPS, attrib, dimshare):
-        print("    %-12s attribution %5.2f%%  dims %2d (%5.2f%%)  ratio %.2f"
-              % (k, a, d, ds, a / ds))
+        print(
+            "    %-12s attribution %5.2f%%  dims %2d (%5.2f%%)  ratio %.2f"
+            % (k, a, d, ds, a / ds)
+        )
     for k in sorted(ang, key=lambda k: -ang[k]):
         print("    angle %-14s %.4f" % (k, ang[k]))
 

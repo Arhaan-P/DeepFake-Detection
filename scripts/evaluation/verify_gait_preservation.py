@@ -12,24 +12,25 @@ Expects:
     - Face-swapped videos in data/deepfake/ with naming: {Body}_body_{Face}_face.mp4
 """
 
+import logging
 import os
 import sys
 import warnings
-import logging
 from pathlib import Path
 
 # Suppress all warnings and noisy logs BEFORE importing anything else
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'           # Suppress TensorFlow C++ logs
-os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'           # Suppress oneDNN messages
-os.environ['GLOG_minloglevel'] = '3'                 # Suppress MediaPipe glog
-os.environ['MEDIAPIPE_DISABLE_GPU'] = '1'
-warnings.filterwarnings('ignore')
-logging.getLogger('tensorflow').setLevel(logging.ERROR)
-logging.getLogger('mediapipe').setLevel(logging.ERROR)
-logging.getLogger('absl').setLevel(logging.ERROR)
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # Suppress TensorFlow C++ logs
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"  # Suppress oneDNN messages
+os.environ["GLOG_minloglevel"] = "3"  # Suppress MediaPipe glog
+os.environ["MEDIAPIPE_DISABLE_GPU"] = "1"
+warnings.filterwarnings("ignore")
+logging.getLogger("tensorflow").setLevel(logging.ERROR)
+logging.getLogger("mediapipe").setLevel(logging.ERROR)
+logging.getLogger("absl").setLevel(logging.ERROR)
 
 # Redirect stderr temporarily during imports to catch stray C++ warnings
 import io
+
 _stderr = sys.stderr
 sys.stderr = io.StringIO()
 
@@ -38,6 +39,7 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 import numpy as np
+
 from utils.pose_extraction import GaitFeatureExtractor
 
 # Restore stderr
@@ -46,16 +48,16 @@ sys.stderr = _stderr
 
 # ── Pretty print helpers ──────────────────────────────────────────────
 
-BOLD  = "\033[1m"
-DIM   = "\033[2m"
+BOLD = "\033[1m"
+DIM = "\033[2m"
 GREEN = "\033[92m"
-RED   = "\033[91m"
-CYAN  = "\033[96m"
+RED = "\033[91m"
+CYAN = "\033[96m"
 YELLOW = "\033[93m"
 RESET = "\033[0m"
 CHECK = f"{GREEN}\u2714{RESET}"
 CROSS = f"{RED}\u2718{RESET}"
-BAR   = f"{DIM}\u2502{RESET}"
+BAR = f"{DIM}\u2502{RESET}"
 
 
 def header(text: str):
@@ -91,20 +93,23 @@ def progress_bar(current: int, total: int, width: int = 30) -> str:
 #
 # Verdict = at least 2 of 3 criteria pass → PRESERVED
 
-THRESHOLD_CORR      = 0.85   # Pearson r for step-width & symmetry
-THRESHOLD_PCK       = 0.90   # fraction of frames within tolerance
-PCK_NORM_FRACTION   = 0.05   # 5% of torso height per landmark
-THRESHOLD_COSINE    = 0.95   # mean cosine similarity of pose vectors
+THRESHOLD_CORR = 0.85  # Pearson r for step-width & symmetry
+THRESHOLD_PCK = 0.90  # fraction of frames within tolerance
+PCK_NORM_FRACTION = 0.05  # 5% of torso height per landmark
+THRESHOLD_COSINE = 0.95  # mean cosine similarity of pose vectors
 
 
 # ── Core comparison ───────────────────────────────────────────────────
 
-def compare_gait(original_video: str, swapped_video: str, extractor: GaitFeatureExtractor) -> dict:
+
+def compare_gait(
+    original_video: str, swapped_video: str, extractor: GaitFeatureExtractor
+) -> dict:
     """Compare gait features between original and face-swapped video."""
     # Suppress ALL output during extraction (catches MediaPipe C++ warnings)
     _stderr = sys.stderr
     _stdout = sys.stdout
-    _devnull = open(os.devnull, 'w')
+    _devnull = open(os.devnull, "w")
     sys.stderr = _devnull
     sys.stdout = _devnull
     _old_fd_err = os.dup(2)
@@ -128,13 +133,13 @@ def compare_gait(original_video: str, swapped_video: str, extractor: GaitFeature
     if orig_result is None or swap_result is None:
         return {"error": "Feature extraction failed for one or both videos"}
 
-    orig_feats = orig_result['gait_features']
-    swap_feats = swap_result['gait_features']
+    orig_feats = orig_result["gait_features"]
+    swap_feats = swap_result["gait_features"]
 
     # ── 1. Coordinate distances ──
     # normalized_coords shape: (T, 12, 3) — hip-centered
-    orig_coords_3d = orig_feats['normalized_coords']  # (T, 12, 3)
-    swap_coords_3d = swap_feats['normalized_coords']
+    orig_coords_3d = orig_feats["normalized_coords"]  # (T, 12, 3)
+    swap_coords_3d = swap_feats["normalized_coords"]
     min_len = min(len(orig_coords_3d), len(swap_coords_3d))
     orig_c = orig_coords_3d[:min_len]
     swap_c = swap_coords_3d[:min_len]
@@ -171,32 +176,32 @@ def compare_gait(original_video: str, swapped_video: str, extractor: GaitFeature
     mean_cosine = float(cosine_sim.mean())
 
     # ── 3. Joint angle distances ──
-    orig_angles = orig_feats['joint_angles']
-    swap_angles = swap_feats['joint_angles']
+    orig_angles = orig_feats["joint_angles"]
+    swap_angles = swap_feats["joint_angles"]
     min_a = min(len(orig_angles), len(swap_angles))
     angle_distances = np.linalg.norm(orig_angles[:min_a] - swap_angles[:min_a], axis=1)
 
     # ── 4. Temporal correlations ──
-    orig_step = orig_feats['step_width']
-    swap_step = swap_feats['step_width']
+    orig_step = orig_feats["step_width"]
+    swap_step = swap_feats["step_width"]
     min_s = min(len(orig_step), len(swap_step))
     step_corr = float(np.corrcoef(orig_step[:min_s], swap_step[:min_s])[0, 1])
 
-    orig_sym = orig_feats['symmetry']
-    swap_sym = swap_feats['symmetry']
+    orig_sym = orig_feats["symmetry"]
+    swap_sym = swap_feats["symmetry"]
     min_y = min(len(orig_sym), len(swap_sym))
     sym_corr = float(np.corrcoef(orig_sym[:min_y], swap_sym[:min_y])[0, 1])
 
     # ── Consensus verdict (2 of 3 must pass) ──
-    criterion_corr   = (step_corr >= THRESHOLD_CORR) and (sym_corr >= THRESHOLD_CORR)
-    criterion_pck    = pck_score >= THRESHOLD_PCK
+    criterion_corr = (step_corr >= THRESHOLD_CORR) and (sym_corr >= THRESHOLD_CORR)
+    criterion_pck = pck_score >= THRESHOLD_PCK
     criterion_cosine = mean_cosine >= THRESHOLD_COSINE
     pass_count = sum([criterion_corr, criterion_pck, criterion_cosine])
     preserved = pass_count >= 2
 
     return {
-        "num_frames_original": orig_result['valid_frames'],
-        "num_frames_swapped": swap_result['valid_frames'],
+        "num_frames_original": orig_result["valid_frames"],
+        "num_frames_swapped": swap_result["valid_frames"],
         "num_frames_compared": min_len,
         # Coordinate metrics
         "mean_l2_coords": mean_coord_l2,
@@ -221,13 +226,14 @@ def compare_gait(original_video: str, swapped_video: str, extractor: GaitFeature
 
 # ── Main ──────────────────────────────────────────────────────────────
 
+
 def main():
     videos_dir = project_root / "data" / "videos"
     deepfake_dir = project_root / "data" / "deepfake"
 
     header("GAIT PRESERVATION VERIFICATION")
     print(f"  {DIM}Compares skeletal pose features between original walking")
-    print(f"  videos and their face-swapped counterparts to verify that")
+    print("  videos and their face-swapped counterparts to verify that")
     print(f"  the face swap did NOT alter the body/gait motion.{RESET}\n")
 
     swapped_videos = sorted(deepfake_dir.glob("*_body_*_face.mp4"))
@@ -235,7 +241,7 @@ def main():
     if not swapped_videos:
         print(f"  {RED}No face-swapped videos found in data/deepfake/{RESET}")
         print(f"  {DIM}Expected naming: {{Body}}_body_{{Face}}_face.mp4{RESET}")
-        print(f"\n  Generate deepfakes first using FaceFusion, then re-run.")
+        print("\n  Generate deepfakes first using FaceFusion, then re-run.")
         return
 
     total = len(swapped_videos)
@@ -245,7 +251,7 @@ def main():
     # Suppress ALL output during extractor init (catches C++ TF/MediaPipe warnings)
     _stderr_backup = sys.stderr
     _stdout_backup = sys.stdout
-    _devnull = open(os.devnull, 'w')
+    _devnull = open(os.devnull, "w")
     sys.stderr = _devnull
     sys.stdout = _devnull
     # Also redirect at file-descriptor level to catch C++ stderr writes
@@ -257,7 +263,8 @@ def main():
 
     extractor = GaitFeatureExtractor()
     # Do a dummy frame to trigger all lazy C++ init warnings now
-    import cv2
+    import cv2  # noqa: F401  (unused name; import itself has the side effect of priming the C++ backend while stderr/stdout are suppressed above)
+
     dummy = np.zeros((100, 100, 3), dtype=np.uint8)
     extractor.extract_pose_from_frame(dummy)
 
@@ -299,7 +306,11 @@ def main():
         print(f"  {DIM}{progress_bar(idx, total)}{RESET}")
         print(f"  {BOLD}{body_name}'s body + {face_name}'s face{RESET}")
         print(f"  {DIM}Original: {original.name}  |  Swapped: {swap_path.name}{RESET}")
-        print(f"  {DIM}Extracting & comparing gait features...{RESET}", end=" ", flush=True)
+        print(
+            f"  {DIM}Extracting & comparing gait features...{RESET}",
+            end=" ",
+            flush=True,
+        )
 
         result = compare_gait(str(original), str(swap_path), extractor)
         result["body_identity"] = body_name
@@ -316,24 +327,42 @@ def main():
             pc = result["pass_count"]
 
             # Status line
-            print(f"  {BAR}  Verdict:  {status_icon(preserved)}  {DIM}({pc}/3 criteria passed){RESET}")
+            print(
+                f"  {BAR}  Verdict:  {status_icon(preserved)}  {DIM}({pc}/3 criteria passed){RESET}"
+            )
             print(f"  {BAR}")
 
             # Criterion 1: PCK
-            pck_icon = f"{GREEN}PASS{RESET}" if result['pck_pass'] else f"{RED}FAIL{RESET}"
-            print(f"  {BAR}  PCK@0.05 (torso-norm):  {result['pck_score']:.1%}   [{pck_icon}]  {DIM}(need >= {THRESHOLD_PCK:.0%}){RESET}")
+            pck_icon = (
+                f"{GREEN}PASS{RESET}" if result["pck_pass"] else f"{RED}FAIL{RESET}"
+            )
+            print(
+                f"  {BAR}  PCK@0.05 (torso-norm):  {result['pck_score']:.1%}   [{pck_icon}]  {DIM}(need >= {THRESHOLD_PCK:.0%}){RESET}"
+            )
 
             # Criterion 2: Cosine sim
-            cos_icon = f"{GREEN}PASS{RESET}" if result['cosine_pass'] else f"{RED}FAIL{RESET}"
-            print(f"  {BAR}  Cosine similarity:      {result['mean_cosine']:.4f}  [{cos_icon}]  {DIM}(need >= {THRESHOLD_COSINE}){RESET}")
+            cos_icon = (
+                f"{GREEN}PASS{RESET}" if result["cosine_pass"] else f"{RED}FAIL{RESET}"
+            )
+            print(
+                f"  {BAR}  Cosine similarity:      {result['mean_cosine']:.4f}  [{cos_icon}]  {DIM}(need >= {THRESHOLD_COSINE}){RESET}"
+            )
 
             # Criterion 3: Correlations
-            corr_icon = f"{GREEN}PASS{RESET}" if result['corr_pass'] else f"{RED}FAIL{RESET}"
-            print(f"  {BAR}  Step-width corr:        {result['step_correlation']:.4f}  [{corr_icon}]  {DIM}(need >= {THRESHOLD_CORR}){RESET}")
-            print(f"  {BAR}  Symmetry corr:          {result['symmetry_correlation']:.4f}          {DIM}(need >= {THRESHOLD_CORR}){RESET}")
+            corr_icon = (
+                f"{GREEN}PASS{RESET}" if result["corr_pass"] else f"{RED}FAIL{RESET}"
+            )
+            print(
+                f"  {BAR}  Step-width corr:        {result['step_correlation']:.4f}  [{corr_icon}]  {DIM}(need >= {THRESHOLD_CORR}){RESET}"
+            )
+            print(
+                f"  {BAR}  Symmetry corr:          {result['symmetry_correlation']:.4f}          {DIM}(need >= {THRESHOLD_CORR}){RESET}"
+            )
 
             print(f"  {BAR}")
-            print(f"  {BAR}  {DIM}Info: Mean per-landmark L2 = {result['mean_per_landmark_l2']:.4f}  |  Angles L2 = {result['mean_l2_angles']:.2f}  |  Frames = {result['num_frames_compared']}{RESET}")
+            print(
+                f"  {BAR}  {DIM}Info: Mean per-landmark L2 = {result['mean_per_landmark_l2']:.4f}  |  Angles L2 = {result['mean_l2_angles']:.2f}  |  Frames = {result['num_frames_compared']}{RESET}"
+            )
             print()
 
     # ── Summary ──
@@ -348,15 +377,21 @@ def main():
     total_valid = len(valid_results)
 
     # Table header
-    print(f"  {BOLD}{'Video':<38} {'PCK':>7} {'Cosine':>8} {'StepR':>7} {'Pass':>6} {'Status':>14}{RESET}")
+    print(
+        f"  {BOLD}{'Video':<38} {'PCK':>7} {'Cosine':>8} {'StepR':>7} {'Pass':>6} {'Status':>14}{RESET}"
+    )
     print(f"  {'─' * 84}")
 
     for r in valid_results:
         icon = status_icon(r["preserved"])
-        print(f"  {r['swap_file']:<38} {r['pck_score']:>6.1%} {r['mean_cosine']:>8.4f} {r['step_correlation']:>7.4f} {r['pass_count']:>4}/3   {icon}")
+        print(
+            f"  {r['swap_file']:<38} {r['pck_score']:>6.1%} {r['mean_cosine']:>8.4f} {r['step_correlation']:>7.4f} {r['pass_count']:>4}/3   {icon}"
+        )
 
     print(f"  {'─' * 84}")
-    print(f"  {BOLD}{preserved_count}/{total_valid}{RESET} videos have preserved gait  {DIM}(need >= 2/3 criteria){RESET}")
+    print(
+        f"  {BOLD}{preserved_count}/{total_valid}{RESET} videos have preserved gait  {DIM}(need >= 2/3 criteria){RESET}"
+    )
     print()
 
     # ── Interpretation ──
@@ -366,19 +401,21 @@ def main():
         print(f"  {CHECK} {BOLD}{GREEN}All gait sequences are preserved.{RESET}")
         print()
         print(f"  {DIM}The face-swap operation modified only the facial region and did")
-        print(f"  NOT alter body landmarks, joint angles, or walking dynamics.")
-        print(f"  This confirms that the deepfake videos retain the original")
-        print(f"  person's gait signature — exactly what a gait-based deepfake")
+        print("  NOT alter body landmarks, joint angles, or walking dynamics.")
+        print("  This confirms that the deepfake videos retain the original")
+        print("  person's gait signature — exactly what a gait-based deepfake")
         print(f"  detector should exploit to flag identity mismatches.{RESET}")
     else:
         altered = total_valid - preserved_count
         print(f"  {CROSS} {BOLD}{RED}{altered} video(s) show gait alteration.{RESET}")
         print()
         print(f"  {DIM}Possible causes:")
-        print(f"    - Face mask extended into body/shoulder region")
-        print(f"    - Video resolution or compression artifacts")
-        print(f"    - Frame count mismatch between original and swap")
-        print(f"  Consider re-generating affected videos with tighter face masks.{RESET}")
+        print("    - Face mask extended into body/shoulder region")
+        print("    - Video resolution or compression artifacts")
+        print("    - Frame count mismatch between original and swap")
+        print(
+            f"  Consider re-generating affected videos with tighter face masks.{RESET}"
+        )
 
     # ── Criteria explanation ──
     header("EVALUATION CRITERIA")
@@ -386,18 +423,20 @@ def main():
     print(f"  Verdict uses {BOLD}multi-metric consensus{RESET} (2 of 3 must pass):")
     print()
     print(f"  {BOLD}1. PCK@0.05{RESET} (Percentage of Correct Keypoints)")
-    print(f"     {DIM}% of (frame, landmark) pairs where per-landmark L2 < 5% of torso height.")
-    print(f"     Based on PCK metric from MPII benchmark (V7Labs HPE Guide).")
+    print(
+        f"     {DIM}% of (frame, landmark) pairs where per-landmark L2 < 5% of torso height."
+    )
+    print("     Based on PCK metric from MPII benchmark (V7Labs HPE Guide).")
     print(f"     Pass: >= {THRESHOLD_PCK:.0%}{RESET}")
     print()
     print(f"  {BOLD}2. Cosine Similarity{RESET}")
     print(f"     {DIM}Mean cosine similarity of hip-normalized pose vectors per frame.")
-    print(f"     Measures shape agreement independent of scale (PMC9371146).")
+    print("     Measures shape agreement independent of scale (PMC9371146).")
     print(f"     Pass: >= {THRESHOLD_COSINE}{RESET}")
     print()
     print(f"  {BOLD}3. Temporal Correlations{RESET} (Pearson r)")
     print(f"     {DIM}Step-width correlation + body symmetry correlation over time.")
-    print(f"     Standard in clinical gait analysis (PMC10886083, PMC11097739).")
+    print("     Standard in clinical gait analysis (PMC10886083, PMC11097739).")
     print(f"     Pass: both >= {THRESHOLD_CORR}{RESET}")
     print()
 

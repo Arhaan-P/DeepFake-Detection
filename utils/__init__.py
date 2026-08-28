@@ -8,12 +8,12 @@ Modules:
     visualization: Plotting utilities for training curves and metrics.
 """
 
-from utils.pose_extraction import GaitFeatureExtractor, extract_features_from_dataset
 from utils.data_loader import GaitDataset, create_data_loaders
+from utils.pose_extraction import GaitFeatureExtractor, extract_features_from_dataset
 
 __all__ = [
-    'GaitFeatureExtractor',
-    'extract_features_from_dataset',
-    'GaitDataset',
-    'create_data_loaders'
+    "GaitDataset",
+    "GaitFeatureExtractor",
+    "create_data_loaders",
+    "extract_features_from_dataset",
 ]
