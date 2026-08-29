@@ -24,6 +24,7 @@ Augmentation Techniques Applied:
 Author: Auto-generated for DeepFake Detection Project
 """
 
+import argparse
 import random
 import shutil
 from pathlib import Path
@@ -510,9 +511,23 @@ def create_train_val_split(augmented_dir: str, train_ratio: float = 0.8):
 
 
 if __name__ == "__main__":
-    # Configuration
-    INPUT_DIR = r"data/videos"
-    OUTPUT_DIR = r"data/augmented_videos"
+    parser = argparse.ArgumentParser(description="16x video augmentation for gait data")
+    parser.add_argument(
+        "--input_dir",
+        type=str,
+        default="data/videos",
+        help="Directory containing original videos",
+    )
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        default="data/augmented_videos",
+        help="Directory to write augmented videos to",
+    )
+    args = parser.parse_args()
+
+    INPUT_DIR = args.input_dir
+    OUTPUT_DIR = args.output_dir
 
     # Create augmenter
     augmenter = VideoAugmenter(output_dir=OUTPUT_DIR)
