@@ -40,6 +40,19 @@ paired-LOOCV ablation confirming this ordering is *correct given the cohort
 size* (not a bug to blindly "fix" by wiring the embedding in) are in
 `NOTES.md §2.1–2.2`.
 
+**Status (2026-08-29): reviewed, confirmed as-is.** Every configuration that
+connects the encoder/temporal stack to the decision path was measured (paired
+13-fold × 3-seed LOOCV, `NOTES.md §2.2`) to perform *worse* than the deployed
+raw-difference classifier — Raw+CNN −2.53 AUC (p=2.9e-04), Raw+Transformer
+−3.88 (p=3.5e-05), Raw+Hybrid −4.22 (p=3.7e-04), Raw+BiLSTM −5.93 (p=1.7e-07),
+Hybrid-only (no raw comparison) −43.55 (p=1.1e-15). Wiring the embedding in
+would not be a bug fix; it would degrade the reported result. Decision:
+ship as-is. The alternative (removing the now-confirmed-unhelpful
+encoder/temporal/verifier stack from the model entirely) was considered and
+explicitly deferred — that is an architecture change requiring its own
+re-training, re-evaluation, and updated paper/checkpoint artifacts, out of
+scope for a cleanup pass.
+
 ### 2. LOOCV feature normalization is transductive
 **File:** `scripts/evaluation/evaluate.py` — never passes `feature_stats` into
 `GaitDataset`, so z-score statistics are computed from the held-out subject's
@@ -83,7 +96,12 @@ path for any reported result.
 The pooled AUC (94.95) is correct; its paired std (±2.81) matches nothing
 reproducible. Full numeric derivation in `NOTES.md §1.1`, which also flags
 that the **published IEEE DataPort abstract** (DOI 10.21227/ngh5-b637) carries
-the same stale numbers.
+the same stale numbers (tracked separately in finding #8; DataPort is an
+external platform this repo can't push to).
+
+**Status (2026-08-29): resolved.** README's Results table now reports both
+per-fold and pooled statistics matching `loocv_results.json` exactly,
+reconciled directly against `paper.tex` Table VII.
 
 ### 6. README ablation table reports the superseded, methodologically-flawed experiment
 **File:** `README.md`, "Ablation Study" section (~lines 21–28). Reports the
@@ -96,6 +114,11 @@ results consumed by `figures/fig9_ablation.png`) with the opposite
 conclusion: adding encoder capacity *hurts* at this cohort size. README was
 not updated to avoid pre-empting how you want to reconcile it with the paper.
 
+**Status (2026-08-29): resolved.** README's Ablation section now reports the
+paired LOOCV ablation table from `paper.tex` Table IX, with the old 4-variant
+accuracy table removed. `ablation_study.py` is explicitly labelled superseded
+in both README and its own module docstring.
+
 ### 7. README links two files that don't exist in the repo
 **File:** `README.md` line 9 (`[LITERATURE_REVIEW.md](LITERATURE_REVIEW.md)`)
 and the "Project Structure" section (lists `PLAN.md` and
@@ -105,14 +128,48 @@ working tree. `.github/instructions/rules.instructions.md` also references
 deliberately (content folded into `paper.tex`/`references.bib`) or lost —
 worth confirming before deciding whether to restore, stub, or deregister them.
 
-### 8. IEEE DataPort abstract has a second documented mismatch: augmentation list
-Per `NOTES.md §1.5`, the DataPort abstract describes "temporal jitter,
-Gaussian noise injection on keypoints, speed perturbation, horizontal
-flipping, and occlusion simulation." The actual 1,056 files in
-`data/augmented_videos/` (not tracked in git, but this is a claims issue
-regardless) carry 15 different suffixes, none of which include occlusion
-simulation or keypoint-space noise; `apply_temporal_jitter` exists in
-`augment_videos.py` but isn't among the 16 shipped outputs.
+**Status (2026-08-29): resolved for README.** The dead link and both
+nonexistent files were removed from README's "Key Idea" section and Project
+Structure tree; the novelty claim there now uses the paper's own "under-explored
+niche" positioning (Section II-D) instead of the removed literature-review
+doc. `rules.instructions.md`'s reference to `PLAN.md` is a separate,
+lower-traffic file (Copilot/agent instructions, not user-facing docs) and was
+left as-is — flag if you want it cleaned up too.
+
+### 8. IEEE DataPort abstract has stale metrics and a wrong augmentation list
+Per `NOTES.md §1.1/§1.5` and `DOCUMENTATION/DATASET.txt` (a local copy of the
+live listing text), the published abstract at DOI 10.21227/ngh5-b637 states:
+"achieving an AUC-ROC of 94.95% ± 2.81% and an F1 score of 86.56% under
+LOOCV" (stale, see finding #5) and describes the augmentation pipeline as
+"temporal jitter, Gaussian noise injection on keypoints, speed perturbation,
+horizontal flipping, and occlusion simulation" — none of which matches
+`augment_videos.py`'s actual 15 named operations (Table II in `paper.tex`);
+there is no occlusion simulation and no keypoint-space noise, and
+`apply_temporal_jitter` exists in code but isn't among the 16 shipped video
+variants (variant #1 is the unaugmented original).
+
+**Status (2026-08-29): text drafted, not pushed** — this repo has no access
+to the external IEEE DataPort platform. Corrected replacement text for the
+two stale paragraphs (matching `DOCUMENTATION/DATASET.txt`'s current
+structure), ready to paste into the DataPort abstract editor:
+
+> Through a 16× data augmentation pipeline — horizontal flip, Gaussian blur,
+> brightness adjustment (up and down), contrast increase, colour jitter,
+> combined multi-augmentation, grayscale conversion, rotation (left and
+> right, capped at 10°), speed perturbation (0.8× and 1.2×), temporal
+> reversal, zoom, and Gaussian noise injection on pixels — the dataset
+> expands to 1,056 augmented video samples.
+>
+> This dataset was used to train and evaluate a difference-based temporal
+> convolutional verification network (with an auxiliary CNN+BiLSTM+Transformer
+> embedding branch used for enrolment diagnostics, not the verification
+> decision), achieving a pooled ROC-AUC of 94.95% (per-fold 95.10% ± 3.08%),
+> accuracy of 87.04% ± 3.65%, and an F1 score of 87.12% ± 3.77% under 13-fold
+> leave-one-subject-out cross-validation.
+
+The "filling a confirmed research gap" phrase in the same paragraph should
+also be softened to match the paper's "under-explored niche" framing (see
+finding #7) if the abstract is revised at all.
 
 ---
 
@@ -124,6 +181,9 @@ Still runs, still produces output — but per finding #6, its methodology is
 superseded by `scripts/evaluation/ablation_loocv.py` (untracked as of this
 audit; user has since finalized it). README's numbered Usage list has no
 mention of `ablation_loocv.py` anywhere.
+
+**Status (2026-08-29): resolved.** README Usage step 7 now runs
+`ablation_loocv.py`; `ablation_study.py` is no longer in the numbered steps.
 
 ### 10. `run_pipeline.py`'s augmentation stage passes flags `augment_videos.py` doesn't have
 **File:** `scripts/run_pipeline.py`, `stage_augment()` (~lines 73–85). Calls
@@ -139,18 +199,45 @@ was authorized for), but it's the identical category of bug as finding #9 —
 worth fixing in the same pass as adding real CLI args to `augment_videos.py`
 and correcting this call site together.
 
+**Status (2026-08-29): resolved.** `augment_videos.py` now has real
+`argparse` with `--input_dir`/`--output_dir` (defaults unchanged:
+`data/videos` / `data/augmented_videos`, so bare invocation behaves exactly
+as before). `run_pipeline.py`'s existing call site needed no changes — its
+flags now do what they always looked like they did.
+
 ### 11. `extract_faces.py` isn't documented in README's Usage steps
 **File:** `scripts/preprocessing/extract_faces.py` exists to produce
 FaceFusion source-face images, which README's step 10 (manual FaceFusion GUI
 process) implicitly depends on but never names as a prerequisite script.
 
-### 12. `figures/README.md` says figures 1–4 are "Missing"
+**Status (2026-08-29): partially resolved.** `extract_faces.py` is now listed
+in README's Project Structure tree with a description. Not added as a
+numbered Usage step, since it's a manual-process helper (prints a
+recommended-pairs table for the FaceFusion GUI) rather than a pipeline stage
+with a fixed invocation — adding a prescriptive command risked overstating
+how automated step 10 actually is.
+
+### 12. `figures/README.md` says figures 1–4 are "Missing" — and paper.tex can't see the real ones either
 **File:** `figures/README.md` lines 26–36 state the four conceptual diagrams
 (`fig1_pipeline.png` … `fig4_architecture.png`) still need to be generated.
-They are in fact already tracked in git under `diagrams/` (not `figures/`) —
-either they need to be copied/symlinked into `figures/` (if that's what
-`paper.tex` actually reads from) or this doc note is simply stale. Not
-changed here since it borders on describing the paper's figure pipeline.
+They are in fact already tracked in git — **but under `diagrams/`, not
+`figures/`.**
+
+**This is more than a stale doc note.** `paper.tex` line 28 sets
+`\graphicspath{{figures/}{./}}` and lines 280/302/429/565 call
+`\concept{figures/fig1_pipeline.png}{...}` etc. — the `\concept` macro
+(line 34) does `\IfFileExists{figures/fig1_pipeline.png}{include it}{render a
+placeholder box}`. Verified directly: `figures/fig1_pipeline.png` does **not**
+exist (only `diagrams/fig1_pipeline.png` does, ~5MB, a real generated image).
+So as currently wired, `paper.tex` compiles clean but **silently falls back to
+placeholder boxes for all four conceptual figures**, even though the finished
+diagrams already exist in the repo. Not fixed here since it's a `paper.tex`
+edit, outside what was authorized this pass — but flagging prominently since
+it's a one-line-per-figure fix (either move/copy the 4 PNGs into `figures/`,
+or change the 4 `\concept{...}` paths to `diagrams/...`, or add `diagrams/`
+to `\graphicspath` — that last option alone won't fix it, since `\IfFileExists`
+checks the literal path given, not the graphics search path) and it
+determines whether the submitted PDF has real figures or grey boxes.
 
 ---
 
@@ -161,6 +248,14 @@ changed here since it borders on describing the paper's figure pipeline.
 `AUDIT_FINDINGS.md`, `NOTES.md`, and `context.md` all exist and are tracked,
 but aren't in README's tree. Conversely it lists `PLAN.md` and
 `LITERATURE_REVIEW.md`, which don't exist (finding #7).
+
+**Status (2026-08-29): resolved.** README's Project Structure tree now
+includes `ieee_scripts/`, `diagrams/`, `figures/`, `tests/`,
+`scripts/generate_figures/`, `NOTES.md`, `AUDIT_FINDINGS.md`, `LICENSE`, and
+`CONTRIBUTING.md`; `PLAN.md`/`LITERATURE_REVIEW.md` are gone. `context.md`
+(a portfolio/resume-style summary, not a paper-facing doc) was left out
+deliberately, since the Project Structure section documents the pipeline, not
+every root-level file.
 
 ---
 
