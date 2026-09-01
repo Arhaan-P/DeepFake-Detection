@@ -2,15 +2,15 @@
 
 Detects face-swap deepfakes by verifying identity from **skeletal gait** instead of facial features. Face-swap generators composite a synthesised face through a mask confined to the facial region — the body underneath still walks the way the source person walks. Given a video and a claimed identity, the system extracts a 78-dimensional per-frame gait descriptor via MediaPipe and classifies the discrepancy between the observed sequence and the claimed identity's enrolled signature, using a difference-based temporal convolutional verification network.
 
-Full method, evaluation, and limitations are in the accompanying paper (`paper.tex`); this README covers running the code. `NOTES.md` and `AUDIT_FINDINGS.md` document known issues and design decisions in detail.
+Full method, evaluation, and limitations are in the accompanying paper (`deepfake_paper.tex`); this README covers running the code.
 
 ## Key Idea
 
-Behavioural biometrics have been applied to deepfake detection since 2019, and whole-body pose/motion cues since 2024–2025 (see `references.bib` for the related-work citations). What's under-explored is using **locomotion gait-cycle skeletal dynamics as the primary discriminative feature** for verifying a claimed identity in a face-swapped video, under a subject-disjoint evaluation protocol. This is a niche rather than a vacant space — see the paper's Related Work section for how it's positioned against gait-recognition and face-forgery-detection literature.
+Behavioural biometrics have been applied to deepfake detection since 2019, and whole-body pose/motion cues since 2024–2025 (see `deepfake_paper.bib` for the related-work citations). What's under-explored is using **locomotion gait-cycle skeletal dynamics as the primary discriminative feature** for verifying a claimed identity in a face-swapped video, under a subject-disjoint evaluation protocol. This is a niche rather than a vacant space — see the paper's Related Work section for how it's positioned against gait-recognition and face-forgery-detection literature.
 
 ## Results
 
-Numbers below are pooled/per-fold statistics from `outputs/evaluation/loocv/loocv_results.json`, reproducible via `python scripts/generate_figures/generate_all.py`. Full derivation in the paper (Section V) and `NOTES.md §1.1`.
+Numbers below are pooled/per-fold statistics from `outputs/evaluation/loocv/loocv_results.json`, reproducible via `python scripts/generate_figures/generate_all.py`. Full derivation in the paper (Section V).
 
 ### LOOCV Evaluation (13-fold, subject-disjoint, 2,240 verification pairs)
 
@@ -38,7 +38,7 @@ The model also contains an auxiliary CNN+BiLSTM+Transformer embedding branch (se
 | Raw + BiLSTM         | 379,074 | 88.32 ± 6.08       | −5.93          | 1.7e-07    |
 | Hybrid only (no raw) | 876,162 | 50.70 ± 20.81      | −43.55         | 1.1e-15    |
 
-Reproduce with `python scripts/evaluation/ablation_loocv.py`. Full protocol and interpretation in the paper (Section VI-F) and `NOTES.md §2.2`. `scripts/evaluation/ablation_study.py` is an earlier, superseded version of this experiment, kept for provenance — its numbers should not be used.
+Reproduce with `python scripts/evaluation/ablation_loocv.py`. Full protocol and interpretation in the paper (Section VI-F). `scripts/evaluation/ablation_study.py` is an earlier, superseded version of this experiment, kept for provenance — its numbers should not be used.
 
 ### Face-Swap Video Validation
 
@@ -50,7 +50,7 @@ Reproduce with `python scripts/evaluation/ablation_loocv.py`. Full protocol and 
 | 2    | 0.0003                          | IDENTITY_MISMATCH   | ✓                           | 0.9999                |
 | 3    | <0.0001                         | IDENTITY_MISMATCH   | ✓                           | 0.99999               |
 
-3/3 correctly rejected the claimed identity and matched the true body source. n=3 from a single generator under one masking configuration — an existence check consistent with the core hypothesis, not a statistically powered claim (paper Section VI-G, `NOTES.md §4`).
+3/3 correctly rejected the claimed identity and matched the true body source. n=3 from a single generator under one masking configuration — an existence check consistent with the core hypothesis, not a statistically powered claim (paper Section VI-G).
 
 ### Explainability
 
@@ -58,7 +58,7 @@ Gradient-times-input attribution over the 12 gait keypoints (26 samples, 2 per i
 
 ## Architecture
 
-The verification decision and the auxiliary embedding branch are two separate lanes that do not join — see `AUDIT_FINDINGS.md #1` and paper Section III-F for why this is a reviewed design decision, not an oversight (the ablation above shows connecting them costs accuracy).
+The verification decision and the auxiliary embedding branch are two separate lanes that do not join — see paper Section III-F for why this is a reviewed design decision, not an oversight (the ablation above shows connecting them costs accuracy).
 
 ```
                 Video features V, claimed signature C
@@ -122,8 +122,7 @@ The verification decision and the auxiliary embedding branch are two separate la
 │   ├── gradcam.py                   # Grad-CAM + gradient-times-input attribution
 │   ├── visualization.py             # Plotting utilities
 │   └── logger.py                    # Logging utility
-├── diagrams/                        # Conceptual figures 1-4 (Gemini-generated)
-├── figures/                         # Figures 5-11 (generated from evaluation output)
+├── figures/                         # All paper figures (1-4 conceptual, 5-11 generated from evaluation output)
 ├── tests/
 │   └── smoke_test.py                # End-to-end pipeline smoke test (no data/GPU needed)
 ├── ieee_scripts/                    # Setup/verification scripts for the IEEE DataPort release
@@ -136,8 +135,9 @@ The verification decision and the auxiliary embedding branch are two separate la
 │   ├── evaluation/                  # LOOCV results
 │   ├── ablation/                    # Ablation study results
 │   └── gradcam/                     # GradCAM / attribution visualizations
-├── NOTES.md                         # Paper-build notes, discrepancy log, decisions
-├── AUDIT_FINDINGS.md                # Known issues logged, not silently fixed
+├── DOCUMENTATION/                   # Dataset abstract, technical overview, context
+├── deepfake_paper.tex               # Paper source
+├── deepfake_paper.bib               # Bibliography
 ├── LICENSE
 ├── CONTRIBUTING.md
 ├── pyproject.toml                   # Package config (pip install -e .)
