@@ -1,13 +1,13 @@
 % ===========================================================================
 % Detecting Face-Swap Deepfakes by Verifying Skeletal Gait Dynamics
 %
-% Build:  pdflatex paper && bibtex paper && pdflatex paper && pdflatex paper
+% Build (from paper/):  latexmk -pdf deepfake_paper.tex
 %
 % Figures 1-4 are conceptual diagrams generated outside this repository; see
-% diagrams/GEMINI_PROMPTS.md. Until those PNGs are dropped into figures/, the
-% \concept macro renders a labelled placeholder box so the document still
+% ../figures/GEMINI_PROMPTS.md. Until those PNGs are dropped into ../figures/,
+% the \concept macro renders a labelled placeholder box so the document still
 % compiles. Figures 5-11 are produced from the evaluation artefacts by
-% scripts/generate_figures/generate_all.py.
+% ../scripts/generate_figures/generate_all.py.
 % ===========================================================================
 
 \documentclass[journal]{IEEEtran}
@@ -25,7 +25,7 @@
 \usepackage{url}
 \usepackage{cite}
 
-\graphicspath{{figures/}{./}}
+\graphicspath{{../figures/}{./}}
 
 \hyphenation{deep-fake deep-fakes bio-mech-an-i-cal}
 
@@ -280,7 +280,7 @@ pipeline described in this section, from raw video to verdict.
 
 \begin{figure*}[!t]
 \centering
-\concept{figures/fig1_pipeline.png}{\textwidth}{%
+\concept{../figures/fig1_pipeline.png}{\textwidth}{%
   System pipeline: video and claimed identity $\rightarrow$ MediaPipe pose
   $\rightarrow$ 78-dim gait features $\rightarrow$ temporal normalisation
   $\rightarrow$ difference-based verification CNN $\rightarrow$ verdict.}
@@ -302,7 +302,7 @@ stored embedding.}
 
 \begin{figure}[!t]
 \centering
-\concept{figures/fig2_threat_model.png}{\columnwidth}{%
+\concept{../figures/fig2_threat_model.png}{\columnwidth}{%
   Threat model: the generator rewrites only the face crop, so the forged
   video retains the source body's gait.}
 \caption{The asymmetry the method exploits. A face-swap generator detects a
@@ -429,7 +429,7 @@ particular backend.
 
 \begin{figure}[!t]
 \centering
-\concept{figures/fig3_keypoints.png}{\columnwidth}{%
+\concept{../figures/fig3_keypoints.png}{\columnwidth}{%
   The 12 retained MediaPipe landmarks on a body skeleton, with the 21
   discarded landmarks shown de-emphasised.}
 \caption{The 12 gait keypoints retained from MediaPipe's 33 landmarks, shown on
@@ -565,7 +565,7 @@ stream.
 
 \begin{figure*}[!t]
 \centering
-\concept{figures/fig4_architecture.png}{\textwidth}{%
+\concept{../figures/fig4_architecture.png}{\textwidth}{%
   Architecture: the verification path (pairwise comparison $\rightarrow$
   temporal CNN $\rightarrow$ softmax) and the separate auxiliary embedding
   path (GaitEncoder $\rightarrow$ DualPathTemporalModel).}
@@ -897,7 +897,7 @@ worth carrying into Section~\ref{sec:discussion}.
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=\textwidth]{figures/fig5_roc.png}
+\includegraphics[width=\textwidth]{../figures/fig5_roc.png}
 \caption{ROC analysis of the leave-one-subject-out evaluation. (a) Pooled over
 all 2{,}240 verification pairs, with the equal-error point and the
 Youden-optimal operating point $\tau^* = 0.7737$ marked; the two sit far apart,
@@ -960,7 +960,7 @@ Std     &  3.65 &  3.77 &  4.72 &  6.82 &  3.08 &  3.80 & \\
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=\textwidth]{figures/fig8_loocv_spread.png}
+\includegraphics[width=\textwidth]{../figures/fig8_loocv_spread.png}
 \caption{Fold-to-fold dispersion across the 13 subject-held-out folds. (a)
 Distribution of each metric, with individual folds overplotted; EER is drawn
 against its own right-hand scale because its $6.6$--$20.0\%$ range would
@@ -993,7 +993,7 @@ $\tau^* = 0.7737$.
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=\textwidth]{figures/fig6_confusion.png}
+\includegraphics[width=\textwidth]{../figures/fig6_confusion.png}
 \caption{Pooled confusion matrices over all 2{,}240 LOOCV verification pairs at
 the two operating points. (a) The network's native $\tau = 0.5$ argmax
 decision, which is the point at which the per-fold metrics of
@@ -1014,7 +1014,7 @@ redistributes a small, hard residue.
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=\columnwidth]{figures/fig7_score_distribution.png}
+\includegraphics[width=\columnwidth]{../figures/fig7_score_distribution.png}
 \caption{Distribution of $P(\textsc{authentic})$ over the 2{,}240 pooled
 verification pairs. Both classes saturate against their extremes (genuine
 median $0.999$, impostor median $0.0007$), leaving only 86 pairs---$3.8\%$ of
@@ -1105,7 +1105,7 @@ matched (fold, seed) pairs. ``Hybrid only'' omits the raw comparison entirely.
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=\textwidth]{figures/fig9_ablation.png}
+\includegraphics[width=\textwidth]{../figures/fig9_ablation.png}
 \caption{LOOCV ablation over five variants, each measured on 13
 subject-held-out folds at 3 seeds. (a) ROC-AUC and accuracy per variant, with
 standard deviation across the 39 observations; the deployed model (dark) is
@@ -1234,7 +1234,7 @@ the model has learned about laterality in general.
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=\textwidth]{figures/fig10_joint_importance.png}
+\includegraphics[width=\textwidth]{../figures/fig10_joint_importance.png}
 \caption{Gradient-times-input attribution over the 12 gait keypoints, averaged
 across 26 samples (two per identity). (a) Attribution rendered on a skeleton
 whose geometry is the mean of all 13 enrolment signatures across their 60
@@ -1310,7 +1310,7 @@ Joint angles           & 14.92 &  6 &  7.69 & \textbf{1.94} \\
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=\textwidth]{figures/fig11_feature_groups.png}
+\includegraphics[width=\textwidth]{../figures/fig11_feature_groups.png}
 \caption{Attribution by feature group. (a) Each group's share of total
 attribution against its share of the 78 input dimensions. Coordinates and
 velocities draw roughly their proportional share ($1.03\times$ and
