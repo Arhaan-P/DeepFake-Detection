@@ -2,11 +2,11 @@
 
 Detects face-swap deepfakes by verifying identity from **skeletal gait** instead of facial features. Face-swap generators composite a synthesised face through a mask confined to the facial region — the body underneath still walks the way the source person walks. Given a video and a claimed identity, the system extracts a 78-dimensional per-frame gait descriptor via MediaPipe and classifies the discrepancy between the observed sequence and the claimed identity's enrolled signature, using a difference-based temporal convolutional verification network.
 
-Full method, evaluation, and limitations are in the accompanying paper (`deepfake_paper.tex`); this README covers running the code.
+Full method, evaluation, and limitations are in the accompanying paper (`paper/deepfake_paper.tex`); this README covers running the code.
 
 ## Key Idea
 
-Behavioural biometrics have been applied to deepfake detection since 2019, and whole-body pose/motion cues since 2024–2025 (see `deepfake_paper.bib` for the related-work citations). What's under-explored is using **locomotion gait-cycle skeletal dynamics as the primary discriminative feature** for verifying a claimed identity in a face-swapped video, under a subject-disjoint evaluation protocol. This is a niche rather than a vacant space — see the paper's Related Work section for how it's positioned against gait-recognition and face-forgery-detection literature.
+Behavioural biometrics have been applied to deepfake detection since 2019, and whole-body pose/motion cues since 2024–2025 (see `paper/deepfake_paper.bib` for the related-work citations). What's under-explored is using **locomotion gait-cycle skeletal dynamics as the primary discriminative feature** for verifying a claimed identity in a face-swapped video, under a subject-disjoint evaluation protocol. This is a niche rather than a vacant space — see the paper's Related Work section for how it's positioned against gait-recognition and face-forgery-detection literature.
 
 ## Results
 
@@ -136,8 +136,10 @@ The verification decision and the auxiliary embedding branch are two separate la
 │   ├── ablation/                    # Ablation study results
 │   └── gradcam/                     # GradCAM / attribution visualizations
 ├── DOCUMENTATION/                   # Dataset abstract, technical overview, context
-├── deepfake_paper.tex               # Paper source
-├── deepfake_paper.bib               # Bibliography
+├── paper/
+│   ├── deepfake_paper.tex           # Paper source
+│   ├── deepfake_paper.bib           # Bibliography
+│   └── deepfake_paper.pdf           # Compiled paper
 ├── LICENSE
 ├── CONTRIBUTING.md
 ├── pyproject.toml                   # Package config (pip install -e .)

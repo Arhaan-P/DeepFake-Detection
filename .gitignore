@@ -94,7 +94,6 @@ docs/
 .gsd/
 
 *.zip
-screenshots/hero.png
 
 research/
 # LaTeX build artefacts (deepfake_paper.tex)
