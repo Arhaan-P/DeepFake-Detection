@@ -1,0 +1,103 @@
+% ---------------------------------------------------------------------------
+% Fig. 1 -- End-to-end verification pipeline and network architecture.
+% Pure TikZ (vector). Replaces raster fig1_pipeline.png + fig4_architecture.png.
+% Legacy-pgf compatible: uses the `arrows' library, not `arrows.meta'.
+% Two-row layout: (top) feature extraction, (bottom) difference verification.
+% ---------------------------------------------------------------------------
+\begin{tikzpicture}[
+  font=\scriptsize,
+  blk/.style   = {draw, rounded corners=2pt, align=center, inner sep=2.2pt,
+                  minimum height=6.0mm, line width=0.4pt},
+  inp/.style   = {blk, fill=blue!10},
+  pose/.style  = {blk, fill=cyan!13},
+  feat/.style  = {blk, fill=green!13},
+  comp/.style  = {blk, fill=orange!16},
+  conv/.style  = {blk, fill=teal!13},
+  head/.style  = {blk, fill=yellow!25},
+  auxb/.style  = {draw=black!45, rounded corners=2pt, align=center, inner sep=3pt,
+                  fill=black!4, densely dashed, text=black!60, line width=0.4pt},
+  grp/.style   = {draw=black!42, densely dashed, rounded corners=3pt, inner sep=4pt},
+  gl/.style    = {font=\scriptsize\bfseries, text=black!58, inner sep=1.5pt},
+  ar/.style    = {-latex, semithick, black!72},
+  arx/.style   = {-latex, semithick, black!45, densely dashed},
+]
+
+% =========================== ROW 1 : feature extraction ====================
+\node[inp]                     (vid) at (0,0)   {Query video\\$V$};
+\node[pose, right=6mm of vid]  (mp)             {MediaPipe Pose\\33 landmarks};
+\node[pose, right=4mm of mp]   (kp)             {12 gait\\landmarks};
+
+\node[feat, right=6mm of kp]   (an)             {joint angles $\boldsymbol{\theta}_t$ (6)};
+\node[feat, above=1.1mm of an] (co)             {coordinates $\mathbf{c}_t$ (36)};
+\node[feat, below=1.1mm of an] (ve)             {velocities $\mathbf{v}_t$ (36)};
+
+\node[feat, right=5mm of an]   (vv)
+  {observed sequence\\$\mathbf{V}\!\in\!\mathbb{R}^{60\times 78}$};
+
+% =========================== ROW 2 : verification ==========================
+\node[inp]  (sig) at (0,-2.75) {enrolled signature\\$\mathbf{C}\!\in\!\mathbb{R}^{60\times 78}$};
+
+\node[comp, right=8mm of sig] (cmp)
+  {\textbf{difference comparison}\\[0.4mm]
+   $\mathbf{V}\!-\!\mathbf{C}$\ \ $|\mathbf{V}\!-\!\mathbf{C}|$\ \ $\mathbf{V}\!\odot\!\mathbf{C}$\\[0.3mm]
+   $\mathbf{F}\!\in\!\mathbb{R}^{T\times 234}$};
+
+\node[conv, right=7mm of cmp] (cnn)
+  {$3\times$ Conv1D\,+\,BN\,+\,ReLU\\$234\!\to\!64\!\to\!64\!\to\!32$,\ \ $k=7,5,3$};
+
+\node[conv, right=4mm of cnn] (gm)
+  {GAP\,$\to\mathbb{R}^{32}$\\MLP $32\!\to\!32\!\to\!2$};
+
+\node[head, right=6mm of gm] (verd)
+  {$P(\textsc{authentic})\gtrless\tau^{\ast}\!=\!0.7737$\\[0.3mm]
+   \textsc{authentic}\ /\ \textsc{deepfake}};
+
+% =========================== main arrows ===================================
+\draw[ar] (vid) -- (mp);
+\draw[ar] (mp)  -- (kp);
+\draw[ar] (kp.east) -- (co.west);
+\draw[ar] (kp.east) -- (an.west);
+\draw[ar] (kp.east) -- (ve.west);
+\draw[ar] (co.east) -- (vv.north west);
+\draw[ar] (an.east) -- (vv.west);
+\draw[ar] (ve.east) -- (vv.south west);
+
+% observed sequence drops into the comparison
+\coordinate (br) at ($(vv.south)+(0,-7mm)$);
+\draw[ar] (vv.south) -- (br) -| (cmp.north);
+\draw[ar] (sig) -- (cmp);
+
+\draw[ar] (cmp) -- (cnn);
+\draw[ar] (cnn) -- (gm);
+\draw[ar] (gm)  -- (verd);
+
+% =========================== auxiliary branch ==============================
+\node[auxb, anchor=north west] (aux)
+  at ($(sig.west)+(0,-12mm)$)
+  {\textbf{Auxiliary representation branch}\ \ GaitEncoder $\to$
+   BiLSTM\,$\|$\,Transformer $\to$ 128-d embedding\\[0.4mm]
+   $715{,}556$ of $848{,}614$ par.\ --- no gradient, never on the decision path};
+
+\node[circle, draw, fill=white, inner sep=0.7pt, line width=0.4pt]
+  (sg) at ($(cmp.south)!0.55!(cmp.south|-aux.north)$) {\tiny$\otimes$};
+\draw[arx] (cmp.south) -- (sg);
+\draw[arx] (sg) -- (cmp.south|-aux.north);
+
+% =========================== group boxes ===================================
+\begin{scope}[on background layer]
+  \node[grp, fit=(mp)(kp), label={[gl]above:Pose Extraction}] {};
+  \node[grp, fit=(co)(ve)(vv),
+        label={[gl]above:78-D Per-Frame Descriptor ($T\!=\!60$)}] {};
+  \node[grp, fit=(cnn)(gm),
+        label={[gl]above:Verification Network --- $133{,}058$ par. ($15.7\%$)}] {};
+\end{scope}
+
+% =========================== legend ========================================
+\node[draw=black!42, rounded corners=2pt, fill=white, inner sep=3pt,
+      font=\tiny, align=left, anchor=north east]
+  at ($(verd.east)+(0,-12mm)$)
+  {\tikz[baseline=-0.5ex]{\draw[ar](0,0)--(5mm,0);}\ decision path (trained)\\[0.3mm]
+   \tikz[baseline=-0.5ex]{\draw[arx](0,0)--(5mm,0);}\ auxiliary --- no gradient\\[0.3mm]
+   \tikz[baseline=-0.5ex]{\node[circle,draw,inner sep=0.5pt,line width=0.4pt]{\tiny$\otimes$};}\ stop gradient};
+
+\end{tikzpicture}
