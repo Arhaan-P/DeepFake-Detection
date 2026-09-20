@@ -1,0 +1,57 @@
+% ---------------------------------------------------------------------------
+% Fig. 2 -- Threat model: the asymmetry the method exploits.
+% Pure TikZ (vector), sized for \columnwidth. Replaces raster fig2_threat_model.png.
+% Legacy-pgf compatible: uses the `arrows' library, not `arrows.meta'.
+% Grayscale-safe: the rewritten region is marked by a heavy dashed border and an
+% explicit "(synthesised)" label, not by colour alone.
+% ---------------------------------------------------------------------------
+\begin{tikzpicture}[
+  font=\scriptsize,
+  band/.style   = {draw, align=center, minimum height=5.4mm, minimum width=44mm,
+                   inner sep=1.5pt, line width=0.35pt},
+  faceok/.style = {band, fill=blue!11},
+  facebad/.style= {band, fill=red!12, draw=red!70, dashed, line width=0.7pt},
+  body/.style   = {band, fill=green!13, draw=green!45!black, line width=0.7pt},
+  gen/.style    = {draw, rounded corners=2pt, fill=black!7, align=center,
+                   inner sep=3pt, line width=0.4pt},
+  ar/.style     = {-latex, semithick, black!72},
+  note/.style   = {font=\tiny, text=black!60, align=left, inner sep=1pt,
+                   text width=17mm},
+  capt/.style   = {font=\scriptsize\bfseries, text=black!65, inner sep=1.5pt},
+]
+
+% ----------------------------- source footage -----------------------------
+\node[faceok] (sf) at (0,0) {face region: subject $A$};
+\node[body, below=0.7mm of sf] (sb) {torso, limbs, \textbf{gait}: subject $A$};
+\node[capt, anchor=south west] at ($(sf.north west)+(0,0.8mm)$)
+  {Source footage ($A$)};
+
+% ----------------------------- generator ----------------------------------
+\node[gen, below=5.5mm of sb] (gen)
+  {face-swap generator\\[-0.3mm]{\tiny InSwapper-class, face-confined mask}};
+\draw[ar] (sb.south) -- (gen.north);
+
+% ----------------------------- forged video -------------------------------
+\node[facebad, below=8mm of gen] (ff)
+  {face region: subject $B$ \textit{(synthesised)}};
+\node[body, below=0.7mm of ff] (fb) {torso, limbs, \textbf{gait}: \textbf{still} $A$};
+\node[capt, anchor=south west] at ($(ff.north west)+(0,0.8mm)$)
+  {Forged video (claims $B$)};
+\draw[ar] (gen.south) -- (ff.north);
+
+% ----------------------------- side annotations ---------------------------
+\node[note, anchor=south west] (n1) at ($(ff.east)+(4mm,-0.6mm)$)
+  {\textbf{rewritten}: adversary controls this};
+\node[note, anchor=north west] (n2) at ($(fb.east)+(4mm,0.6mm)$)
+  {\textbf{untouched}: carries $A$'s gait};
+\draw[semithick, black!45, latex-] (ff.east) -- ($(ff.east)+(3.4mm,0)$);
+\draw[semithick, black!45, latex-] (fb.east) -- ($(fb.east)+(3.4mm,0)$);
+
+% ----------------------------- verdict ------------------------------------
+\node[draw, rounded corners=2pt, fill=yellow!25, align=center, inner sep=3pt,
+      line width=0.4pt, below=5.5mm of fb] (ver)
+  {claimed identity $B$\ \ $\neq$\ \ observed gait $A$\\[0.3mm]
+   $\Rightarrow$ \textsc{reject}};
+\draw[ar] (fb.south) -- (ver.north);
+
+\end{tikzpicture}
