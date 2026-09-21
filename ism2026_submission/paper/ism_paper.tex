@@ -61,8 +61,8 @@
   \author{\IEEEauthorblockN{Anonymous Submission}
           \IEEEauthorblockA{Paper ID: XXXX}}
 \else
-  \author{\IEEEauthorblockN{Arhaan Penwala, Abhishek Arun Raja K,
-          Aditya Bharti, Vibhav Sharma, and Dr.\ Deepika Roselind J}
+  \author{\IEEEauthorblockN{Arhaan Penwala, Abhishek Arun Raja Kodeeswaran,
+          Aditya Bharti, Vibhav Sharma, and Deepika Roselind Johnson}
   \IEEEauthorblockA{School of Computer Science and Engineering\\
   Vellore Institute of Technology, Chennai Campus, India}}
 \fi
@@ -222,16 +222,7 @@ premise.
 
 \subsection{Positioning}
 
-Behavioural biometrics have been applied to
-deepfake detection since 2019~\cite{agarwal2019}, and whole-body pose and
-motion cues since at least 2024--2025~\cite{humanactionclips,ttdf,convkeypoints}.
-What remains under-explored is the use of \emph{locomotion gait-cycle skeletal
-dynamics as the primary discriminative feature} for verifying a claimed
-identity in a face-swapped video under subject-disjoint protocol. The nearest
-work~\cite{gaitfidelity} measures gait fidelity in generated animation without
-building a detector; the nearest detectors~\cite{ttdf,humanactionclips} target
-whole-body synthesis rather than face-swap, where the body is authentic and
-only the claim is false. This is an under-explored niche, not a vacant one.
+Under-explored is \emph{locomotion gait-cycle skeletal dynamics as the primary discriminative feature} for verifying a claimed identity in a face-swapped video under a subject-disjoint protocol. The nearest work~\cite{gaitfidelity} measures gait fidelity in generated animation without building a detector; the nearest detectors~\cite{ttdf,humanactionclips} target whole-body synthesis, not face-swap, where the body is authentic and only the claim is false.
 
 % ===========================================================================
 \section{Proposed Method}
@@ -286,15 +277,7 @@ approximately 19--25 of both sexes. Augmentation expands the corpus to
 (FaceFusion / InSwapper), and the leave-one-subject-out protocol yields 2{,}240
 verification pairs, of which 1{,}120 are genuine.
 
-Each recording was expanded $16\times$ ($66 \times 16 = 1{,}056$) under the
-constraint that no transformation may alter the underlying skeletal trajectory.
-Photometric operations (Gaussian blur, brightness $\pm0.2$--$0.3$, contrast,
-colour jitter, grayscale, Gaussian noise) change pixels but not the recovered
-pose; geometric operations (horizontal flip, rotation capped at $10^{\circ}$,
-zoom) stay anatomically plausible; temporal operations (speed $0.8\times$ and
-$1.2\times$, reversal) exploit the approximate time-reversal symmetry and speed
-variability of the gait cycle~\cite{perry_gait}. A combined multi-augmentation
-pass completes the sixteen.
+Each recording was expanded $16	imes$ ($66 	imes 16 = 1{,}056$) by transformations that leave the skeletal trajectory unchanged: photometric (blur, brightness $\pm0.2$--$0.3$, contrast, colour jitter, grayscale, noise), anatomically plausible geometric (flip, rotation $\le10^{\circ}$, zoom), and temporal (speed $0.8	imes$/$1.2	imes$, reversal, exploiting the approximate time-reversal symmetry of the gait cycle~\cite{perry_gait}), plus a combined pass.
 
 \subsection{Pose Estimation and Feature Extraction}
 \label{sec:features}
@@ -564,12 +547,7 @@ distribution is unimodal with a single clear low outlier: Subject 12 yields
 $87.00\%$ AUC and $77.65\%$ accuracy, roughly $2.6$ standard deviations below
 the mean, while the remaining twelve folds fall between $82.14\%$ and
 $92.35\%$. Removing that fold would raise mean accuracy to $87.83\%$; we report
-it included. Fold ordering is stable across metrics (subjects hard by AUC are
-hard by accuracy, F1 and EER alike), pointing to a property of those subjects'
-gait rather than threshold artefacts, and precision and recall trade off across
-folds in opposite directions (Subject 6: $95.59\%$ precision, $76.47\%$ recall;
-Subject 9: $81.00\%$ precision, $95.29\%$ recall), so a single global threshold
-sits at a different point on each subject's curve.
+it included. Fold ordering is stable across metrics, pointing to a property of those subjects' gait rather than threshold artefacts, and precision and recall trade off in opposite directions across folds (Subject 6: $95.59\%$ precision, $76.47\%$ recall; Subject 9: $81.00\%$ precision, $95.29\%$ recall), so no single global threshold suits every subject.
 
 \begin{figure*}[!t]
 \centering
@@ -727,14 +705,20 @@ verdict.
 
 \subsection{Joint-Level Attribution}
 
-The left shoulder receives the highest attribution ($1.000$; Fig.~
-ef{fig:joints}), followed by the right heel ($0.940$), left foot index ($0.931$) and left knee ($0.897$); both hips rank lowest ($0.665$ left, $0.566$ right).
+The left shoulder receives the highest attribution ($1.000$; Fig.~\ref{fig:joints}), followed by the right heel ($0.940$), left foot index ($0.931$) and left knee ($0.897$); both hips rank lowest ($0.665$ left, $0.566$ right).
 
 The structure is biomechanically coherent: shoulders, carrying the trunk
 countermotion that balances angular momentum during swing, and the distal foot
 segments, registering heel strike and toe-off, dominate~\cite{perry_gait,winter_biomech},
 while the hips rank lowest as expected, since the pelvis centre is the origin of
 the coordinate normalisation. We do not over-interpret the left--right asymmetry: with 13 subjects and 26 samples it is as consistent with cohort-specific or viewpoint bias as with anything learned about laterality.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[height=1.25in]{fig10_joint_importance.png}
+\caption{Joint-level attribution (a) on the mean enrolled skeleton and (b) ranked ($n=26$ samples).}
+\label{fig:joints}
+\end{figure*}
 
 \subsection{Feature-Group Attribution}
 
@@ -755,19 +739,8 @@ Attribution decomposes by feature block as follows (Fig.~\ref{fig:groups}). Coor
 
 \subsection{Comparative Positioning}
 
-We deliberately report no head-to-head table. The figures quoted in
-Section~\ref{sec:related}---$\sim$86--89\% AUC for FTCN and 89.5\% for
-AltFreezing on cross-dataset Celeb-DF, 92.5\% and 82.6\% recognition accuracy
-for GaitFormer and GaitPT on CASIA-B---each use a different corpus, protocol and
-task, and our $94.95\%$ is a leave-one-subject-out verification result on a
-13-subject corpus collected by the authors. Tabulating them would invite a
-ranking they cannot support; no claim of superiority is made. Gait evidence has
-begun to appear in forensic practice: a commercial analysis was reported in 2025
-as accepted evidence in a European murder case where the subject's face
-occupied roughly $10 \times 5$ pixels~\cite{forensic_gait}. We cite this with
-its limits stated---a single trade-press account of a case not yet tried, with a
-sub-$0.1\%$ EER that is a vendor figure, not an independent benchmark. It
-indicates institutional interest, not a validated forensic standard.
+We deliberately report no head-to-head table: the figures quoted in Section~ef{sec:related} each use a different corpus, protocol and task, and our $94.95\%$ is a leave-one-subject-out verification result on a 13-subject corpus collected by the authors. Tabulating them would invite a
+ranking they cannot support; no claim of superiority is made. Gait evidence has begun to appear in forensic practice: a 2025 trade-press account reports a commercial analysis accepted in a European murder case where the face occupied roughly $10 	imes 5$ pixels~\cite{forensic_gait}, indicating institutional interest, not a validated standard (the sub-$0.1\%$ EER is a vendor figure).
 
 \subsection{What This Approach Buys}
 
@@ -778,12 +751,7 @@ the arms-race coupling that constrains artefact-based
 methods~\cite{recce,altfreezing}. \emph{Uncorrelated failure modes}: the
 evidence is disjoint from that used by facial detectors, so the two families
 fail on different inputs---making fusion natural not because gait is stronger
-but because it is independent. \emph{Privacy}: the pipeline reduces video to 12
-skeletal coordinates per frame at the first stage, retaining no facial imagery;
-a smaller disclosure than a face template, though not anonymity, since gait is
-itself a biometric. \emph{Degradation profile}: gait remains recoverable at
-distances and resolutions where facial analysis is not
-viable~\cite{forensic_gait}.
+but because it is independent. \emph{Privacy}: video is reduced to 12 skeletal coordinates per frame, retaining no facial imagery (though gait is itself a biometric). \emph{Degradation profile}: gait stays recoverable at distances where facial analysis is not viable~\cite{forensic_gait}.
 
 \subsection{Limitations and Threats to Validity}
 \label{sec:threats}
@@ -820,12 +788,7 @@ a general-purpose detector, and its scores are not calibrated probabilities.
 
 \subsection{Future Work}
 
-Priorities follow from the limitations: quantify detection on a substantially
-larger set of forgeries spanning multiple face-swap models, and extend the
-cohort in size and demographic range. Graph convolutional
-modelling~\cite{gaitgraph}, per-subject threshold calibration (Section~\ref{sec:perfold})
-and a reduced angle-weighted descriptor for embedded, real-time screening are
-natural next steps.
+Priorities: quantify detection on many more forgeries across multiple face-swap models, extend the cohort, and explore graph convolutional modelling~\cite{gaitgraph}, per-subject threshold calibration (Section~ef{sec:perfold}) and an angle-weighted descriptor for embedded screening.
 
 % ===========================================================================
 \section{Conclusion}
@@ -842,10 +805,7 @@ beats every encoder configuration tested, and stripping the raw comparison
 reduces it to chance. The face-swap validation correctly rejected all three
 clips (true-source similarity above $0.9998$) but remains an existence check on
 a single generator, thirteen subjects is a small basis for generalisation, and
-the ablation ordering is established at this cohort size only. Detectors that
-seek evidence inside the region an adversary controls are in a race they must
-keep re-entering; looking instead at what the adversary declines to model
-changes the terms of the problem, and body motion is, for now, exactly that.
+the ablation ordering is established at this cohort size only. Looking at what the adversary declines to model changes the terms of the problem, and body motion is, for now, exactly that.
 
 \ifismanon\else
 % ---------------------------------------------------------------------------

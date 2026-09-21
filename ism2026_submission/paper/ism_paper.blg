@@ -17,37 +17,37 @@ Database file #1: ism_paper.bib
 Done.
 You've used 30 entries,
             4087 wiz_defined-function locations,
-            977 strings with 12426 characters,
-and the built_in function-call counts, 20223 in all, are:
-= -- 1601
-> -- 492
+            977 strings with 12445 characters,
+and the built_in function-call counts, 20257 in all, are:
+= -- 1602
+> -- 496
 < -- 129
-+ -- 264
-- -- 98
-* -- 905
-:= -- 3007
++ -- 266
+- -- 99
+* -- 907
+:= -- 3010
 add.period$ -- 60
 call.type$ -- 30
 change.case$ -- 36
 chr.to.int$ -- 312
 cite$ -- 30
-duplicate$ -- 1526
-empty$ -- 1737
-format.name$ -- 113
-if$ -- 4740
+duplicate$ -- 1528
+empty$ -- 1739
+format.name$ -- 114
+if$ -- 4748
 int.to.chr$ -- 0
 int.to.str$ -- 30
-missing$ -- 275
+missing$ -- 276
 newline$ -- 113
 num.names$ -- 30
-pop$ -- 702
+pop$ -- 705
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 1593
+skip$ -- 1595
 stack$ -- 0
 substring$ -- 805
-swap$ -- 1131
+swap$ -- 1133
 text.length$ -- 25
 text.prefix$ -- 0
 top$ -- 5
