@@ -127,8 +127,9 @@ I.~DeAndres-Tame, M.~Ye, R.~Tolosana, R.~Vera-Rodriguez, and S.~Yu, ``Is visual
   animation,'' \emph{arXiv preprint arXiv:2512.19275}, 2025.
 
 \bibitem{gaitdeepfake13}
-A.~Penwala, A.~A.~R. Kodeeswaran, A.~Bharti, and D.~R. Johnson, ``Deepfake
-  detection using gait analysis ({GaitDeepfake-13}),'' 2026, iEEE DataPort.
+A.~Penwala, A.~Bharti, A.~A.~R. Kodeeswaran, V.~Sharma, and D.~R. Johnson,
+  ``Deepfake detection using gait analysis ({GaitDeepfake-13}),'' 2026, iEEE
+  DataPort.
 
 \bibitem{mediapipe}
 {Google}, ``{MediaPipe} pose landmarker,''

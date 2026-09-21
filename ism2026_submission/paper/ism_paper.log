@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12 Portable) (preloaded format=pdflatex 2026.8.28)  21 SEP 2026 10:07
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12 Portable) (preloaded format=pdflatex 2026.8.28)  21 SEP 2026 11:55
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -893,6 +893,21 @@ Package hyperref Info: Link coloring ON on input line 56.
 \@outlinefile=\write4
 \openout4 = `ism_paper.out'.
 
+
+Overfull \hbox (9.13641pt too wide) in paragraph at lines 71--71
+ [] 
+ []
+
+
+Overfull \hbox (9.13641pt too wide) in paragraph at lines 71--71
+ [] 
+ []
+
+
+Overfull \hbox (9.13641pt too wide) in paragraph at lines 71--71
+ [] 
+ []
+
 LaTeX Font Info:    Trying to load font information for U+msa on input line 84.
 
 
@@ -918,47 +933,52 @@ ase/8r.enc}
 
 
 ] (fig_architecture.tex) (fig_threat.tex)
-LaTeX Font Info:    Trying to load font information for T1+pcr on input line 30
-3.
+LaTeX Font Info:    Trying to load font information for T1+pcr on input line 28
+6.
 
 (C:\Users\Arhaan\scoop\apps\latex\current\texmfs\install\tex/latex/psnfss\t1pcr
 .fd
 File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
 )
-Underfull \hbox (badness 10000) in paragraph at lines 302--313
+Underfull \hbox (badness 10000) in paragraph at lines 285--296
 \T1/ptm/m/n/10 (\T1/pcr/m/n/10 pose_landmarker_lite\T1/ptm/m/n/10 , FP16, per-f
 rame IM-AGE
  []
 
-[2]
-<figures/fig3_keypoints.png, id=258, 2826.56pt x 1541.76pt>
+<figures/fig3_keypoints.png, id=235, 2826.56pt x 1541.76pt>
 File: figures/fig3_keypoints.png Graphic file (type png)
 <use figures/fig3_keypoints.png>
-Package pdftex.def Info: figures/fig3_keypoints.png  used on input line 316.
+Package pdftex.def Info: figures/fig3_keypoints.png  used on input line 299.
 (pdftex.def)             Requested size: 252.0pt x 137.43498pt.
-
+[2]
 Underfull \vbox (badness 1975) has occurred while \output is active []
 
  [3 <./figures/fig3_keypoints.png>] [4]
-<figures/fig_roc_pooled.png, id=308, 243.91125pt x 193.6836pt>
+<figures/fig_roc_pooled.png, id=307, 243.91125pt x 193.6836pt>
 File: figures/fig_roc_pooled.png Graphic file (type png)
 <use figures/fig_roc_pooled.png>
-Package pdftex.def Info: figures/fig_roc_pooled.png  used on input line 576.
+Package pdftex.def Info: figures/fig_roc_pooled.png  used on input line 554.
 (pdftex.def)             Requested size: 222.99051pt x 177.06128pt.
-<figures/fig_ablation_b.png, id=309, 258.18457pt x 220.60417pt>
+<figures/fig_ablation_b.png, id=308, 258.18457pt x 220.60417pt>
 File: figures/fig_ablation_b.png Graphic file (type png)
 <use figures/fig_ablation_b.png>
-Package pdftex.def Info: figures/fig_ablation_b.png  used on input line 577.
+Package pdftex.def Info: figures/fig_ablation_b.png  used on input line 555.
 (pdftex.def)             Requested size: 207.22948pt x 177.06128pt.
  [5] [6 <./figures/fig_roc_pooled.png (PNG copy)> <./figures/fig_ablation_b.png
  (PNG copy)>]
+<figures/fig10_joint_importance.png, id=335, 498.1812pt x 244.2726pt>
+File: figures/fig10_joint_importance.png Graphic file (type png)
+<use figures/fig10_joint_importance.png>
+Package pdftex.def Info: figures/fig10_joint_importance.png  used on input line
+ 718.
+(pdftex.def)             Requested size: 184.24054pt x 90.3375pt.
 <figures/fig_groups_a.png, id=336, 257.2812pt x 192.72pt>
 File: figures/fig_groups_a.png Graphic file (type png)
 <use figures/fig_groups_a.png>
-Package pdftex.def Info: figures/fig_groups_a.png  used on input line 743.
+Package pdftex.def Info: figures/fig_groups_a.png  used on input line 727.
 (pdftex.def)             Requested size: 216.72015pt x 162.34537pt.
- [7 <./figures/fig_groups_a.png (PNG copy)>]
-Underfull \hbox (badness 7116) in paragraph at lines 853--857
+ [7]
+Underfull \hbox (badness 7116) in paragraph at lines 815--819
 []\T1/ptm/m/n/10 We thank the vol-un-teers who con-tributed walk-ing
  []
 
@@ -969,7 +989,7 @@ al-y-sis
  []
 
 
-Underfull \hbox (badness 5563) in paragraph at lines 134--137
+Underfull \hbox (badness 5563) in paragraph at lines 135--138
 []\T1/ptm/m/n/8 Google, ``Me-di-aPipe pose land-marker,'' [][]$https : / / ai .
  google . dev / edge /
  []
@@ -986,7 +1006,8 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
-[8] (ism_paper.aux)
+[8 <./figures/fig10_joint_importance.png> <./figures/fig_groups_a.png (PNG copy
+)>] (ism_paper.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2025-12-24>
@@ -995,10 +1016,10 @@ Package rerunfilecheck Info: File `ism_paper.out' has not changed.
 (rerunfilecheck)             Checksum: 9B94949EAD8C6B4AE5CA1D8EE937A8BC;6349.
  ) 
 Here is how much of TeX's memory you used:
- 23624 strings out of 467871
- 450397 string characters out of 5414002
- 871209 words of memory out of 5000000
- 51983 multiletter control sequences out of 15000+600000
+ 23635 strings out of 467871
+ 450767 string characters out of 5414002
+ 870950 words of memory out of 5000000
+ 51993 multiletter control sequences out of 15000+600000
  762975 words of font info for 182 fonts, out of 8000000 for 9000
  1144 hyphenation exceptions out of 8191
  84i,12n,104p,699b,1272s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -1041,9 +1062,9 @@ Arhaan/scoop/apps/latex/current/texmfs/install/fonts/type1/urw/times/utmbi8a.pf
 b><C:/Users/Arhaan/scoop/apps/latex/current/texmfs/install/fonts/type1/urw/time
 s/utmr8a.pfb><C:/Users/Arhaan/scoop/apps/latex/current/texmfs/install/fonts/typ
 e1/urw/times/utmri8a.pfb>
-Output written on ism_paper.pdf (8 pages, 3336103 bytes).
+Output written on ism_paper.pdf (8 pages, 3493610 bytes).
 PDF statistics:
- 517 PDF objects out of 1000 (max. 8388607)
- 94 named destinations out of 1000 (max. 500000)
- 329 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 516 PDF objects out of 1000 (max. 8388607)
+ 95 named destinations out of 1000 (max. 500000)
+ 334 words of extra memory for PDF output out of 10000 (max. 10000000)
 
