@@ -1,0 +1,159 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{recce,multi_attn,ftcn,altfreezing,fsbi}
+\citation{recce,ftcn,deepfake_eval}
+\citation{facefusion,insightface}
+\citation{simswap}
+\citation{gaitgraph,gaitpt,gaitformer,perry_gait,winter_biomech}
+\citation{multi_attn}
+\citation{recce}
+\citation{ftcn}
+\citation{altfreezing}
+\citation{fsbi}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Introduction}{1}{section.1}\protected@file@percent }
+\newlabel{sec:intro}{{I}{1}{Introduction}{section.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {I-A}}Problem Formulation}{1}{subsection.1.1}\protected@file@percent }
+\newlabel{eq:problem}{{1}{1}{Problem Formulation}{equation.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {I-B}}Contributions}{1}{subsection.1.2}\protected@file@percent }
+\citation{gaitgraph}
+\citation{gaitpt}
+\citation{gaitformer}
+\citation{iso19795}
+\citation{agarwal2019}
+\citation{agarwal_pnas}
+\citation{humanactionclips}
+\citation{ttdf}
+\citation{convkeypoints}
+\citation{gaitfidelity}
+\citation{agarwal2019}
+\citation{humanactionclips,ttdf,convkeypoints}
+\citation{gaitfidelity}
+\citation{ttdf,humanactionclips}
+\citation{gaitdeepfake13}
+\citation{perry_gait}
+\citation{mediapipe}
+\citation{perry_gait,winter_biomech}
+\@writefile{toc}{\contentsline {section}{\numberline {II}Related Work}{2}{section.2}\protected@file@percent }
+\newlabel{sec:related}{{II}{2}{Related Work}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-A}}Face-Based Deepfake Detection}{2}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-B}}Skeleton-Based Gait Recognition}{2}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-C}}Behavioural and Whole-Body Forgery Detection}{2}{subsection.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-D}}Positioning}{2}{subsection.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {III}Proposed Method}{2}{section.3}\protected@file@percent }
+\newlabel{sec:method}{{III}{2}{Proposed Method}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}Threat Model}{2}{subsection.3.1}\protected@file@percent }
+\newlabel{sec:threat}{{\mbox  {III-A}}{2}{Threat Model}{subsection.3.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-B}}Dataset}{2}{subsection.3.2}\protected@file@percent }
+\newlabel{sec:dataset}{{\mbox  {III-B}}{2}{Dataset}{subsection.3.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-C}}Pose Estimation and Feature Extraction}{2}{subsection.3.3}\protected@file@percent }
+\newlabel{sec:features}{{\mbox  {III-C}}{2}{Pose Estimation and Feature Extraction}{subsection.3.3}{}}
+\citation{stenum2021}
+\citation{gaitgraph,gaitpt}
+\citation{perry_gait}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces End-to-end verification pipeline. The observed sequence is compared against the claimed identity's enrolled signature \emph  {before} pooling, and a three-stage temporal CNN classifies the $T\times 234$ comparison tensor. The auxiliary branch holds $715{,}556$ of the model's $848{,}614$ parameters but receives no gradient and never reaches the decision path (Section~\ref {sec:aux}).}}{3}{figure.1}\protected@file@percent }
+\newlabel{fig:arch}{{1}{3}{End-to-end verification pipeline. The observed sequence is compared against the claimed identity's enrolled signature \emph {before} pooling, and a three-stage temporal CNN classifies the $T\times 234$ comparison tensor. The auxiliary branch holds $715{,}556$ of the model's $848{,}614$ parameters but receives no gradient and never reaches the decision path (Section~\ref {sec:aux})}{figure.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces The asymmetry the method exploits. The generator rewrites only the face-confined band, so a forgery claiming subject~$B$ still walks with subject~$A$'s gait. The generator never models locomotion, so this inconsistency is structural, not an artefact better synthesis will remove.}}{3}{figure.2}\protected@file@percent }
+\newlabel{fig:threat}{{2}{3}{The asymmetry the method exploits. The generator rewrites only the face-confined band, so a forgery claiming subject~$B$ still walks with subject~$A$'s gait. The generator never models locomotion, so this inconsistency is structural, not an artefact better synthesis will remove}{figure.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces The 12 retained gait keypoints (blue) of the 33 MediaPipe landmarks; facial, elbow and wrist landmarks are discarded.}}{3}{figure.3}\protected@file@percent }
+\newlabel{fig:keypoints}{{3}{3}{The 12 retained gait keypoints (blue) of the 33 MediaPipe landmarks; facial, elbow and wrist landmarks are discarded}{figure.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-D}}Identity Enrolment}{3}{subsection.3.4}\protected@file@percent }
+\newlabel{sec:enrollment}{{\mbox  {III-D}}{3}{Identity Enrolment}{subsection.3.4}{}}
+\citation{adamw}
+\citation{iso19795}
+\citation{varoquaux_small}
+\citation{fawcett_roc}
+\citation{iso19795}
+\citation{youden}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-E}}Verification Network}{4}{subsection.3.5}\protected@file@percent }
+\newlabel{sec:verifier}{{\mbox  {III-E}}{4}{Verification Network}{subsection.3.5}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {III-E}1}Why differences rather than embedding distances}{4}{subsubsection.3.5.1}\protected@file@percent }
+\newlabel{sec:aux}{{\mbox  {III-E}2}{4}{Auxiliary representation branch}{subsubsection.3.5.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {III-E}2}Auxiliary representation branch}{4}{subsubsection.3.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-F}}Training}{4}{subsection.3.6}\protected@file@percent }
+\newlabel{sec:training}{{\mbox  {III-F}}{4}{Training}{subsection.3.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Experimental Setup}{4}{section.4}\protected@file@percent }
+\newlabel{sec:setup}{{IV}{4}{Experimental Setup}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}Leave-One-Subject-Out Cross-Validation}{4}{subsection.4.1}\protected@file@percent }
+\newlabel{sec:transductive}{{\mbox  {IV-A}1}{4}{A protocol detail, stated up front}{subsubsection.4.1.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-A}1}A protocol detail, stated up front}{4}{subsubsection.4.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}Metrics and Operating Points}{4}{subsection.4.2}\protected@file@percent }
+\citation{facefusion}
+\citation{insightface}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-C}}Ablation and Face-Swap Protocols}{5}{subsection.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {V}Results}{5}{section.5}\protected@file@percent }
+\newlabel{sec:results}{{V}{5}{Results}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Aggregate and Per-Fold Performance}{5}{subsection.5.1}\protected@file@percent }
+\newlabel{sec:perfold}{{\mbox  {V-A}}{5}{Aggregate and Per-Fold Performance}{subsection.5.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}Operating Points and Error Structure}{5}{subsection.5.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Per-Fold LOOCV Results over 13 Subject-Held-Out Folds and 2{,}240 Verification Pairs (Held-Out Subject; \%)}}{5}{table.1}\protected@file@percent }
+\newlabel{tab:perfold}{{I}{5}{Per-Fold LOOCV Results over 13 Subject-Held-Out Folds and 2{,}240 Verification Pairs (Held-Out Subject; \%)}{table.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-C}}Architectural Ablation}{5}{subsection.5.3}\protected@file@percent }
+\newlabel{sec:ablation-results}{{\mbox  {V-C}}{5}{Architectural Ablation}{subsection.5.3}{}}
+\citation{sundararajan}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Left: pooled ROC over all 2{,}240 leave-one-subject-out verification pairs, with the equal-error point and the Youden-optimal point $\tau ^* = 0.7737$ marked. Right: paired change in ROC-AUC against the deployed model for each ablation variant, with $95\%$ confidence intervals; every interval lies wholly below zero.}}{6}{figure.4}\protected@file@percent }
+\newlabel{fig:roc}{{4}{6}{Left: pooled ROC over all 2{,}240 leave-one-subject-out verification pairs, with the equal-error point and the Youden-optimal point $\tau ^* = 0.7737$ marked. Right: paired change in ROC-AUC against the deployed model for each ablation variant, with $95\%$ confidence intervals; every interval lies wholly below zero}{figure.4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces LOOCV Ablation over 13 Folds and 3 Seeds ($n = 39$ Paired Observations per Variant). $\Delta $ is the Paired Change in ROC-AUC against the Deployed Model}}{6}{table.2}\protected@file@percent }
+\newlabel{tab:ablation}{{II}{6}{LOOCV Ablation over 13 Folds and 3 Seeds ($n = 39$ Paired Observations per Variant). $\Delta $ is the Paired Change in ROC-AUC against the Deployed Model}{table.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-D}}Face-Swap Video Validation}{6}{subsection.5.4}\protected@file@percent }
+\newlabel{sec:deepfake-results}{{\mbox  {V-D}}{6}{Face-Swap Video Validation}{subsection.5.4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Face-Swap Video Validation ($n=3$; Existence Check, Not a Statistically Powered Result)}}{6}{table.3}\protected@file@percent }
+\newlabel{tab:deepfake-video}{{III}{6}{Face-Swap Video Validation ($n=3$; Existence Check, Not a Statistically Powered Result)}{table.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {VI}Explainability}{6}{section.6}\protected@file@percent }
+\newlabel{sec:explain}{{VI}{6}{Explainability}{section.6}{}}
+\citation{perry_gait,winter_biomech}
+\citation{forensic_gait}
+\citation{recce,altfreezing}
+\citation{forensic_gait}
+\citation{varoquaux_small}
+\citation{ttdf,humanactionclips}
+\citation{gaitfidelity}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Share of attribution against share of input dimensions for each feature block. Joint angles occupy $7.69\%$ of the input but draw $14.92\%$ of attribution, a per-dimension ratio of $1.94$.}}{7}{figure.5}\protected@file@percent }
+\newlabel{fig:groups}{{5}{7}{Share of attribution against share of input dimensions for each feature block. Joint angles occupy $7.69\%$ of the input but draw $14.92\%$ of attribution, a per-dimension ratio of $1.94$}{figure.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-A}}Joint-Level Attribution}{7}{subsection.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-B}}Feature-Group Attribution}{7}{subsection.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VII}Discussion}{7}{section.7}\protected@file@percent }
+\newlabel{sec:discussion}{{VII}{7}{Discussion}{section.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-A}}Comparative Positioning}{7}{subsection.7.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-B}}What This Approach Buys}{7}{subsection.7.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-C}}Limitations and Threats to Validity}{7}{subsection.7.3}\protected@file@percent }
+\newlabel{sec:threats}{{\mbox  {VII-C}}{7}{Limitations and Threats to Validity}{subsection.7.3}{}}
+\citation{gaitgraph}
+\bibstyle{IEEEtran}
+\bibdata{ism_paper}
+\bibcite{recce}{1}
+\bibcite{multi_attn}{2}
+\bibcite{ftcn}{3}
+\bibcite{altfreezing}{4}
+\bibcite{fsbi}{5}
+\bibcite{deepfake_eval}{6}
+\bibcite{facefusion}{7}
+\bibcite{insightface}{8}
+\bibcite{simswap}{9}
+\bibcite{gaitgraph}{10}
+\bibcite{gaitpt}{11}
+\bibcite{gaitformer}{12}
+\bibcite{perry_gait}{13}
+\bibcite{winter_biomech}{14}
+\bibcite{iso19795}{15}
+\bibcite{agarwal2019}{16}
+\bibcite{agarwal_pnas}{17}
+\bibcite{humanactionclips}{18}
+\bibcite{ttdf}{19}
+\bibcite{convkeypoints}{20}
+\bibcite{gaitfidelity}{21}
+\bibcite{gaitdeepfake13}{22}
+\bibcite{mediapipe}{23}
+\bibcite{stenum2021}{24}
+\bibcite{adamw}{25}
+\bibcite{varoquaux_small}{26}
+\bibcite{fawcett_roc}{27}
+\bibcite{youden}{28}
+\bibcite{sundararajan}{29}
+\bibcite{forensic_gait}{30}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-D}}Future Work}{8}{subsection.7.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VIII}Conclusion}{8}{section.8}\protected@file@percent }
+\newlabel{sec:conclusion}{{VIII}{8}{Conclusion}{section.8}{}}
+\@writefile{toc}{\contentsline {section}{References}{8}{section*.2}\protected@file@percent }
+\gdef \@abspage@last{8}

@@ -28,6 +28,7 @@
 \usepackage{url}
 \usepackage{cite}
 \usepackage{tikz}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
 % NB: the installed pgf predates arrows.meta, so the legacy `arrows' library is used.
 \usetikzlibrary{arrows,positioning,calc,fit,backgrounds,shapes.geometric}
 
@@ -310,14 +311,15 @@ capture the trunk countermotion that balances angular momentum during swing.
 Facial, elbow and wrist landmarks are discarded; the facial ones on principle,
 since they lie inside the region the adversary controls.
 
-Video-based pose estimation is accurate enough for this purpose: Stenum
-\emph{et al.}~\cite{stenum2021} validated it against a Vicon optical
-motion-capture system, reporting mean absolute errors of $4.0^{\circ}$,
-$5.6^{\circ}$ and $7.4^{\circ}$ for sagittal-plane hip, knee and ankle angles.
-We cite that for the general claim it supports---video pose estimation agrees
-with laboratory motion capture to within a few degrees---noting it evaluated
-OpenPose rather than MediaPipe, so it corroborates rather than directly
-evidences our backend.
+\begin{figure}[!tb]
+\centering
+\includegraphics[width=\columnwidth]{fig3_keypoints.png}
+\caption{The 12 retained gait keypoints (blue) of the 33 MediaPipe landmarks;
+facial, elbow and wrist landmarks are discarded.}
+\label{fig:keypoints}
+\end{figure}
+
+Video pose agrees with Vicon motion capture to within a few degrees (errors $4.0^{\circ}$--$7.4^{\circ}$ at hip, knee, ankle~\cite{stenum2021}), though that study used OpenPose, not MediaPipe.
 
 For frame $t$ the descriptor concatenates three blocks, $\mathbf{f}_t = \left[\, \mathbf{c}_t \;\|\; \boldsymbol{\theta}_t \;\|\; \mathbf{v}_t \,\right] \in \mathbb{R}^{78}$.
 \emph{Normalised coordinates} $\mathbf{c}_t \in \mathbb{R}^{36}$ are the 12
@@ -725,21 +727,14 @@ verdict.
 
 \subsection{Joint-Level Attribution}
 
-The left shoulder receives the highest attribution ($1.000$), followed by the
-right heel ($0.940$), left foot index ($0.931$) and left knee ($0.897$). The
-right shoulder ($0.873$), right ankle ($0.810$), right foot index ($0.766$),
-right knee ($0.726$), left heel ($0.709$) and left ankle ($0.673$) follow, and
-both hips rank lowest (left $0.665$, right $0.566$).
+The left shoulder receives the highest attribution ($1.000$; Fig.~
+ef{fig:joints}), followed by the right heel ($0.940$), left foot index ($0.931$) and left knee ($0.897$); both hips rank lowest ($0.665$ left, $0.566$ right).
 
 The structure is biomechanically coherent: shoulders, carrying the trunk
 countermotion that balances angular momentum during swing, and the distal foot
 segments, registering heel strike and toe-off, dominate~\cite{perry_gait,winter_biomech},
 while the hips rank lowest as expected, since the pelvis centre is the origin of
-the coordinate normalisation. We do not over-interpret the left--right
-asymmetry (left shoulder $1.000$ against right $0.873$; left foot $0.931$ against
-right $0.766$; but right heel $0.940$ against left $0.709$): with 13 subjects and
-26 samples it is as consistent with cohort-specific asymmetry or frontal/side
-viewpoint bias as with anything learned about laterality.
+the coordinate normalisation. We do not over-interpret the left--right asymmetry: with 13 subjects and 26 samples it is as consistent with cohort-specific or viewpoint bias as with anything learned about laterality.
 
 \subsection{Feature-Group Attribution}
 
@@ -752,7 +747,7 @@ attribution, a per-dimension ratio of $1.94$.}
 \label{fig:groups}
 \end{figure}
 
-Attribution decomposes by feature block as follows (Fig.~\ref{fig:groups}). Coordinates take $47.68\%$, velocities $37.40\%$ and joint angles $14.92\%$, against dimensional shares of $46.15\%$, $46.15\%$ and $7.69\%$: per-dimension ratios of $1.03$, $0.81$ and $1.94$. The six angle features are thus roughly twice as influential as the average coordinate and nearly two and a half times the average velocity. This is the clearest practical finding here: the six scale-free, rotation-invariant biomechanical constraints are the most information-dense part of the descriptor, suggesting a cheaper feature set weighted towards angular kinematics may retain most of the discriminative power---directly relevant to embedded deployment. Within the angle block the left ankle ($1.000$) and left knee ($0.896$) dominate, echoing the distal emphasis in the joint-level ranking.
+Attribution decomposes by feature block as follows (Fig.~\ref{fig:groups}). Coordinates take $47.68\%$, velocities $37.40\%$ and joint angles $14.92\%$, against dimensional shares of $46.15\%$, $46.15\%$ and $7.69\%$: per-dimension ratios of $1.03$, $0.81$ and $1.94$. The six angle features are thus roughly twice as influential as the average coordinate and nearly two and a half times the average velocity. The six scale-free, rotation-invariant angles are the most information-dense part of the descriptor, suggesting a cheaper angle-weighted feature set may retain most of the discriminative power, relevant to embedded deployment. 
 
 % ===========================================================================
 \section{Discussion}
