@@ -1,0 +1,95 @@
+{
+  "_about": "Master experiment matrix (Future Plan Section 14), minus the depth-camera experiments E5/E6 which are out of scope for this branch. Every experiment inherits `defaults` (the frozen E0 protocol) and changes ONE variable. Run with scripts/future_work/run_experiment.py; compare with scripts/future_work/compare_results.py.",
+  "defaults": {
+    "backend": "mediapipe_lite",
+    "source": "image",
+    "feature_set": "baseline78",
+    "seq_mode": "clip",
+    "model": "tcn",
+    "protocol": "loso",
+    "enrol": "strict",
+    "augment": "rhythm_safe",
+    "n_aug": 15,
+    "epochs": 30,
+    "batch_size": 16,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "dropout": 0.1,
+    "hidden": 64,
+    "seeds": [0, 1, 2],
+    "seq_len": 60,
+    "threads": 2
+  },
+  "experiments": [
+    {
+      "name": "E0_baseline",
+      "description": "Frozen baseline: MediaPipe lite, 78-D, whole-clip resampled to 60, deployed temporal-CNN verifier, strict protocol. Also scores every robustness condition (E8).",
+      "perturbations": ["noise:0.005", "noise:0.01", "noise:0.02", "occlude_feet:0.2", "occlude_feet:0.4", "fps:15", "fps:10", "truncate:0.66", "truncate:0.4", "drop:0.3", "scale:0.6", "scale:1.3", "rotate:8", "speed:0.85", "speed:1.15", "mirror"],
+      "test_backends": ["mediapipe_lite__jpeg15", "mediapipe_lite__scale0.25", "mediapipe_lite__gamma2.5", "mediapipe_lite__blur15"]
+    },
+    {"name": "E0_legacy_enrol", "enrol": "legacy", "description": "E0 with the original enrolment rule (query clip included in its own claimed signature) -- measures that leakage."},
+    {"name": "E0_paper_aug", "augment": "paper_like", "description": "E0 with mirror + 0.8/1.2x speed augmentation, closer to the paper's video augmentations."},
+
+    {"name": "E1_mediapipe_full", "backend": "mediapipe_full", "description": "Pose backend: MediaPipe full model."},
+    {"name": "E1_mediapipe_heavy", "backend": "mediapipe_heavy", "description": "Pose backend: MediaPipe heavy model."},
+    {"name": "E1_mediapipe_lite_video", "backend": "mediapipe_lite_video", "description": "Pose backend: MediaPipe lite with VIDEO-mode temporal tracking."},
+    {"name": "E1_mediapipe_heavy_video", "backend": "mediapipe_heavy_video", "description": "Pose backend: MediaPipe heavy with VIDEO-mode temporal tracking."},
+    {"name": "E1_mediapipe_lite_2d", "feature_set": "baseline_2d", "description": "Matched 2D control: baseline with z dropped, for comparison with 2D-only detectors."},
+    {"name": "E1_rtmpose_2d", "backend": "rtmpose_balanced", "feature_set": "baseline_2d", "description": "Pose backend: RTMPose-m Halpe26 (2D), matched 2D descriptor."},
+    {"name": "E1_vitpose_2d", "backend": "vitpose_b", "feature_set": "baseline_2d", "description": "Pose backend: ViTPose-B coco_25 (2D), matched 2D descriptor."},
+    {"name": "E1_rtmw3d", "backend": "rtmw3d", "description": "Pose backend: RTMW3D keypoints (image x,y + model depth) in the unchanged 78-D descriptor."},
+
+    {"name": "E2_mediapipe_lite_world", "source": "world", "description": "RGB-only 3D: MediaPipe lite metric world landmarks instead of image landmarks."},
+    {"name": "E2_mediapipe_heavy_world", "backend": "mediapipe_heavy", "source": "world", "description": "RGB-only 3D: MediaPipe heavy world landmarks."},
+    {"name": "E2_rtmw3d_world", "backend": "rtmw3d", "source": "world", "description": "RGB-only 3D: RTMW3D 3D skeleton."},
+
+    {"name": "E3_rhythm", "feature_set": "b+rhythm", "description": "Baseline + clip-level rhythm (cadence, stride time/CV, regularity, harmonic ratio, phase synchrony)."},
+    {"name": "E3_frequency", "feature_set": "b+frequency", "description": "Baseline + harmonic spectra of knee angles, pelvis vertical, heel separation."},
+    {"name": "E3_phase", "feature_set": "b+phase", "description": "Baseline + per-frame left/right gait phase (sin, cos)."},
+    {"name": "E3_rhythm_all", "feature_set": "b+rhythm_all", "description": "Baseline + rhythm + frequency + phase."},
+    {"name": "E3_cycle", "seq_mode": "cycle", "description": "RQ4: baseline families, gait-cycle-normalised (mean heel-strike-to-heel-strike cycle) instead of whole-clip resampling."},
+    {"name": "E3_cycle_rhythm_all", "seq_mode": "cycle", "feature_set": "b+rhythm_all", "description": "Cycle normalisation + all rhythm families."},
+    {"name": "E3_dtw", "model": "dtw", "seeds": [0], "description": "Non-learned DTW template matching on the baseline descriptor (speed-invariant alignment)."},
+
+    {"name": "E4_coords_only", "feature_set": "coords_only", "description": "Feature-group decomposition: coordinates only."},
+    {"name": "E4_coords_angles", "feature_set": "coords_angles", "description": "Feature-group decomposition: coordinates + angles (no velocity)."},
+    {"name": "E4_acceleration", "feature_set": "b+acceleration", "description": "Baseline + acceleration (torso lengths / s^2)."},
+    {"name": "E4_jerk", "feature_set": "b+jerk", "description": "Baseline + jerk."},
+    {"name": "E4_angular_velocity", "feature_set": "b+angular_velocity", "description": "Baseline + joint angular velocities."},
+    {"name": "E4_angles_ext", "feature_set": "b+angles_ext", "description": "Baseline + trunk lean, pelvic obliquity, shoulder tilt, foot pitch, inter-thigh, shank angles."},
+    {"name": "E4_angles_3d", "feature_set": "b+angles_3d", "description": "Baseline + the six angles computed in 3D."},
+    {"name": "E4_symmetry", "feature_set": "b+symmetry", "description": "Baseline + per-frame left-right symmetry signals."},
+    {"name": "E4_foot", "feature_set": "b+foot", "description": "Baseline + heel/toe heights and toe vertical velocity."},
+    {"name": "E4_com", "feature_set": "b+com", "description": "Baseline + centre-of-mass proxy (pelvis sway, trunk vector)."},
+    {"name": "E4_stride", "feature_set": "b+stride", "description": "Baseline + step/stride length, width, stance and double-support fractions, foot clearance."},
+    {"name": "E4_scaled", "feature_set": "scaled_baseline", "description": "Baseline with coordinates in torso lengths (distance-invariant)."},
+    {"name": "E4_biomech", "feature_set": "b+biomech", "description": "Baseline + all biomechanical families."},
+    {"name": "E4_full", "feature_set": "full_engineered", "description": "Baseline + all biomechanical and rhythm families."},
+    {"name": "E4_interpretable", "feature_set": "interpretable_only", "description": "Only interpretable biomechanics/rhythm, no raw coordinates or velocities."},
+
+    {"name": "E7_raw_bilstm", "model": "raw+bilstm", "description": "Deployed path + BiLSTM encoder comparison."},
+    {"name": "E7_raw_transformer", "model": "raw+transformer", "description": "Deployed path + Transformer encoder comparison."},
+    {"name": "E7_raw_stgcn", "model": "raw+stgcn", "description": "RQ9: deployed path + skeleton-graph (ST-GCN) encoder comparison."},
+    {"name": "E7_stgcn_only", "model": "stgcn_only", "description": "RQ9: ST-GCN encoder comparison replacing raw differencing."},
+    {"name": "E7_raw_freq", "model": "raw+freq", "description": "RQ5: deployed path + spectral comparison branch."},
+    {"name": "E7_siamese", "model": "siamese", "description": "Metric learning: shared embedding, cosine-similarity verification."},
+
+    {"name": "E8_same_view", "protocol": "loso_same_view", "description": "Signatures built from the query's own view only."},
+    {"name": "E8_cross_view_F2S", "protocol": "cross_view_F2S", "description": "RQ6: enrol on frontal walks, verify side walks."},
+    {"name": "E8_cross_view_S2F", "protocol": "cross_view_S2F", "description": "RQ6: enrol on side walks, verify frontal walks."},
+    {
+      "name": "E8_scaled_robustness",
+      "feature_set": "scaled_baseline",
+      "description": "Does distance-invariant scaling buy robustness? Same perturbation suite as E0.",
+      "perturbations": ["noise:0.01", "occlude_feet:0.4", "fps:10", "truncate:0.4", "scale:0.6", "scale:1.3", "speed:1.15"],
+      "test_backends": ["mediapipe_lite__jpeg15", "mediapipe_lite__scale0.25", "mediapipe_lite__gamma2.5", "mediapipe_lite__blur15"]
+    },
+    {
+      "name": "E8_full_robustness",
+      "feature_set": "full_engineered",
+      "description": "Robustness of the full engineered descriptor under the same suite.",
+      "perturbations": ["noise:0.01", "occlude_feet:0.4", "fps:10", "truncate:0.4", "scale:0.6", "scale:1.3", "speed:1.15"],
+      "test_backends": ["mediapipe_lite__jpeg15", "mediapipe_lite__scale0.25", "mediapipe_lite__gamma2.5", "mediapipe_lite__blur15"]
+    }
+  ]
+}

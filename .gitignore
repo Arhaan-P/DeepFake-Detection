@@ -109,3 +109,11 @@ deepfake_paper.fls
 graphify-out/
 .claude/
 CLAUDE.md
+
+# Future-work caches and local artefacts (regenerate with scripts/future_work)
+data/pose_cache/
+data/descriptor_cache/
+data/*.csv
+outputs/future_work/checkpoints/
+outputs/future_work/logs/
+.venv/

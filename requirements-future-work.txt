@@ -1,0 +1,21 @@
+# Extra dependencies for the future-work experiments (branch: future_work).
+# Install on top of requirements.txt, preferably in a fresh virtual env:
+#
+#   python -m venv .venv
+#   .venv\Scripts\activate
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu   # or your CUDA build
+#   pip install -r requirements.txt -r requirements-future-work.txt
+#
+# Tested with: Python 3.11, torch 2.14 (CPU), numpy 2.4, mediapipe 0.10.32,
+# opencv-python 5.0, protobuf 7.36. Note: an older mediapipe (0.10.21)
+# installed next to TensorFlow 2.20 fails to build its graph
+# ("create(): incompatible function arguments"); use the pinned
+# mediapipe==0.10.32 from requirements.txt in an environment without TF.
+
+# Alternative pose estimators (RTMPose, ViTPose, RTMW3D) via ONNX Runtime
+rtmlib==0.0.16
+onnxruntime==1.30.0
+
+# Exact p-values in the statistical comparisons (optional; a normal
+# approximation is used when SciPy is absent)
+scipy==1.17.1

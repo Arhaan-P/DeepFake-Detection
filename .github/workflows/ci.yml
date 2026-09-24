@@ -30,3 +30,8 @@ jobs:
 
       - name: Run smoke test
         run: python tests/smoke_test.py
+
+      - name: Run future-work tests (numpy + torch only)
+        run: |
+          pip install numpy
+          python tests/test_future_work.py
