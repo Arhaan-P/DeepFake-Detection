@@ -39,3 +39,7 @@ Repository = "https://github.com/Arhaan-P/DeepFake-Detection"
 
 [tool.setuptools.packages.find]
 include = ["models*", "utils*"]
+
+[tool.ruff.lint]
+# Pin the rule set explicitly so new ruff releases don't change what CI enforces.
+select = ["E4", "E7", "E9", "F"]

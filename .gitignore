@@ -36,6 +36,17 @@ htmlcov/
 # Jupyter
 .ipynb_checkpoints/
 
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+texput.log
+
 # ============================================
 # LARGE FILES - DO NOT COMMIT
 # ============================================
@@ -102,3 +113,8 @@ deepfake_paper.log
 deepfake_paper.out
 deepfake_paper.fdb_latexmk
 deepfake_paper.fls
+
+# Miscellaneous
+graphify-out/
+.claude/
+CLAUDE.md
