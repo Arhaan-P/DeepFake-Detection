@@ -288,7 +288,6 @@ def blur_face(frame, landmarks):
     r_shoulder = landmarks[12, :2]
 
     # Shoulder midpoint
-    shoulder_mid = (l_shoulder + r_shoulder) / 2
     shoulder_width = np.linalg.norm(l_shoulder - r_shoulder)
 
     # Face box: centered on nose, width ~ 0.8x shoulder width, extends upward
@@ -403,7 +402,6 @@ def generate_skeleton_overlay(subjects, videos_dir, output_dir):
         # Select 8 evenly-spaced frame indices
         frame_indices = np.linspace(0, total_frames - 1, 8).astype(int)
         frames = []
-        all_landmarks = []
 
         for fidx in frame_indices:
             cap.set(cv2.CAP_PROP_POS_FRAMES, fidx)
@@ -548,7 +546,6 @@ def generate_auth_vs_fake(
         # Extract frames
         cap = cv2.VideoCapture(video_path)
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        fps = cap.get(cv2.CAP_PROP_FPS)
         frame_indices = np.linspace(0, total_frames - 1, 4).astype(int)
 
         frames_data = []
@@ -997,7 +994,6 @@ def generate_importance_skeleton(
 
     # Average and normalize
     avg_joint = np.mean(all_joint_imp, axis=0)  # (12,)
-    avg_angle = np.mean(all_angle_imp, axis=0)  # (6,)
 
     # Normalize joint importance to 0-1
     if avg_joint.max() > avg_joint.min():

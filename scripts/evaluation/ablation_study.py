@@ -414,7 +414,7 @@ def evaluate_model(model, loader, criterion, device):
 
     try:
         auc = roc_auc_score(all_labels, all_scores) * 100
-    except:
+    except Exception:
         auc = 0.0
 
     return {

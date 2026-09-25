@@ -30,10 +30,10 @@ for mod, attrs in (
             setattr(stub, a, lambda *args, **kw: None)
         sys.modules[mod] = stub
 
-import torch
-import torch.nn as nn
+import torch  # noqa: E402
+import torch.nn as nn  # noqa: E402
 
-from scripts.evaluation.ablation_study import (
+from scripts.evaluation.ablation_study import (  # noqa: E402
     CNNOnlyModel,
     FullHybridModel,
     LSTMOnlyModel,

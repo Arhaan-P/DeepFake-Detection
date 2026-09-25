@@ -153,7 +153,6 @@ class MoveNetExtractor:
         Returns:
             Dictionary with gait features
         """
-        T = len(keypoints_sequence)
 
         # Extract gait keypoints (8 points: shoulders, hips, knees, ankles)
         gait_kps = keypoints_sequence[:, self.GAIT_INDICES, :2]  # (T, 8, 2)
@@ -185,7 +184,6 @@ class MoveNetExtractor:
 
     def _compute_joint_angles(self, keypoints: np.ndarray) -> np.ndarray:
         """Compute joint angles for gait analysis."""
-        T = len(keypoints)
 
         def angle_between(p1, p2, p3):
             """Compute angle at p2 formed by p1-p2-p3."""
@@ -315,7 +313,7 @@ def test_gpu():
     with tf.device("/GPU:0" if gpus else "/CPU:0"):
         a = tf.random.normal([1000, 1000])
         b = tf.random.normal([1000, 1000])
-        c = tf.matmul(a, b)
+        tf.matmul(a, b)
 
     print(f"Matrix multiplication completed on: {'GPU' if gpus else 'CPU'}")
     return len(gpus) > 0
