@@ -115,7 +115,7 @@ def preprocess_videos(
         use_gpu = (
             use_gpu or gpu_available
         )  # Use GPU if available or explicitly requested
-    except:
+    except Exception:
         gpu_available = False
 
     if use_gpu:

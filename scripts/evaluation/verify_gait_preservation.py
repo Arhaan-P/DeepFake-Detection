@@ -29,7 +29,7 @@ logging.getLogger("mediapipe").setLevel(logging.ERROR)
 logging.getLogger("absl").setLevel(logging.ERROR)
 
 # Redirect stderr temporarily during imports to catch stray C++ warnings
-import io
+import io  # noqa: E402
 
 _stderr = sys.stderr
 sys.stderr = io.StringIO()
@@ -38,9 +38,9 @@ sys.stderr = io.StringIO()
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-import numpy as np
+import numpy as np  # noqa: E402
 
-from utils.pose_extraction import GaitFeatureExtractor
+from utils.pose_extraction import GaitFeatureExtractor  # noqa: E402
 
 # Restore stderr
 sys.stderr = _stderr
