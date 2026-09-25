@@ -64,6 +64,8 @@ def agreement(track, ref) -> np.ndarray:
 
 
 def main():
+    # Markdown output contains non-ASCII; Windows consoles default to cp1252
+    sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description="Pose-backend quality benchmark")
     ap.add_argument("--cache_root", default="data/pose_cache")
     ap.add_argument("--reference", default="mediapipe_heavy")

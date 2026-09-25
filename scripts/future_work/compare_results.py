@@ -34,7 +34,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "generate_figures")
 
 import numpy as np
 
-from utils.verification_metrics import paired_ttest, roc_auc, wilcoxon
+from utils.verification_metrics import (  # noqa: E402
+    calibration_summary,
+    crossfit_platt,
+    paired_ttest,
+    roc_auc,
+    wilcoxon,
+)
 
 GROUPS = [
     ("E0", "P0 - frozen baseline and protocol checks"),
@@ -59,6 +65,24 @@ def load_results(results_dir):
 
 def fold_auc_map(r):
     return {(row["seed"], row["subject"]): row["roc_auc"] for row in r["fold_table"]}
+
+
+def calibration_from_trials(r):
+    """Recompute calibration from stored trial scores (mean over seeds), so
+    the report does not depend on the calibration code version that was
+    current when an experiment ran."""
+    y = np.array(r["trials"]["label"])
+    groups = np.array([q.rsplit("_", 1)[0] for q in r["trials"]["query"]])
+    raw, platt, brier = [], [], []
+    for v in r["trials"]["scores"].values():
+        s = np.array(v["clean"], dtype=float)
+        if r["config"]["model"] == "dtw":  # distances: squash to (0, 1) first
+            s = 1 / (1 + np.exp(-(s - np.median(s)) / (np.std(s) + 1e-9)))
+        raw.append(calibration_summary(y, s)["ece"])
+        cal = calibration_summary(y, crossfit_platt(y, s, groups))
+        platt.append(cal["ece"])
+        brier.append(cal["brier"])
+    return float(np.mean(raw)), float(np.mean(platt)), float(np.mean(brier))
 
 
 def seed_mean_scores(r, cond="clean"):
@@ -116,6 +140,8 @@ def pct(x, nd=2):
 
 
 def main():
+    # Markdown output contains non-ASCII; Windows consoles default to cp1252
+    sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description="Compare future-work results")
     ap.add_argument("--results", default="outputs/future_work/results")
     ap.add_argument("--out", default="outputs/future_work/report")
@@ -140,9 +166,9 @@ def main():
             "fold_auc_sd": a["fold_auc_std"],
             "pooled_eer": a["pooled_eer_mean"],
             "tpr_at_fpr_5": a["pooled_tpr_at_fpr_5_mean"],
-            "ece_raw": a["calibration_raw_ece"],
-            "ece_platt": a["calibration_crossfit_platt_ece"],
-            "brier_platt": a["calibration_crossfit_platt_brier"],
+            **dict(
+                zip(("ece_raw", "ece_platt", "brier_platt"), calibration_from_trials(r))
+            ),
             "runtime_min": r["runtime_s"] / 60,
             "by_view": {
                 v: np.mean(

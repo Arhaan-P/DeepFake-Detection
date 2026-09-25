@@ -189,11 +189,20 @@ def _logit(p):
     return np.log(p / (1 - p))
 
 
-def fit_platt(labels, probs, iters: int = 100, l2: float = 1e-3):
-    """Logistic regression on logit(prob) by Newton's method -> (a, b)."""
-    x = _logit(probs)
+def fit_platt(labels, probs, iters: int = 100, l2: float = 1e-2):
+    """Logistic regression on logit(prob) -> (a, b), by damped Newton with a
+    backtracking line search. Scores saturated at exactly 0/1 give extreme
+    logits on which plain Newton diverges, so logits are clipped to +/-12 and
+    every step must decrease the penalised log-loss."""
+    x = np.clip(_logit(probs), -12, 12)
     y = np.asarray(labels, dtype=float)
+
+    def loss(a, b):
+        z = a * x + b
+        return float(np.sum(np.logaddexp(0, z) - y * z) + 0.5 * l2 * a * a)
+
     a, b = 1.0, 0.0
+    cur = loss(a, b)
     for _ in range(iters):
         z = np.clip(a * x + b, -50, 50)
         p = 1 / (1 + np.exp(-z))
@@ -202,10 +211,25 @@ def fit_platt(labels, probs, iters: int = 100, l2: float = 1e-3):
         h = np.array(
             [[np.sum(w * x * x) + l2, np.sum(w * x)], [np.sum(w * x), np.sum(w)]]
         )
-        step = np.linalg.solve(h, g)
-        a, b = a - step[0], b - step[1]
-        if np.abs(step).max() < 1e-8:
+        try:
+            step = np.linalg.solve(h, g)
+        except np.linalg.LinAlgError:
             break
+        t = 1.0
+        while t > 1e-6:
+            na, nb = a - t * step[0], b - t * step[1]
+            new = loss(na, nb)
+            if np.isfinite(new) and new <= cur:
+                break
+            t *= 0.5
+        else:
+            break
+        a, b, done = na, nb, abs(cur - new) < 1e-10
+        cur = new
+        if done:
+            break
+    if not (np.isfinite(a) and np.isfinite(b)):
+        return 1.0, 0.0
     return float(a), float(b)
 
 

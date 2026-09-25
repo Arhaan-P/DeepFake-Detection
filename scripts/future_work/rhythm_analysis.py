@@ -162,6 +162,8 @@ def cycle_consistency_and_alignment(clips) -> dict:
 
 
 def main():
+    # Markdown output contains non-ASCII; Windows consoles default to cp1252
+    sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description="Gait rhythm / parameter analysis")
     ap.add_argument("--backend", default="mediapipe_lite")
     ap.add_argument("--out", default="outputs/future_work/rhythm")

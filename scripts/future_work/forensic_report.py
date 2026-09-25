@@ -186,6 +186,8 @@ def figure(rep: dict, path: str) -> None:
 
 
 def main():
+    # Markdown output contains non-ASCII; Windows consoles default to cp1252
+    sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description="Forensic gait verification report")
     ap.add_argument("--checkpoint", required=True)
     ap.add_argument("--video", default="")
