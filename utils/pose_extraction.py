@@ -236,7 +236,6 @@ class GaitFeatureExtractor:
         Returns:
             Dictionary containing various gait features
         """
-        T = len(pose_sequence)
         features = {}
 
         # 1. Raw normalized coordinates (gait landmarks only)
