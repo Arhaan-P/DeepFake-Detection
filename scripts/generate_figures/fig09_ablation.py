@@ -36,11 +36,17 @@ import matplotlib.pyplot as plt
 import figstyle as fs
 
 NL = chr(10)
-TIMES = chr(215)          # multiplication sign, avoids a mathtext macro
+TIMES = chr(215)  # multiplication sign, avoids a mathtext macro
 
 BASELINE = "Raw (deployed)"
-ORDER = [BASELINE, "Raw + CNN", "Raw + Transformer", "Raw + Hybrid",
-         "Raw + BiLSTM", "Hybrid only (no raw)"]
+ORDER = [
+    BASELINE,
+    "Raw + CNN",
+    "Raw + Transformer",
+    "Raw + Hybrid",
+    "Raw + BiLSTM",
+    "Hybrid only (no raw)",
+]
 
 SHORT = {
     "Raw (deployed)": ("Raw", "(deployed)"),
@@ -68,7 +74,8 @@ def main():
     base_auc, base_keys = fs.variant_metric(per_variant[BASELINE], "roc_auc")
 
     fig, (ax1, ax2) = plt.subplots(
-        1, 2, figsize=(7.16, 3.25), gridspec_kw={"width_ratios": [1.12, 1.0]})
+        1, 2, figsize=(7.16, 3.25), gridspec_kw={"width_ratios": [1.12, 1.0]}
+    )
 
     # ---------------- (a) AUC and accuracy per variant ----------------
     x = np.arange(len(present))
@@ -78,8 +85,10 @@ def main():
     for v in present:
         a, _ = fs.variant_metric(per_variant[v], "roc_auc")
         c, _ = fs.variant_metric(per_variant[v], "accuracy")
-        aucs.append(100 * a.mean()); auc_sd.append(100 * a.std())
-        accs.append(100 * c.mean()); acc_sd.append(100 * c.std())
+        aucs.append(100 * a.mean())
+        auc_sd.append(100 * a.std())
+        accs.append(100 * c.mean())
+        acc_sd.append(100 * c.std())
         params.append(per_variant[v]["params"])
 
     # Control in the strong colour, everything else muted: the plate reads
@@ -87,31 +96,58 @@ def main():
     cols_auc = [fs.C_AUTH if v == BASELINE else "#9ecae1" for v in present]
     cols_acc = [fs.C_ACCENT if v == BASELINE else "#f0cba0" for v in present]
 
-    ax1.bar(x - width / 2, aucs, width, yerr=auc_sd, color=cols_auc,
-            edgecolor="white", label="ROC-AUC",
-            error_kw=dict(lw=0.7, capsize=2, ecolor=fs.C_NEUTRAL))
-    ax1.bar(x + width / 2, accs, width, yerr=acc_sd, color=cols_acc,
-            edgecolor="white", label="Accuracy",
-            error_kw=dict(lw=0.7, capsize=2, ecolor=fs.C_NEUTRAL))
+    ax1.bar(
+        x - width / 2,
+        aucs,
+        width,
+        yerr=auc_sd,
+        color=cols_auc,
+        edgecolor="white",
+        label="ROC-AUC",
+        error_kw=dict(lw=0.7, capsize=2, ecolor=fs.C_NEUTRAL),
+    )
+    ax1.bar(
+        x + width / 2,
+        accs,
+        width,
+        yerr=acc_sd,
+        color=cols_acc,
+        edgecolor="white",
+        label="Accuracy",
+        error_kw=dict(lw=0.7, capsize=2, ecolor=fs.C_NEUTRAL),
+    )
 
     # Value labels clear the top of the error bar, not the top of the bar.
     for xi, a, sd in zip(x, aucs, auc_sd):
-        ax1.text(xi - width / 2, a + sd + 1.6, "%.1f" % a, ha="center",
-                 va="bottom", fontsize=5.9, color=fs.C_NEUTRAL)
+        ax1.text(
+            xi - width / 2,
+            a + sd + 1.6,
+            "%.1f" % a,
+            ha="center",
+            va="bottom",
+            fontsize=5.9,
+            color=fs.C_NEUTRAL,
+        )
 
     ax1.axhline(50, color=fs.C_FAKE, lw=0.8, ls=":", zorder=1)
     # Parked to the right of the last bar group -- the only clear space on
     # this axis; at the left it sat on top of the baseline bars.
     ax1.set_xlim(-0.55, len(present) + 0.05)
-    ax1.text(len(present) - 0.02, 51.5, "chance", fontsize=5.8,
-             color=fs.C_FAKE, ha="right", va="bottom")
+    ax1.text(
+        len(present) - 0.02,
+        51.5,
+        "chance",
+        fontsize=5.8,
+        color=fs.C_FAKE,
+        ha="right",
+        va="bottom",
+    )
 
     ax1.set_xticks(x, labels=[stacked(v) for v in present], fontsize=6.0)
     ax1.set_ylabel("Value (%)")
     ax1.set_ylim(0, 112)
     ax1.set_yticks([0, 20, 40, 60, 80, 100])
-    ax1.set_title("(a) LOOCV performance (13 folds " + TIMES + " 3 seeds)",
-                  loc="left")
+    ax1.set_title("(a) LOOCV performance (13 folds " + TIMES + " 3 seeds)", loc="left")
     ax1.legend(loc="lower left", ncol=2, columnspacing=0.9, fontsize=6.6)
     fs.despine(ax1)
 
@@ -129,17 +165,30 @@ def main():
 
     ypos = np.arange(len(labels))[::-1]
 
-    ax2.barh(ypos, deltas, height=0.5, color=fs.C_FAKE, edgecolor="white",
-             xerr=[half_ci, half_ci],
-             error_kw=dict(lw=0.7, capsize=2, ecolor=fs.C_NEUTRAL))
+    ax2.barh(
+        ypos,
+        deltas,
+        height=0.5,
+        color=fs.C_FAKE,
+        edgecolor="white",
+        xerr=[half_ci, half_ci],
+        error_kw=dict(lw=0.7, capsize=2, ecolor=fs.C_NEUTRAL),
+    )
     ax2.axvline(0, color=fs.C_NEUTRAL, lw=0.9, zorder=5)
 
     # Annotations sit to the RIGHT of zero, which is empty space: putting them
     # at the bar tip collided with the y-axis labels.
     for yi, d, v in zip(ypos, deltas, labels):
         extra = per_variant[v]["params"] - per_variant[BASELINE]["params"]
-        ax2.text(2.0, yi, "%+.1f pts, %+dk par." % (d, round(extra / 1000)),
-                 va="center", ha="left", fontsize=6.1, color=fs.C_NEUTRAL)
+        ax2.text(
+            2.0,
+            yi,
+            "%+.1f pts, %+dk par." % (d, round(extra / 1000)),
+            va="center",
+            ha="left",
+            fontsize=6.1,
+            color=fs.C_NEUTRAL,
+        )
 
     lo = min(d - h for d, h in zip(deltas, half_ci))
     ax2.set_yticks(ypos, labels=[flat(v) for v in labels], fontsize=6.2)
@@ -154,8 +203,10 @@ def main():
     fs.save(fig, "fig9_ablation.png")
 
     # ---- console summary, so the plate's claims are checkable ----
-    print("    folds=%s seeds=%s  (n=%d obs per variant)"
-          % (meta["folds_completed"], meta["seeds"], base_auc.size))
+    print(
+        "    folds=%s seeds=%s  (n=%d obs per variant)"
+        % (meta["folds_completed"], meta["seeds"], base_auc.size)
+    )
     for v, a, s, p in zip(present, aucs, auc_sd, params):
         print("    %-22s %7d par  AUC %.2f +/- %.2f" % (v, p, a, s))
     print("    paired deltas vs %s:" % BASELINE)
@@ -163,8 +214,10 @@ def main():
         print("      %-22s %+6.2f  95%% CI [%+.2f, %+.2f]" % (v, d, d - h, d + h))
     if BASELINE in legacy:
         lg = legacy[BASELINE]["aggregate"]
-        print("    legacy-normalization arm: AUC %.2f +/- %.2f (seed 0 only)"
-              % (100 * lg["roc_auc"], 100 * lg["roc_auc_std"]))
+        print(
+            "    legacy-normalization arm: AUC %.2f +/- %.2f (seed 0 only)"
+            % (100 * lg["roc_auc"], 100 * lg["roc_auc_std"])
+        )
 
 
 if __name__ == "__main__":

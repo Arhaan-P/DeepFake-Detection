@@ -154,7 +154,6 @@ def evaluate_verification(model, dataloader, device):
 def compute_metrics(results):
     """Compute comprehensive metrics."""
     labels = results["labels"]
-    predictions = results["predictions"]
     binary_predictions = results["binary_predictions"]
     similarities = results["similarities"]
 
