@@ -36,6 +36,17 @@ htmlcov/
 # Jupyter
 .ipynb_checkpoints/
 
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+texput.log
+
 # ============================================
 # LARGE FILES - DO NOT COMMIT
 # ============================================
