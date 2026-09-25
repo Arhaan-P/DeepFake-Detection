@@ -20,12 +20,12 @@ binary verdict:
 Writes <out>.json, <out>.md and <out>.png.
 
 Usage:
-    python scripts/future_work/forensic_report.py \\
-        --checkpoint outputs/future_work/checkpoints/E0_baseline.pt \\
+    python scripts/future_work/forensic_report.py `
+        --checkpoint outputs/future_work/checkpoints/E0_baseline.pt `
         --video data/deepfake/Arhaan_body_Teja_face.mp4 --claimed Teja
 
     # from an existing pose cache (no pose inference)
-    python scripts/future_work/forensic_report.py --checkpoint ... \\
+    python scripts/future_work/forensic_report.py --checkpoint ... `
         --pose data/pose_cache/mediapipe_lite/Som_S1.npz --claimed Teja
 
 Author: DeepFake Detection Project

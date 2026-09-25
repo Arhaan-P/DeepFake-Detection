@@ -85,12 +85,35 @@ class DegradedBackend(PoseBackend):
 _BACKEND = None
 
 
-def _init_worker(backend_name, degrade, backend_kwargs):
+def _limit_onnxruntime_threads(n: int) -> None:
+    """ONNX Runtime ignores OMP_NUM_THREADS and starts one thread per core in
+    EVERY session; with several worker processes that oversubscribes the CPU
+    many times over. rtmlib builds its sessions without SessionOptions, so
+    inject a thread-capped one."""
+    try:
+        import onnxruntime as ort
+    except ImportError:
+        return
+    original = ort.InferenceSession
+
+    def capped(*args, **kwargs):
+        if kwargs.get("sess_options") is None:
+            so = ort.SessionOptions()
+            so.intra_op_num_threads = n
+            so.inter_op_num_threads = 1
+            kwargs["sess_options"] = so
+        return original(*args, **kwargs)
+
+    ort.InferenceSession = capped
+
+
+def _init_worker(backend_name, degrade, backend_kwargs, threads=1):
     global _BACKEND
     import torch
 
     torch.set_num_threads(1)
     cv2.setNumThreads(1)
+    _limit_onnxruntime_threads(threads)
     _BACKEND = create_backend(backend_name, **backend_kwargs)
     if degrade:
         _BACKEND = DegradedBackend(_BACKEND, degrade)
@@ -119,6 +142,9 @@ def main():
     ap.add_argument("--cache_root", default="data/pose_cache")
     ap.add_argument("--degrade", default="", help="e.g. jpeg:20, scale:0.33")
     ap.add_argument("--workers", type=int, default=max(1, (os.cpu_count() or 2) // 2))
+    ap.add_argument(
+        "--threads", type=int, default=1, help="inference threads per worker"
+    )
     ap.add_argument("--max_frames", type=int, default=0)
     ap.add_argument("--limit", type=int, default=0, help="first N videos only")
     ap.add_argument("--prototxt", default="", help="OpenPose only")
@@ -154,13 +180,16 @@ def main():
     manifest_path = out_dir / "manifest.json"
     manifest = {}
     if manifest_path.exists():
-        manifest = json.loads(manifest_path.read_text())
+        try:
+            manifest = json.loads(manifest_path.read_text())
+        except json.JSONDecodeError:  # interrupted write; the .npz files remain
+            print("  WARNING: unreadable manifest.json, starting a new one")
 
     t_start = time.time()
     with ProcessPoolExecutor(
         max_workers=args.workers,
         initializer=_init_worker,
-        initargs=(args.backend, args.degrade, backend_kwargs),
+        initargs=(args.backend, args.degrade, backend_kwargs, args.threads),
     ) as pool:
         futures = {
             pool.submit(
@@ -182,7 +211,9 @@ def main():
             except Exception as e:  # keep going; report at the end
                 manifest[v.stem] = {"video": v.stem, "error": str(e)}
                 print(f"  [{i:3d}/{len(todo)}] {v.stem:<16s} FAILED: {e}", flush=True)
-            manifest_path.write_text(json.dumps(manifest, indent=2))
+            tmp = manifest_path.with_suffix(".json.tmp")
+            tmp.write_text(json.dumps(manifest, indent=2))
+            os.replace(tmp, manifest_path)  # atomic: never a half-written file
 
     print(f"\n  done in {time.time() - t_start:.0f}s -> {out_dir}")
 

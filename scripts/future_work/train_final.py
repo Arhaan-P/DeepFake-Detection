@@ -12,6 +12,9 @@ Usage:
     python scripts/future_work/train_final.py --experiment E0_baseline
     python scripts/future_work/train_final.py --experiment E0_baseline --operating_point youden
 
+    # keep some clips out of training AND enrolment, for honest demos
+    python scripts/future_work/train_final.py --experiment E0_baseline --holdout_clips Som_S1 Teja_S1 --out outputs/future_work/checkpoints/E0_demo.pt
+
 Author: DeepFake Detection Project
 """
 
@@ -44,6 +47,12 @@ def main():
     ap.add_argument("--operating_point", choices=["eer", "youden"], default="eer")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--out", default="")
+    ap.add_argument(
+        "--holdout_clips",
+        nargs="*",
+        default=[],
+        help="clip names excluded from training and enrolment (demo queries)",
+    )
     args = ap.parse_args()
 
     with open(args.matrix) as fh:
@@ -73,6 +82,7 @@ def main():
     platt = fit_platt(y, s)
 
     clips = load_clips(cfg.backend, cfg.source, cfg.cache_root)
+    clips = [c for c in clips if c.name not in set(args.holdout_clips)]
     bank = DescriptorBank(clips, cfg, "data/descriptor_cache")
     flat = bank.data.reshape(-1, bank.data.shape[-1])
     mu, sd = flat.mean(0), flat.std(0)
@@ -110,6 +120,7 @@ def main():
             "loso_pooled_auc": res["aggregate"]["pooled_roc_auc_mean"],
             "loso_pooled_eer": res["aggregate"]["pooled_eer_mean"],
             "clips": [c.name for c in clips],
+            "holdout_clips": args.holdout_clips,
         },
     }
     out = args.out or f"outputs/future_work/checkpoints/{args.experiment}.pt"

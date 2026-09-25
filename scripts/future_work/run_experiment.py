@@ -14,7 +14,7 @@ Usage:
     python scripts/future_work/run_experiment.py --only "E0*" "E3*"
 
     # a single ad-hoc experiment
-    python scripts/future_work/run_experiment.py --name my_test \\
+    python scripts/future_work/run_experiment.py --name my_test `
         --set backend=rtmpose_balanced feature_set=baseline78
 
     # fast plumbing check (4 subjects, 2 epochs, 1 seed)

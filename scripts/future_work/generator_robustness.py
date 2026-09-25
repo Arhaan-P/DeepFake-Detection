@@ -20,8 +20,8 @@ e.g.
     data/deepfake/Arhaan_body_Teja_face.mp4,Arhaan,Teja,facefusion_inswapper128,h264
 
 Usage:
-    python scripts/future_work/generator_robustness.py \\
-        --checkpoint outputs/future_work/checkpoints/E0_baseline.pt \\
+    python scripts/future_work/generator_robustness.py `
+        --checkpoint outputs/future_work/checkpoints/E0_baseline.pt `
         --manifest data/deepfake/manifest.csv --compress 50 20
 
 Author: DeepFake Detection Project

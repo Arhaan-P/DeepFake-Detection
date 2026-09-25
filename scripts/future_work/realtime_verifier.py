@@ -18,10 +18,10 @@ rolling verification score for a claimed identity:
     rate x mean joint confidence in the window)
 
 Usage:
-    python scripts/future_work/realtime_verifier.py \\
-        --checkpoint outputs/future_work/checkpoints/E0_baseline.pt \\
+    python scripts/future_work/realtime_verifier.py `
+        --checkpoint outputs/future_work/checkpoints/E0_baseline.pt `
         --claimed Teja --source 0                      # webcam
-    python scripts/future_work/realtime_verifier.py --checkpoint ... \\
+    python scripts/future_work/realtime_verifier.py --checkpoint ... `
         --claimed Teja --source data/videos/Teja_S1.mp4 --source data/videos/Teja_F1.mp4
 
 Author: DeepFake Detection Project

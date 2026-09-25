@@ -13,6 +13,11 @@ Protocol (fixed across experiments)
   compared against. (`enrol='legacy'` reproduces the original behaviour,
   where the held-out subject's signature averages all of their videos,
   including the query, so the size of that effect can be measured.)
+* Equal-size signatures: every evaluation signature, genuine or impostor,
+  averages the same number of clips, and training signatures average a
+  random 1..k clips. Without this, leave-one-out genuine signatures are
+  noisier than full impostor signatures and a verifier can "detect" genuine
+  claims by counting averaged clips (observed: see Signatures).
 * Training pairs: 1 genuine + 1 impostor claim per training sample, the
   impostor drawn from TRAINING identities only (the held-out subject's
   signature is never shown to the model during training).
@@ -210,7 +215,16 @@ def _view_filter(protocol: str, role: str, clip) -> bool:
 
 
 class Signatures:
-    """Enrolment signatures (means of normalised original descriptors)."""
+    """Enrolment signatures: means of normalised original descriptors.
+
+    Equal-size rule. A signature averaged over fewer clips is noisier, so if
+    genuine claims used leave-one-out means (n - 1 clips) while impostor
+    claims used full means (n clips), a verifier could separate them by
+    counting clips instead of comparing gaits. Every evaluation signature --
+    genuine or impostor -- therefore averages exactly `k_eval` clips, and
+    training signatures average a random 1..k_eval clips, so the number of
+    averaged clips carries no label information.
+    """
 
     def __init__(self, clips, originals: np.ndarray, protocol: str):
         self.clips, self.x, self.protocol = clips, originals, protocol
@@ -218,10 +232,22 @@ class Signatures:
         for i, c in enumerate(clips):
             if _view_filter(protocol, "enrol", c):
                 self.by_id.setdefault(c.identity, []).append(i)
+        if protocol == "loso_same_view":
+            counts = [
+                sum(clips[i].view == v for i in idx)
+                for idx in self.by_id.values()
+                for v in {clips[i].view for i in idx}
+            ]
+        else:
+            counts = [len(idx) for idx in self.by_id.values()]
+        # a genuine test query is excluded from its own signature unless the
+        # protocol enrols and queries disjoint views
+        disjoint = protocol.startswith("cross")
+        self.k_eval = max(1, min(counts) - (0 if disjoint else 1))
 
-    def get(
+    def candidates(
         self, identity: str, exclude: Optional[int] = None, view: Optional[str] = None
-    ) -> np.ndarray:
+    ) -> List[int]:
         idx = self.by_id.get(identity, [])
         if self.protocol == "loso_same_view" and view is not None:
             same = [i for i in idx if self.clips[i].view == view]
@@ -229,7 +255,32 @@ class Signatures:
         if exclude is not None:
             kept = [i for i in idx if i != exclude]
             idx = kept or idx  # only one enrolment clip: cannot exclude
+        return idx
+
+    def get(
+        self,
+        identity: str,
+        exclude: Optional[int] = None,
+        view: Optional[str] = None,
+        k: Optional[int] = None,
+        rng: Optional[np.random.Generator] = None,
+    ) -> np.ndarray:
+        """Mean of `k` of the identity's clips (all clips if k is None)."""
+        idx = self.candidates(identity, exclude, view)
+        if k is not None and len(idx) > k:
+            rng = rng or np.random.default_rng(0)
+            idx = sorted(rng.choice(idx, size=k, replace=False).tolist())
         return self.x[idx].mean(axis=0)
+
+    def get_eval(self, identity: str, query: int, strict: bool = True) -> np.ndarray:
+        """Deterministic evaluation signature for (query clip, claim)."""
+        if not strict:  # legacy: all clips, query included (original pipeline)
+            return self.get(identity, view=self.clips[query].view)
+        key = f"{self.clips[query].name}|{identity}".encode()
+        rng = np.random.default_rng(int(hashlib.md5(key).hexdigest()[:8], 16))
+        return self.get(
+            identity, exclude=query, view=self.clips[query].view, k=self.k_eval, rng=rng
+        )
 
 
 # ============================================================
@@ -266,20 +317,35 @@ def train_fold(cfg, train_x, train_meta, sigs, train_ids, seed, device="cpu"):
     crit = nn.CrossEntropyLoss()
 
     ids = sorted(set(train_ids))
-    pos_sig = np.stack(
-        [
-            sigs.get(ident, exclude=ci, view=sigs.clips[ci].view)
-            for ident, ci in train_meta
-        ]
-    )
-    sig_cache = {i: sigs.get(i) for i in ids}
+    # candidate enrolment clips: positives exclude the sample's own clip
+    pos_cands = {
+        ci: sigs.candidates(ident, exclude=ci, view=sigs.clips[ci].view)
+        for ident, ci in set(train_meta)
+    }
+    neg_cands = {
+        (i, v): sigs.candidates(i, view=v)
+        for i in ids
+        for v in {sigs.clips[ci].view for _, ci in train_meta}
+    }
+    others = {ident: [i for i in ids if i != ident] for ident in ids}
+
+    def subset_mean(cands):
+        k = int(rng.integers(1, sigs.k_eval + 1))
+        if len(cands) > k:
+            cands = rng.choice(cands, size=k, replace=False)
+        return sigs.x[cands].mean(axis=0)
+
     x = torch.from_numpy(train_x).float()
     best_loss, best_state = float("inf"), None
     for _ in range(cfg.epochs):
-        neg_ids = [
-            rng.choice([i for i in ids if i != ident]) for ident, _ in train_meta
-        ]
-        neg_sig = np.stack([sig_cache[i] for i in neg_ids])
+        # fresh random-size signature subsets every epoch (see Signatures)
+        pos_sig = np.stack([subset_mean(pos_cands[ci]) for _, ci in train_meta])
+        neg_sig = np.stack(
+            [
+                subset_mean(neg_cands[(rng.choice(others[ident]), sigs.clips[ci].view)])
+                for ident, ci in train_meta
+            ]
+        )
         v = torch.cat([x, x])
         c = torch.from_numpy(np.concatenate([pos_sig, neg_sig])).float()
         y = torch.cat([torch.ones(len(x)), torch.zeros(len(x))]).long()
@@ -335,7 +401,6 @@ def run_experiment(
     bank = DescriptorBank(clips, cfg, descriptor_cache)
     subjects = sorted(set(c.identity for c in clips))
     ident = np.array([c.identity for c in clips])
-    views = np.array([c.view for c in clips])
     n_copies = bank.data.shape[1]
     log(
         f"[{cfg.name}] {len(clips)} clips, {len(subjects)} subjects, "
@@ -404,16 +469,9 @@ def run_experiment(
         train_meta = [(ident[ci], ci) for ci in tr_clip for _ in range(n_copies)]
 
         # claimed signatures for this fold's trials
-        excl = cfg.enrol == "strict"
+        strict = cfg.enrol == "strict"
         claim_sig = np.stack(
-            [
-                sigs.get(
-                    t_claim[k],
-                    exclude=t_q[k] if excl else None,
-                    view=views[t_q[k]],
-                )
-                for k in te_trials
-            ]
+            [sigs.get_eval(t_claim[k], t_q[k], strict) for k in te_trials]
         )
         query = {"clean": originals[t_q[te_trials]]}
         for spec, arr in perturbed.items():

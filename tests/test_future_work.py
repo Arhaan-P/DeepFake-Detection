@@ -222,6 +222,35 @@ def test_tcn_verifier_is_the_deployed_decision_path():
 # ------------------------------------------------------------------ harness
 
 
+def test_signatures_have_equal_size_and_exclude_the_query():
+    """Regression: genuine and impostor evaluation signatures must average
+    the same number of clips, or a verifier can separate them by counting
+    (leave-one-out means are noisier than full means)."""
+    from utils.verification_harness import Signatures
+
+    counts = {"Ann": 5, "Bob": 6, "Cid": 5}
+    clips = []
+    for who, n in counts.items():
+        for k in range(n):
+            clips.append(
+                Clip(f"{who}_S{k + 1}", who, "S", str(k + 1), None, None, 30, 1)
+            )
+    onehot = np.eye(len(clips))[:, :, None]  # clip i -> unit vector i
+    sigs = Signatures(clips, onehot, "loso")
+    assert sigs.k_eval == 4  # min clips per identity (5) minus the query
+    for q, c in enumerate(clips):
+        for claim in counts:
+            s = sigs.get_eval(claim, q)[:, 0]
+            used = np.flatnonzero(s)
+            assert len(used) == sigs.k_eval, (c.name, claim, len(used))
+            assert q not in used
+            assert all(clips[i].identity == claim for i in used)
+        # deterministic per (query, claim)
+        assert np.array_equal(sigs.get_eval("Bob", q), sigs.get_eval("Bob", q))
+    legacy = sigs.get_eval("Ann", 0, strict=False)[:, 0]
+    assert 0 in np.flatnonzero(legacy)  # legacy keeps the query in
+
+
 def test_harness_end_to_end_on_synthetic_subjects():
     from utils.pose_backends import PoseTrack
     from utils.verification_harness import ExperimentConfig, run_experiment
