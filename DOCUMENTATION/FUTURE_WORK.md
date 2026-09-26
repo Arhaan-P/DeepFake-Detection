@@ -106,6 +106,8 @@ python scripts/future_work/rhythm_analysis.py
 
 # 3. the experiment matrix (about 45 min per experiment per core pair on CPU)
 python scripts/future_work/run_experiment.py --all --parallel 4 --skip_done
+#    with an NVIDIA GPU (CUDA build of torch), add:  --set device=cuda
+#    (10-40x faster for the Transformer / ST-GCN verifiers)
 python scripts/future_work/compare_results.py
 
 # 4. a deployable verifier, a forensic report, a streaming run

@@ -256,6 +256,17 @@ MediaPipe Pose extracts 33 3D landmarks per frame; 12 gait-relevant landmarks ar
 | Joint angles             | 6          | Knee, hip, ankle flexion angles             |
 | Velocities               | 36 (12×3)  | Frame-to-frame coordinate deltas            |
 
+## Future Work (research roadmap)
+
+The *Future Plan for Gait Analysis* roadmap is implemented around the frozen baseline above, apart from the depth-camera items. It adds pluggable pose estimators (MediaPipe variants, RTMPose, ViTPose, RTMW3D), gait-cycle and rhythm analysis, biomechanical feature families, alternative verifiers (BiLSTM, Transformer, ST-GCN, frequency branch, Siamese), robustness and cross-view protocols, forensic explanation reports, and a real-time multi-camera verifier. All 47 experiments run under one stricter subject-disjoint protocol, with 3 seeds and paired significance tests.
+
+Under that protocol the baseline scores **85.2% ROC-AUC**. The paper's 94.95% was measured with the query clip averaged into its own enrolled signature. Headline findings: coordinates alone carry most of the identity signal; stronger pose estimators clean up the keypoints but give only small verification gains; rhythm features need longer clips than this corpus has; and larger verifiers do worse on 13 subjects.
+
+- Findings, protocol and how to reproduce: [`DOCUMENTATION/FUTURE_WORK.md`](DOCUMENTATION/FUTURE_WORK.md)
+- Result tables and figures: `outputs/future_work/report/`, `outputs/future_work/figures/`
+- Recording protocol for new subjects: [`DOCUMENTATION/DATA_COLLECTION_PROTOCOL.md`](DOCUMENTATION/DATA_COLLECTION_PROTOCOL.md)
+- Code: `scripts/future_work/`, `configs/future_work/`, and the future-work modules listed in `utils/__init__.py`
+
 ## Citation
 
 If you use this work, please cite the paper and the dataset:
