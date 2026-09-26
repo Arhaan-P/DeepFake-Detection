@@ -105,6 +105,17 @@ class GaitVerifier:
     def _prob(self, raw: np.ndarray) -> np.ndarray:
         return apply_platt(raw, self.platt) if self.platt else raw
 
+    def _equal_prior(self, raw: float) -> float:
+        """Calibrated probability re-weighted from the evaluation prior
+        (1 genuine : N-1 impostor claims) to an even 50/50 prior."""
+        p = float(self._prob(np.array([raw]))[0])
+        prior = self.meta.get("calibration_prior")
+        if not prior:
+            return p
+        p = min(max(p, 1e-9), 1 - 1e-9)
+        odds = p / (1 - p) * (1 - prior) / prior
+        return float(odds / (1 + odds))
+
     @torch.no_grad()
     def raw_scores(self, query: np.ndarray, claims: List[str]) -> np.ndarray:
         v = torch.from_numpy(np.repeat(query[None], len(claims), axis=0))
@@ -142,6 +153,7 @@ class GaitVerifier:
         out.update(
             score_raw=s,
             probability_authentic=float(self._prob(np.array([s]))[0]),
+            probability_authentic_equal_prior=self._equal_prior(s),
             verdict="AUTHENTIC" if s >= self.threshold else "IDENTITY_MISMATCH",
             best_match=best,
             best_match_score=by_id[best],
@@ -150,6 +162,9 @@ class GaitVerifier:
         )
         if out["verdict"] == "IDENTITY_MISMATCH" and best != claimed:
             out["likely_body_source"] = best if by_id[best] >= self.threshold else None
+            out["body_source_rank1_accuracy_loso"] = self.meta.get(
+                "loso_rank1_identification"
+            )
         return out
 
     def identify(self, clip: Clip) -> Dict[str, float]:

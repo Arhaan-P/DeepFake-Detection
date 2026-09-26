@@ -117,3 +117,4 @@ data/*.csv
 outputs/future_work/checkpoints/
 outputs/future_work/logs/
 .venv/
+.venv-*/

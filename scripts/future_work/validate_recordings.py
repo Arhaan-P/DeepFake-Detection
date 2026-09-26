@@ -90,7 +90,9 @@ def main():
 
         if args.no_video_check:
             continue
-        path = os.path.join(args.videos_dir, r["file"]) if args.videos_dir else r["file"]
+        path = (
+            os.path.join(args.videos_dir, r["file"]) if args.videos_dir else r["file"]
+        )
         if not os.path.exists(path):
             errors.append(f"{where}: file not found at {path}")
             continue
@@ -116,7 +118,9 @@ def main():
     for s, rs in by_subject.items():
         views = Counter(r["view"] for r in rs)
         if views.get("S", 0) < 3 or views.get("F", 0) < 3:
-            warnings.append(f"{s}: fewer than 3 side and 3 frontal takes ({dict(views)})")
+            warnings.append(
+                f"{s}: fewer than 3 side and 3 frontal takes ({dict(views)})"
+            )
         if len({r["session"] for r in rs}) < 2:
             warnings.append(f"{s}: single session (a second day is recommended)")
 

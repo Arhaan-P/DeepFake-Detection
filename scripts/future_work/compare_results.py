@@ -85,6 +85,18 @@ def calibration_from_trials(r):
     return float(np.mean(raw)), float(np.mean(platt)), float(np.mean(brier))
 
 
+def rank1_identification(r) -> float:
+    """Held-out rank-1 identification: fraction of query clips whose
+    highest-scoring claim is their true identity (mean over seeds)."""
+    q = np.array(r["trials"]["query"])
+    y = np.array(r["trials"]["label"])
+    accs = []
+    for v in r["trials"]["scores"].values():
+        s = np.array(v["clean"], dtype=float)
+        accs.append(np.mean([y[q == c][np.argmax(s[q == c])] for c in np.unique(q)]))
+    return float(np.mean(accs))
+
+
 def seed_mean_scores(r, cond="clean"):
     s = np.array(
         [np.array(v[cond], dtype=float) for v in r["trials"]["scores"].values()]
@@ -170,6 +182,7 @@ def main():
                 zip(("ece_raw", "ece_platt", "brier_platt"), calibration_from_trials(r))
             ),
             "runtime_min": r["runtime_s"] / 60,
+            "rank1_id": rank1_identification(r),
             "by_view": {
                 v: np.mean(
                     [r["per_seed"][s]["by_view"][v]["roc_auc"] for s in r["per_seed"]]
@@ -201,8 +214,8 @@ def main():
         lines += [
             f"\n## {title}\n",
             "| Experiment | Params | Pooled AUC | Fold AUC | EER | TPR@5%FPR "
-            "| AUC side | AUC frontal | ECE→Platt | dAUC | 95% CI | p |",
-            "|---|---|---|---|---|---|---|---|---|---|---|---|",
+            "| AUC side | AUC frontal | Rank-1 ID | ECE→Platt | dAUC | 95% CI | p |",
+            "|---|---|---|---|---|---|---|---|---|---|---|---|---|",
         ]
         for n in sorted(names, key=lambda x: (x != REFERENCE, x)):
             r = rows[n]
@@ -218,7 +231,7 @@ def main():
                 f"| {n} | {r['params']:,} | {pct(r['pooled_auc'])} ± {pct(r['pooled_auc_sd'])} "
                 f"| {pct(r['fold_auc'])} ± {pct(r['fold_auc_sd'])} | {pct(r['pooled_eer'])} "
                 f"| {pct(r['tpr_at_fpr_5'])} | {pct(r['by_view'].get('S'))} "
-                f"| {pct(r['by_view'].get('F'))} "
+                f"| {pct(r['by_view'].get('F'))} | {pct(r['rank1_id'], 1)} "
                 f"| {pct(r['ece_raw'], 1)}→{pct(r['ece_platt'], 1)} "
                 f"| {d_auc} | {ci_txt} | {p_txt} |"
             )
@@ -269,7 +282,10 @@ def make_figures(res, rows, fig_dir):
     Path(fig_dir).mkdir(parents=True, exist_ok=True)
 
     # 1. forest plot of paired pooled-AUC differences vs E0
-    paired = [r for r in rows.values() if "d_pooled_auc" in r]
+    # DTW (a -40 pp outlier) would squash every other interval; the E8
+    # robustness runs repeat E4 configs on clean data. Both stay in the tables.
+    skip = {"E3_dtw", "E8_scaled_robustness", "E8_full_robustness"}
+    paired = [r for r in rows.values() if "d_pooled_auc" in r and r["name"] not in skip]
     paired.sort(key=lambda r: (r["name"][:2], r["d_pooled_auc"]))
     if paired:
         fig, ax = plt.subplots(figsize=(6.2, 0.22 * len(paired) + 0.9))
@@ -283,6 +299,9 @@ def make_figures(res, rows, fig_dir):
                 100 * r["d_pooled_auc"], i, "o", ms=4.5, color=c, mec="white", mew=0.8
             )
         ax.axvline(0, color=C_NEUTRAL, lw=0.8)
+        for i in range(1, len(paired)):  # light separators between groups
+            if paired[i]["name"][:2] != paired[i - 1]["name"][:2]:
+                ax.axhline(i - 0.5, color="#d9d9d9", lw=0.6)
         ax.set_yticks(range(len(paired)))
         ax.set_yticklabels([r["name"] for r in paired])
         ax.set_xlabel(

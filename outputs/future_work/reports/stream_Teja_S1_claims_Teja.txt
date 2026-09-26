@@ -1,0 +1,6 @@
+Verifying claim 'Teja' on 1 view(s); threshold 0.314; window 4.0s hop 0.5s
+t=  4.47s  rolling score 0.923  AUTHENTIC         views=1  pose 30 ms/frame
+t=  4.96s  rolling score 0.943  AUTHENTIC         views=1  pose 30 ms/frame
+t=  5.46s  rolling score 0.936  AUTHENTIC         views=1  pose 30 ms/frame
+t=  5.96s  rolling score 0.908  AUTHENTIC         views=1  pose 29 ms/frame
+t=  6.45s  rolling score 0.921  AUTHENTIC         views=1  pose 29 ms/frame

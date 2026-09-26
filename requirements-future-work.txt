@@ -1,4 +1,4 @@
-# Extra dependencies for the future-work experiments (branch: future_work).
+# Extra dependencies for the future-work experiments (branch: research/gait-roadmap).
 # Install on top of requirements.txt, preferably in a fresh virtual env:
 #
 #   python -m venv .venv

@@ -104,6 +104,7 @@ class ExperimentConfig:
     metadata_csv: str = ""  # recording manifest with per-clip conditions
     subjects: Optional[List[str]] = None
     threads: int = 2
+    device: str = "cpu"  # cpu | cuda | auto (cuda when available)
     description: str = ""
 
     @classmethod
@@ -288,6 +289,24 @@ class Signatures:
 # ============================================================
 
 
+def resolve_device(name: str) -> torch.device:
+    if name == "auto":
+        name = "cuda" if torch.cuda.is_available() else "cpu"
+    if name == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError("device='cuda' requested but CUDA is not available")
+    return torch.device(name)
+
+
+def environment(cfg) -> Dict:
+    """Where an experiment ran: CPU and GPU arithmetic are not bit-identical,
+    so every result records its device."""
+    dev = resolve_device(cfg.device)
+    env = {"device": dev.type, "torch": torch.__version__, "threads": cfg.threads}
+    if dev.type == "cuda":
+        env["gpu"] = torch.cuda.get_device_name(0)
+    return env
+
+
 def _dtw_score(v: np.ndarray, c: np.ndarray) -> float:
     d, _ = dtw(v, c, band=10)
     return -d
@@ -335,7 +354,7 @@ def train_fold(cfg, train_x, train_meta, sigs, train_ids, seed, device="cpu"):
             cands = rng.choice(cands, size=k, replace=False)
         return sigs.x[cands].mean(axis=0)
 
-    x = torch.from_numpy(train_x).float()
+    x = torch.from_numpy(train_x).float().to(device)
     best_loss, best_state = float("inf"), None
     for _ in range(cfg.epochs):
         # fresh random-size signature subsets every epoch (see Signatures)
@@ -347,9 +366,9 @@ def train_fold(cfg, train_x, train_meta, sigs, train_ids, seed, device="cpu"):
             ]
         )
         v = torch.cat([x, x])
-        c = torch.from_numpy(np.concatenate([pos_sig, neg_sig])).float()
-        y = torch.cat([torch.ones(len(x)), torch.zeros(len(x))]).long()
-        perm = torch.from_numpy(rng.permutation(len(v)))
+        c = torch.from_numpy(np.concatenate([pos_sig, neg_sig])).float().to(device)
+        y = torch.cat([torch.ones(len(x)), torch.zeros(len(x))]).long().to(device)
+        perm = torch.from_numpy(rng.permutation(len(v))).to(device)
         model.train()
         total, nb = 0.0, 0
         for s in range(0, len(v), cfg.batch_size):
@@ -357,7 +376,7 @@ def train_fold(cfg, train_x, train_meta, sigs, train_ids, seed, device="cpu"):
             if len(b) < 2:
                 continue
             opt.zero_grad()
-            loss = crit(model(v[b].to(device), c[b].to(device)), y[b].to(device))
+            loss = crit(model(v[b], c[b]), y[b])
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             opt.step()
@@ -372,12 +391,14 @@ def train_fold(cfg, train_x, train_meta, sigs, train_ids, seed, device="cpu"):
 
 
 @torch.no_grad()
-def score_pairs(model, v: np.ndarray, c: np.ndarray, batch: int = 256) -> np.ndarray:
+def score_pairs(
+    model, v: np.ndarray, c: np.ndarray, batch: int = 256, device="cpu"
+) -> np.ndarray:
     out = []
     for s in range(0, len(v), batch):
-        vb = torch.from_numpy(v[s : s + batch]).float()
-        cb = torch.from_numpy(c[s : s + batch]).float()
-        out.append(F.softmax(model(vb, cb), dim=1)[:, 1].numpy())
+        vb = torch.from_numpy(v[s : s + batch]).float().to(device)
+        cb = torch.from_numpy(c[s : s + batch]).float().to(device)
+        out.append(F.softmax(model(vb, cb), dim=1)[:, 1].cpu().numpy())
     return np.concatenate(out) if out else np.zeros(0)
 
 
@@ -392,6 +413,7 @@ def run_experiment(
     log=print,
 ) -> Dict:
     torch.set_num_threads(cfg.threads)
+    device = resolve_device(cfg.device)
     t_start = time.time()
     clips = load_clips(cfg.backend, cfg.source, cfg.cache_root)
     if cfg.metadata_csv:
@@ -488,7 +510,7 @@ def run_experiment(
                 losses.append(float("nan"))
                 continue
             model, loss = train_fold(
-                cfg, train_x, train_meta, sigs, ident[tr_clip].tolist(), seed
+                cfg, train_x, train_meta, sigs, ident[tr_clip].tolist(), seed, device
             )
             losses.append(loss)
             if params is None:
@@ -497,7 +519,7 @@ def run_experiment(
                 params = count_parameters(model)
             for cond in conditions:
                 scores[seed][cond][te_trials] = score_pairs(
-                    model, query[cond], claim_sig
+                    model, query[cond], claim_sig, device=device
                 )
         y = t_label[te_trials]
         aucs = [roc_auc(y, scores[s]["clean"][te_trials]) for s in cfg.seeds]
@@ -544,6 +566,7 @@ def _summarise(
         "config": asdict(cfg),
         "params": params,
         "runtime_s": seconds,
+        "environment": environment(cfg),
         "n_trials": len(trials),
         "subjects": subjects,
         "folds": fold_info,

@@ -90,15 +90,26 @@ def markdown(rep: dict) -> str:
     lines.append(f"**Verdict:** **{v['verdict']}**  ")
     if "probability_authentic" in v:
         lines.append(
-            f"**P(authentic), calibrated:** {v['probability_authentic']:.3f} "
-            f"(raw {v['score_raw']:.3f}, threshold {v['threshold']:.3f})  "
+            f"**P(authentic), even prior:** {v['probability_authentic_equal_prior']:.3f} "
+            f"(raw score {v['score_raw']:.3f}, decision threshold {v['threshold']:.3f})  "
+        )
+        lines.append(
+            f"**P(authentic), evaluation prior:** {v['probability_authentic']:.3f} "
+            "(calibrated where 1 in 13 claims is genuine)  "
         )
         lines.append(
             f"**Best-matching enrolled gait:** {v['best_match']} "
             f"({v['best_match_score']:.3f})  "
         )
         if v.get("likely_body_source"):
-            lines.append(f"**Likely body source:** {v['likely_body_source']}  ")
+            acc = v.get("body_source_rank1_accuracy_loso")
+            note = (
+                f" (weak evidence: the top match was the true person in "
+                f"{100 * acc:.0f}% of held-out tests)"
+                if acc is not None
+                else ""
+            )
+            lines.append(f"**Likely body source:** {v['likely_body_source']}{note}  ")
     lines.append(
         f"**Clip:** {v['frames']} frames, {v['duration_s']:.1f} s, "
         f"{v.get('n_strides', 0)} strides detected\n"

@@ -1,0 +1,8 @@
+Verifying claim 'Teja' on 1 view(s); threshold 0.314; window 4.0s hop 0.5s
+t=  4.40s  rolling score 0.047  IDENTITY_MISMATCH views=1  pose 35 ms/frame
+t=  4.89s  rolling score 0.027  IDENTITY_MISMATCH views=1  pose 33 ms/frame
+t=  5.38s  rolling score 0.019  IDENTITY_MISMATCH views=1  pose 31 ms/frame
+t=  5.86s  rolling score 0.014  IDENTITY_MISMATCH views=1  pose 30 ms/frame
+t=  6.35s  rolling score 0.005  IDENTITY_MISMATCH views=1  pose 30 ms/frame
+t=  6.84s  rolling score 0.001  IDENTITY_MISMATCH views=1  pose 30 ms/frame
+t=  7.33s  rolling score 0.000  IDENTITY_MISMATCH views=1  pose 30 ms/frame

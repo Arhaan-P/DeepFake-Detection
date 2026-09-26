@@ -127,9 +127,7 @@ def cycle_consistency_and_alignment(clips) -> dict:
         cyc.append(cy.mean(0))
         if len(cy) > 1:
             cors = [
-                np.mean(
-                    [np.corrcoef(cy[i][:, k], cy[j][:, k])[0, 1] for k in range(6)]
-                )
+                np.mean([np.corrcoef(cy[i][:, k], cy[j][:, k])[0, 1] for k in range(6)])
                 for i in range(len(cy))
                 for j in range(i + 1, len(cy))
             ]

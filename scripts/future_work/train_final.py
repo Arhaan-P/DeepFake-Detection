@@ -80,6 +80,12 @@ def main():
     )
     thr = eer(y, s)[1] if args.operating_point == "eer" else youden_threshold(y, s)[0]
     platt = fit_platt(y, s)
+    # Platt maps scores to probabilities under the LOSO trial mix (1 genuine
+    # : N-1 impostor claims); keep that prior so reports can re-weight it.
+    prior = float(y.mean())
+    # held-out rank-1 identification: is the top-scoring identity the truth?
+    q = np.array(res["trials"]["query"])
+    rank1 = float(np.mean([y[q == c][np.argmax(s[q == c])] for c in np.unique(q)]))
 
     clips = load_clips(cfg.backend, cfg.source, cfg.cache_root)
     clips = [c for c in clips if c.name not in set(args.holdout_clips)]
@@ -119,6 +125,8 @@ def main():
             "train_loss": loss,
             "loso_pooled_auc": res["aggregate"]["pooled_roc_auc_mean"],
             "loso_pooled_eer": res["aggregate"]["pooled_eer_mean"],
+            "calibration_prior": prior,
+            "loso_rank1_identification": rank1,
             "clips": [c.name for c in clips],
             "holdout_clips": args.holdout_clips,
         },
