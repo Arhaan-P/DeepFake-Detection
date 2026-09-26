@@ -253,7 +253,6 @@ class VideoAugmenter:
         # Get the first frame to determine random parameters
         # Then apply same transformation to all frames
         random_state = random.getstate()
-        rng = np.random.RandomState(42)  # Per-video RNG for reproducibility
 
         for i, frame in enumerate(frames):
             # Reset random state for each frame to get identical augmentation

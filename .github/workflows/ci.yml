@@ -17,7 +17,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install lint tools
-        run: pip install black ruff
+        run: pip install black==26.5.1 ruff==0.16.9
 
       - name: Check formatting (black)
         run: black --check models/ utils/ scripts/ ieee_scripts/ tests/

@@ -1,0 +1,14 @@
+{
+  "input_dim": 78,
+  "encoder_hidden_dims": [64, 128],
+  "encoder_output_dim": 128,
+  "lstm_hidden": 64,
+  "lstm_layers": 1,
+  "transformer_d_model": 128,
+  "transformer_heads": 4,
+  "transformer_layers": 2,
+  "embedding_dim": 128,
+  "verification_hidden": 64,
+  "dropout": 0.1,
+  "use_multi_scale_encoder": false
+}

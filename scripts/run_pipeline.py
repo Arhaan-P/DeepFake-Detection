@@ -22,9 +22,9 @@ import sys
 # Resolve project root (one level up from scripts/)
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(PROJECT_ROOT)
-import time
+import time  # noqa: E402
 
-import torch
+import torch  # noqa: E402
 
 
 def check_device():

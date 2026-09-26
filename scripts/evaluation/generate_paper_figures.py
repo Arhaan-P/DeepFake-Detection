@@ -31,13 +31,9 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import (
-    accuracy_score,
     auc,
     confusion_matrix,
-    f1_score,
     precision_recall_curve,
-    precision_score,
-    recall_score,
     roc_curve,
 )
 
@@ -77,7 +73,7 @@ def load_loocv_results():
     raw_scores = data["pooled_scores"]
 
     # Flatten nested lists
-    labels = np.array([l[0] if isinstance(l, list) else l for l in raw_labels])
+    labels = np.array([lbl[0] if isinstance(lbl, list) else lbl for lbl in raw_labels])
     scores = np.array([s[0] if isinstance(s, list) else s for s in raw_scores])
 
     return data, labels, scores
@@ -486,11 +482,9 @@ def plot_loocv_per_fold(loocv_data):
 
     fig, ax = plt.subplots(figsize=(14, 6))
 
-    bars1 = ax.bar(
-        x - width, accuracies, width, label="Accuracy", color="#3498db", alpha=0.85
-    )
-    bars2 = ax.bar(x, f1_scores, width, label="F1 Score", color="#2ecc71", alpha=0.85)
-    bars3 = ax.bar(x + width, aucs, width, label="AUC-ROC", color="#e74c3c", alpha=0.85)
+    ax.bar(x - width, accuracies, width, label="Accuracy", color="#3498db", alpha=0.85)
+    ax.bar(x, f1_scores, width, label="F1 Score", color="#2ecc71", alpha=0.85)
+    ax.bar(x + width, aucs, width, label="AUC-ROC", color="#e74c3c", alpha=0.85)
 
     # Mean lines
     agg = loocv_data["aggregate"]
@@ -728,9 +722,7 @@ def plot_eer_per_fold(loocv_data):
     fig, ax = plt.subplots(figsize=(12, 5))
 
     colors = ["#e74c3c" if e > 15 else "#f39c12" if e > 10 else "#2ecc71" for e in eers]
-    bars = ax.bar(
-        persons, eers, color=colors, alpha=0.85, edgecolor="black", linewidth=0.5
-    )
+    ax.bar(persons, eers, color=colors, alpha=0.85, edgecolor="black", linewidth=0.5)
 
     # Mean EER line
     mean_eer = loocv_data["aggregate"]["eer"] * 100
@@ -772,12 +764,6 @@ def generate_tables(
     threshold,
 ):
     """Generate all tables as formatted text files."""
-
-    predictions = (scores >= threshold).astype(int)
-    accuracy = accuracy_score(labels, predictions) * 100
-    precision = precision_score(labels, predictions, zero_division=0) * 100
-    recall = recall_score(labels, predictions, zero_division=0) * 100
-    f1 = f1_score(labels, predictions, zero_division=0) * 100
 
     tables_text = []
 
@@ -961,7 +947,7 @@ def main():
     )
 
     print("\n  Figure 2: Four Cases (TP/FP/TN/FN)")
-    cases = plot_four_cases(cm_stats, labels, scores, threshold)
+    plot_four_cases(cm_stats, labels, scores, threshold)
 
     print("\n  Figure 3: ROC Curve")
     roc_auc, eer, optimal_thresh = plot_roc_curve(labels, scores)
@@ -993,7 +979,7 @@ def main():
 
     # Generate tables
     print("\n[3/4] Generating tables...")
-    tables = generate_tables(
+    generate_tables(
         loocv_data,
         cm_stats,
         ablation_data,
