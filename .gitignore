@@ -118,3 +118,15 @@ deepfake_paper.fls
 graphify-out/
 .claude/
 CLAUDE.md
+# Local-only material (not for the public repository)
+ieee_scripts/
+ism2026_submission/
+dataset_reference/
+
+# Future-work caches and private artefacts (regenerate with scripts/future_work)
+data/pose_cache/
+data/descriptor_cache/
+outputs/future_work/checkpoints/
+outputs/future_work/logs/
+outputs/future_work/reports/*.jsonl
+.venv-*/
