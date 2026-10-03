@@ -48,8 +48,10 @@ ALLOWED = {
 # Optional columns: validated only when present, so older manifests still pass.
 OPTIONAL_ALLOWED = {
     "camera_motion": {"static", "pan", "tracking"},  # blank = ordinary Tier 1/2 clip
+    "path_type": {"straight", "shuttle"},  # shuttle = walks back and forth with a turn
 }
-NAME_RE = re.compile(r"^(?P<subject>[A-Za-z0-9]+)_(?P<view>[A-Za-z]+)(?P<take>\d+)$")
+# Subject IDs may contain underscores, e.g. VITC_001_S1.mp4 (lazy match keeps the view and take at the end)
+NAME_RE = re.compile(r"^(?P<subject>[A-Za-z0-9_]+?)_(?P<view>[A-Za-z]+)(?P<take>\d+)$")
 MIN_SECONDS = 6.0
 TARGET_SECONDS = 20.0  # below this, rhythm features are unreliable (see FUTURE_WORK.md)
 
