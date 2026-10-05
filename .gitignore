@@ -64,14 +64,13 @@ data/videos/
 data/deepfake/
 data/deepfake_videos/
 data/augmented_videos/
-data/gait_features/
 data/*.npy
 data/*.npz
-data/*.pkl
 data/subject_map.json
+# NOTE: data/gait_features/ (enrolled_identities.pkl, gait_features.pkl) is
+# tracked deliberately so a trained setup is portable across machines.
 
 # Model files (large, retrain instead)
-models/*.pth
 models/*.pt
 models/*.h5
 models/*.keras
@@ -79,14 +78,14 @@ models/*.joblib
 models/*.pkl
 
 # Results and outputs (regenerate with scripts)
-outputs/checkpoints/
 outputs/tensorboard/
 outputs/evaluation/
 outputs/loocv/
 outputs/ablation/
 outputs/gradcam/
 outputs/training_history.json
-outputs/model_config.json
+# NOTE: outputs/checkpoints/ and outputs/model_config.json are tracked
+# deliberately so the trained model is portable across machines.
 results/
 output/
 logs/
@@ -94,8 +93,7 @@ logs/
 # TensorBoard events
 events.out.tfevents.*
 
-# Checkpoints
-checkpoints/
+# Checkpoints (generic catch-all for other checkpoint dirs, e.g. tensorboard's own)
 *.ckpt
 
 Required for Research Paper/
@@ -120,3 +118,15 @@ deepfake_paper.fls
 graphify-out/
 .claude/
 CLAUDE.md
+# Local-only material (not for the public repository)
+ieee_scripts/
+ism2026_submission/
+dataset_reference/
+
+# Future-work caches and private artefacts (regenerate with scripts/future_work)
+data/pose_cache/
+data/descriptor_cache/
+outputs/future_work/checkpoints/
+outputs/future_work/logs/
+outputs/future_work/reports/*.jsonl
+.venv-*/

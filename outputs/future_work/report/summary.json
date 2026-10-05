@@ -1,0 +1,1383 @@
+{
+ "E0_baseline": {
+  "name": "E0_baseline",
+  "description": "Frozen baseline: MediaPipe lite, 78-D, whole-clip resampled to 60, deployed temporal-CNN verifier, strict protocol. Also scores every robustness condition (E8).",
+  "params": 133058,
+  "seeds": 3,
+  "pooled_auc": 0.8523875114784206,
+  "pooled_auc_sd": 0.002989168197120283,
+  "fold_auc": 0.8527611585944919,
+  "fold_auc_sd": 0.08963763687272013,
+  "pooled_eer": 0.2234848484848485,
+  "tpr_at_fpr_5": 0.3636363636363636,
+  "ece_raw": 0.11828524786324789,
+  "ece_platt": 0.013149466087956233,
+  "brier_platt": 0.059364348263991756,
+  "runtime_min": 216.44305717547735,
+  "rank1_id": 0.40404040404040403,
+  "by_view": {
+   "F": 0.8210463733650416,
+   "S": 0.8801030760490219
+  }
+ },
+ "E0_legacy_enrol": {
+  "name": "E0_legacy_enrol",
+  "description": "E0 with the original enrolment rule (query clip included in its own claimed signature) -- measures that leakage.",
+  "params": 133058,
+  "seeds": 3,
+  "pooled_auc": 0.8282445668809305,
+  "pooled_auc_sd": 0.0060157461783177605,
+  "fold_auc": 0.8362013295346629,
+  "fold_auc_sd": 0.10136625258932133,
+  "pooled_eer": 0.23884680134680136,
+  "tpr_at_fpr_5": 0.2828282828282828,
+  "ece_raw": 0.10641562937062937,
+  "ece_platt": 0.01379951154852456,
+  "brier_platt": 0.061852919733227485,
+  "runtime_min": 215.89329346021017,
+  "rank1_id": 0.39393939393939387,
+  "by_view": {
+   "F": 0.8271898533491875,
+   "S": 0.8332724616508399
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.016559829059829063,
+  "wilcoxon_p": 0.030361345528547953,
+  "ttest_p": 0.05463085807766529,
+  "d_pooled_auc": -0.016337618610345883,
+  "d_pooled_auc_ci": [
+   -0.036542986685032156,
+   0.005365384615384694
+  ]
+ },
+ "E0_paper_aug": {
+  "name": "E0_paper_aug",
+  "description": "E0 with mirror + 0.8/1.2x speed augmentation, closer to the paper's video augmentations.",
+  "params": 133058,
+  "seeds": 3,
+  "pooled_auc": 0.8357948168554229,
+  "pooled_auc_sd": 0.006795490197300901,
+  "fold_auc": 0.8370322886989555,
+  "fold_auc_sd": 0.10877460422798262,
+  "pooled_eer": 0.24831649831649835,
+  "tpr_at_fpr_5": 0.3282828282828283,
+  "ece_raw": 0.16290907925407924,
+  "ece_platt": 0.013166593543198664,
+  "brier_platt": 0.06138675408025568,
+  "runtime_min": 215.88652871449787,
+  "rank1_id": 0.393939393939394,
+  "by_view": {
+   "F": 0.8121944774739068,
+   "S": 0.8580472364256148
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.01572886989553657,
+  "wilcoxon_p": 0.09261510031917228,
+  "ttest_p": 0.10545267258464637,
+  "d_pooled_auc": -0.018116773798592,
+  "d_pooled_auc_ci": [
+   -0.036103453510359054,
+   0.0034251077038434043
+  ]
+ },
+ "E1_mediapipe_full": {
+  "name": "E1_mediapipe_full",
+  "description": "Pose backend: MediaPipe full model.",
+  "params": 133058,
+  "seeds": 3,
+  "pooled_auc": 0.8328550658096111,
+  "pooled_auc_sd": 0.0016668978352305064,
+  "fold_auc": 0.8469895536562202,
+  "fold_auc_sd": 0.10816296103745623,
+  "pooled_eer": 0.24347643097643099,
+  "tpr_at_fpr_5": 0.35858585858585856,
+  "ece_raw": 0.11889877583527585,
+  "ece_platt": 0.016188711007644924,
+  "brier_platt": 0.06127968308436119,
+  "runtime_min": 215.7707747101784,
+  "rank1_id": 0.44949494949494956,
+  "by_view": {
+   "F": 0.8343572466640244,
+   "S": 0.8336174011849687
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.0057716049382716085,
+  "wilcoxon_p": 0.727757927280211,
+  "ttest_p": 0.6841350115589289,
+  "d_pooled_auc": -0.017743725130088706,
+  "d_pooled_auc_ci": [
+   -0.06687303910315272,
+   0.026607823397364446
+  ]
+ },
+ "E1_mediapipe_heavy": {
+  "name": "E1_mediapipe_heavy",
+  "description": "Pose backend: MediaPipe heavy model.",
+  "params": 133058,
+  "seeds": 3,
+  "pooled_auc": 0.8251517702275278,
+  "pooled_auc_sd": 0.015667194060242178,
+  "fold_auc": 0.8271320037986706,
+  "fold_auc_sd": 0.11284174619568013,
+  "pooled_eer": 0.25252525252525254,
+  "tpr_at_fpr_5": 0.39898989898989895,
+  "ece_raw": 0.11998981585081586,
+  "ece_platt": 0.017643238110683305,
+  "brier_platt": 0.06172643207181993,
+  "runtime_min": 215.88552519083024,
+  "rank1_id": 0.41414141414141414,
+  "by_view": {
+   "F": 0.7777447483154974,
+   "S": 0.8628966804642481
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.025629154795821462,
+  "wilcoxon_p": 0.14469993187461336,
+  "ttest_p": 0.06667881576707806,
+  "d_pooled_auc": -0.024678604224058764,
+  "d_pooled_auc_ci": [
+   -0.06433661487114282,
+   0.011730292774436154
+  ]
+ },
+ "E1_mediapipe_heavy_video": {
+  "name": "E1_mediapipe_heavy_video",
+  "description": "Pose backend: MediaPipe heavy with VIDEO-mode temporal tracking.",
+  "params": 133058,
+  "seeds": 3,
+  "pooled_auc": 0.7487501275380063,
+  "pooled_auc_sd": 0.024920797527063655,
+  "fold_auc": 0.7694468186134853,
+  "fold_auc_sd": 0.20595536659963323,
+  "pooled_eer": 0.29713804713804715,
+  "tpr_at_fpr_5": 0.2676767676767677,
+  "ece_raw": 0.1219125097125097,
+  "ece_platt": 0.012012046251414889,
+  "brier_platt": 0.06648044004022051,
+  "runtime_min": 312.9048475821813,
+  "rank1_id": 0.30808080808080807,
+  "by_view": {
+   "F": 0.6879046109129344,
+   "S": 0.8006046587127669
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.08331433998100665,
+  "wilcoxon_p": 0.02013826857796067,
+  "ttest_p": 0.01105382483379776,
+  "d_pooled_auc": -0.1013448882767064,
+  "d_pooled_auc_ci": [
+   -0.24374772476924744,
+   -0.0008766483120397808
+  ]
+ },
+ "E1_mediapipe_lite_2d": {
+  "name": "E1_mediapipe_lite_2d",
+  "description": "Matched 2D control: baseline with z dropped, for comparison with 2D-only detectors.",
+  "params": 100802,
+  "seeds": 3,
+  "pooled_auc": 0.8416105499438834,
+  "pooled_auc_sd": 0.006599719060828987,
+  "fold_auc": 0.862400284900285,
+  "fold_auc_sd": 0.07803231983810278,
+  "pooled_eer": 0.25252525252525254,
+  "tpr_at_fpr_5": 0.36868686868686873,
+  "ece_raw": 0.12983224941724944,
+  "ece_platt": 0.019330459451674487,
+  "brier_platt": 0.0607788867671932,
+  "runtime_min": 282.74954634110134,
+  "rank1_id": 0.4646464646464647,
+  "by_view": {
+   "F": 0.8223014929316951,
+   "S": 0.8597922246570895
+  },
+  "n_pairs": 39,
+  "d_fold_auc": 0.009639126305792983,
+  "wilcoxon_p": 0.6351236574800874,
+  "ttest_p": 0.3926861066885089,
+  "d_pooled_auc": -0.010254055708601162,
+  "d_pooled_auc_ci": [
+   -0.03870069033530569,
+   0.021276297244997244
+  ]
+ },
+ "E1_mediapipe_lite_video": {
+  "name": "E1_mediapipe_lite_video",
+  "description": "Pose backend: MediaPipe lite with VIDEO-mode temporal tracking.",
+  "params": 133058,
+  "seeds": 3,
+  "pooled_auc": 0.8324979593918987,
+  "pooled_auc_sd": 0.011989281495039028,
+  "fold_auc": 0.8513247863247864,
+  "fold_auc_sd": 0.09087953596624496,
+  "pooled_eer": 0.2436868686868687,
+  "tpr_at_fpr_5": 0.25252525252525254,
+  "ece_raw": 0.1193093038073038,
+  "ece_platt": 0.012079770554857908,
+  "brier_platt": 0.06345756208342639,
+  "runtime_min": 215.8363629301389,
+  "rank1_id": 0.3838383838383838,
+  "by_view": {
+   "F": 0.8206500198176774,
+   "S": 0.8454265075886697
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.0014363722697056103,
+  "wilcoxon_p": 0.8505474275519126,
+  "ttest_p": 0.8967951181133116,
+  "d_pooled_auc": -0.015840220385674897,
+  "d_pooled_auc_ci": [
+   -0.04404293133051873,
+   0.01753451676528595
+  ]
+ },
+ "E1_rtmpose_2d": {
+  "name": "E1_rtmpose_2d",
+  "description": "Pose backend: RTMPose-m Halpe26 (2D), matched 2D descriptor.",
+  "params": 100802,
+  "seeds": 3,
+  "pooled_auc": 0.8589812264054689,
+  "pooled_auc_sd": 0.00982974724533792,
+  "fold_auc": 0.8726899335232667,
+  "fold_auc_sd": 0.11787453945071594,
+  "pooled_eer": 0.2218013468013468,
+  "tpr_at_fpr_5": 0.40404040404040403,
+  "ece_raw": 0.11451720202020203,
+  "ece_platt": 0.01410047024892786,
+  "brier_platt": 0.05966750939216963,
+  "runtime_min": 289.58298097848893,
+  "rank1_id": 0.4595959595959596,
+  "by_view": {
+   "F": 0.8469084423305588,
+   "S": 0.871925980034088
+  },
+  "n_pairs": 39,
+  "d_fold_auc": 0.01992877492877493,
+  "wilcoxon_p": 0.09394875939407236,
+  "ttest_p": 0.15298232296560035,
+  "d_pooled_auc": 0.01469237832874204,
+  "d_pooled_auc_ci": [
+   -0.022191446293457782,
+   0.053464497041420055
+  ]
+ },
+ "E1_rtmw3d": {
+  "name": "E1_rtmw3d",
+  "description": "Pose backend: RTMW3D keypoints (image x,y + model depth) in the unchanged 78-D descriptor.",
+  "params": 133058,
+  "seeds": 3,
+  "pooled_auc": 0.7997844607693092,
+  "pooled_auc_sd": 0.006610062450805815,
+  "fold_auc": 0.8124311490978157,
+  "fold_auc_sd": 0.10388037944649324,
+  "pooled_eer": 0.2727272727272727,
+  "tpr_at_fpr_5": 0.2727272727272727,
+  "ece_raw": 0.10966060878010879,
+  "ece_platt": 0.014019723840750085,
+  "brier_platt": 0.06461192689431478,
+  "runtime_min": 108.2982806245486,
+  "rank1_id": 0.3434343434343434,
+  "by_view": {
+   "F": 0.7868939093671554,
+   "S": 0.813651489327165
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.04033000949667617,
+  "wilcoxon_p": 0.041584655883488524,
+  "ttest_p": 0.054174996893613804,
+  "d_pooled_auc": -0.0269742883379247,
+  "d_pooled_auc_ci": [
+   -0.0790611439842209,
+   0.023165825457969365
+  ]
+ },
+ "E1_vitpose_2d": {
+  "name": "E1_vitpose_2d",
+  "description": "Pose backend: ViTPose-B coco_25 (2D), matched 2D descriptor.",
+  "params": 100802,
+  "seeds": 3,
+  "pooled_auc": 0.8477323742475257,
+  "pooled_auc_sd": 0.023264911066606483,
+  "fold_auc": 0.8609662867996202,
+  "fold_auc_sd": 0.11931499827546678,
+  "pooled_eer": 0.23947811447811448,
+  "tpr_at_fpr_5": 0.4090909090909091,
+  "ece_raw": 0.1210666386946387,
+  "ece_platt": 0.015885137862772822,
+  "brier_platt": 0.06033496912847039,
+  "runtime_min": 45.27160897254944,
+  "rank1_id": 0.4696969696969697,
+  "by_view": {
+   "F": 0.8304597701149424,
+   "S": 0.8658388117847577
+  },
+  "n_pairs": 39,
+  "d_fold_auc": 0.008205128205128193,
+  "wilcoxon_p": 0.47727289282686713,
+  "ttest_p": 0.5632610570546236,
+  "d_pooled_auc": -0.0032522191613100215,
+  "d_pooled_auc_ci": [
+   -0.047740051903114145,
+   0.04587869822485209
+  ]
+ },
+ "E2_mediapipe_heavy_world": {
+  "name": "E2_mediapipe_heavy_world",
+  "description": "RGB-only 3D: MediaPipe heavy world landmarks.",
+  "params": 133058,
+  "seeds": 3,
+  "pooled_auc": 0.8188641465156618,
+  "pooled_auc_sd": 0.006136579673683681,
+  "fold_auc": 0.8217283950617286,
+  "fold_auc_sd": 0.11420515105091093,
+  "pooled_eer": 0.26704545454545453,
+  "tpr_at_fpr_5": 0.3282828282828283,
+  "ece_raw": 0.1315354017094017,
+  "ece_platt": 0.010623831627941444,
+  "brier_platt": 0.06263190760236247,
+  "runtime_min": 312.9687337756157,
+  "rank1_id": 0.3737373737373737,
+  "by_view": {
+   "F": 0.7787686616461884,
+   "S": 0.8500933365798232
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.031032763532763533,
+  "wilcoxon_p": 0.1670391794032423,
+  "ttest_p": 0.07906682279205132,
+  "d_pooled_auc": -0.032847413529231706,
+  "d_pooled_auc_ci": [
+   -0.08276802112029394,
+   0.018122866482565756
+  ]
+ },
+ "E2_mediapipe_lite_world": {
+  "name": "E2_mediapipe_lite_world",
+  "description": "RGB-only 3D: MediaPipe lite metric world landmarks instead of image landmarks.",
+  "params": 133058,
+  "seeds": 3,
+  "pooled_auc": 0.8481915110702989,
+  "pooled_auc_sd": 0.012177051404262805,
+  "fold_auc": 0.8507929724596389,
+  "fold_auc_sd": 0.08377797330241887,
+  "pooled_eer": 0.22664141414141414,
+  "tpr_at_fpr_5": 0.31313131313131315,
+  "ece_raw": 0.11377023426573428,
+  "ece_platt": 0.00816655581905939,
+  "brier_platt": 0.06126879686683081,
+  "runtime_min": 312.8015827417374,
+  "rank1_id": 0.3838383838383838,
+  "by_view": {
+   "F": 0.831913066455278,
+   "S": 0.8652503855206558
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.0019681861348528028,
+  "wilcoxon_p": 0.8945174569425293,
+  "ttest_p": 0.8929971428192197,
+  "d_pooled_auc": 0.002926997245179086,
+  "d_pooled_auc_ci": [
+   -0.042250154856798235,
+   0.047548316436011796
+  ]
+ },
+ "E2_rtmw3d_world": {
+  "name": "E2_rtmw3d_world",
+  "description": "RGB-only 3D: RTMW3D 3D skeleton.",
+  "params": 133058,
+  "seeds": 3,
+  "pooled_auc": 0.859720946842159,
+  "pooled_auc_sd": 0.01761745639860146,
+  "fold_auc": 0.8713817663817665,
+  "fold_auc_sd": 0.10009833103102078,
+  "pooled_eer": 0.2125420875420875,
+  "tpr_at_fpr_5": 0.34848484848484845,
+  "ece_raw": 0.09306992463092463,
+  "ece_platt": 0.013819749273151785,
+  "brier_platt": 0.060407977188654205,
+  "runtime_min": 108.23221496343612,
+  "rank1_id": 0.42424242424242425,
+  "by_view": {
+   "F": 0.8152331880036993,
+   "S": 0.8947934420907394
+  },
+  "n_pairs": 39,
+  "d_fold_auc": 0.018620607787274448,
+  "wilcoxon_p": 0.3608095619009466,
+  "ttest_p": 0.3440886306106906,
+  "d_pooled_auc": 0.02123507805325986,
+  "d_pooled_auc_ci": [
+   -0.024024161735700194,
+   0.06816046720029195
+  ]
+ },
+ "E3_cycle": {
+  "name": "E3_cycle",
+  "description": "RQ4: baseline families, gait-cycle-normalised (mean heel-strike-to-heel-strike cycle) instead of whole-clip resampling.",
+  "params": 133058,
+  "seeds": 3,
+  "pooled_auc": 0.8127869605142332,
+  "pooled_auc_sd": 0.023168887499314252,
+  "fold_auc": 0.8331742640075971,
+  "fold_auc_sd": 0.1162456620705886,
+  "pooled_eer": 0.25526094276094274,
+  "tpr_at_fpr_5": 0.34848484848484845,
+  "ece_raw": 0.12687984615384615,
+  "ece_platt": 0.009657857582463465,
+  "brier_platt": 0.06287085502159476,
+  "runtime_min": 79.84944336811701,
+  "rank1_id": 0.398989898989899,
+  "by_view": {
+   "F": 0.7995441934205312,
+   "S": 0.825663501339177
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.019586894586894592,
+  "wilcoxon_p": 0.10691956523174029,
+  "ttest_p": 0.08463258840468366,
+  "d_pooled_auc": -0.03231175390266294,
+  "d_pooled_auc_ci": [
+   -0.05913807856447272,
+   -0.004014644155378498
+  ]
+ },
+ "E3_cycle_rhythm_all": {
+  "name": "E3_cycle_rhythm_all",
+  "description": "Cycle normalisation + all rhythm families.",
+  "params": 174722,
+  "seeds": 3,
+  "pooled_auc": 0.8138391490664217,
+  "pooled_auc_sd": 0.006644993278603636,
+  "fold_auc": 0.8367117758784426,
+  "fold_auc_sd": 0.09614359118986501,
+  "pooled_eer": 0.25757575757575757,
+  "tpr_at_fpr_5": 0.32323232323232326,
+  "ece_raw": 0.09738676923076924,
+  "ece_platt": 0.01673405754274531,
+  "brier_platt": 0.06349524340889966,
+  "runtime_min": 124.85750586191813,
+  "rank1_id": 0.34848484848484845,
+  "by_view": {
+   "F": 0.8251089972255251,
+   "S": 0.806448340232124
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.01604938271604939,
+  "wilcoxon_p": 0.6218846255358943,
+  "ttest_p": 0.24098476808917743,
+  "d_pooled_auc": -0.02291857973676148,
+  "d_pooled_auc_ci": [
+   -0.0769470270890726,
+   0.02071902739516376
+  ]
+ },
+ "E3_dtw": {
+  "name": "E3_dtw",
+  "description": "Non-learned DTW template matching on the baseline descriptor (speed-invariant alignment).",
+  "params": 0,
+  "seeds": 1,
+  "pooled_auc": 0.4684343434343434,
+  "pooled_auc_sd": 0.0,
+  "fold_auc": 0.46970085470085476,
+  "fold_auc_sd": 0.060039799788338,
+  "pooled_eer": 0.5,
+  "tpr_at_fpr_5": 0.015151515151515152,
+  "ece_raw": 0.41482841734087744,
+  "ece_platt": 0.002678335436294726,
+  "brier_platt": 0.07092992633815313,
+  "runtime_min": 0.08282885551452637,
+  "rank1_id": 0.015151515151515152,
+  "by_view": {
+   "F": 0.4690844233055886,
+   "S": 0.42415388361334305
+  },
+  "n_pairs": 13,
+  "d_fold_auc": -0.3829843304843305,
+  "wilcoxon_p": 0.000244140625,
+  "ttest_p": 9.807695966669096e-09,
+  "d_pooled_auc": -0.4004055708601163,
+  "d_pooled_auc_ci": [
+   -0.445129684418146,
+   -0.3483550497404845
+  ]
+ },
+ "E3_frequency": {
+  "name": "E3_frequency",
+  "description": "Baseline + harmonic spectra of knee angles, pelvis vertical, heel separation.",
+  "params": 154562,
+  "seeds": 3,
+  "pooled_auc": 0.8510866238138965,
+  "pooled_auc_sd": 0.007391798518329355,
+  "fold_auc": 0.8583404558404558,
+  "fold_auc_sd": 0.10941990938678307,
+  "pooled_eer": 0.23632154882154885,
+  "tpr_at_fpr_5": 0.41919191919191917,
+  "ece_raw": 0.12302054895104896,
+  "ece_platt": 0.009715246644180008,
+  "brier_platt": 0.05919541975133038,
+  "runtime_min": 320.2830790321032,
+  "rank1_id": 0.4393939393939394,
+  "by_view": {
+   "F": 0.8490223279165016,
+   "S": 0.8576008440873305
+  },
+  "n_pairs": 39,
+  "d_fold_auc": 0.005579297245963917,
+  "wilcoxon_p": 0.5569272637578366,
+  "ttest_p": 0.6148453270851492,
+  "d_pooled_auc": -0.002410468319559156,
+  "d_pooled_auc_ci": [
+   -0.02995929066398647,
+   0.02406410256410259
+  ]
+ },
+ "E3_phase": {
+  "name": "E3_phase",
+  "description": "Baseline + per-frame left/right gait phase (sin, cos).",
+  "params": 138434,
+  "seeds": 3,
+  "pooled_auc": 0.844531170288746,
+  "pooled_auc_sd": 0.009655292544871713,
+  "fold_auc": 0.8415978157644823,
+  "fold_auc_sd": 0.09694028154999151,
+  "pooled_eer": 0.242003367003367,
+  "tpr_at_fpr_5": 0.41414141414141414,
+  "ece_raw": 0.11107556526806527,
+  "ece_platt": 0.01371454758168227,
+  "brier_platt": 0.0594098471541623,
+  "runtime_min": 101.34655064344406,
+  "rank1_id": 0.38888888888888884,
+  "by_view": {
+   "F": 0.8435724666402432,
+   "S": 0.8482266049833617
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.011163342830009498,
+  "wilcoxon_p": 0.30816754500288956,
+  "ttest_p": 0.2713278309395545,
+  "d_pooled_auc": -0.0069827058463421965,
+  "d_pooled_auc_ci": [
+   -0.02660897435897431,
+   0.012363046496395297
+  ]
+ },
+ "E3_rhythm": {
+  "name": "E3_rhythm",
+  "description": "Baseline + clip-level rhythm (cadence, stride time/CV, regularity, harmonic ratio, phase synchrony).",
+  "params": 147842,
+  "seeds": 3,
+  "pooled_auc": 0.8519092439546986,
+  "pooled_auc_sd": 0.00559024702224003,
+  "fold_auc": 0.8613603988603987,
+  "fold_auc_sd": 0.08706768659253815,
+  "pooled_eer": 0.2272727272727273,
+  "tpr_at_fpr_5": 0.37878787878787884,
+  "ece_raw": 0.11250911460761463,
+  "ece_platt": 0.013070022691953863,
+  "brier_platt": 0.05929860581120271,
+  "runtime_min": 317.9767885327339,
+  "rank1_id": 0.41414141414141414,
+  "by_view": {
+   "F": 0.8188994583168187,
+   "S": 0.8782972161350541
+  },
+  "n_pairs": 39,
+  "d_fold_auc": 0.008599240265906936,
+  "wilcoxon_p": 0.2673894366347236,
+  "ttest_p": 0.34517806443158183,
+  "d_pooled_auc": -0.0001721763085399397,
+  "d_pooled_auc_ci": [
+   -0.02278654722317304,
+   0.023579318839481226
+  ]
+ },
+ "E3_rhythm_all": {
+  "name": "E3_rhythm_all",
+  "description": "Baseline + rhythm + frequency + phase.",
+  "params": 174722,
+  "seeds": 3,
+  "pooled_auc": 0.8481978879706152,
+  "pooled_auc_sd": 0.007175211612936037,
+  "fold_auc": 0.860690883190883,
+  "fold_auc_sd": 0.10177730770796975,
+  "pooled_eer": 0.22664141414141414,
+  "tpr_at_fpr_5": 0.40909090909090917,
+  "ece_raw": 0.10824292307692307,
+  "ece_platt": 0.012936529612052767,
+  "brier_platt": 0.059249396467780185,
+  "runtime_min": 124.79351427555085,
+  "rank1_id": 0.42424242424242425,
+  "by_view": {
+   "F": 0.8351169242964724,
+   "S": 0.8601168736303872
+  },
+  "n_pairs": 39,
+  "d_fold_auc": 0.007929724596391262,
+  "wilcoxon_p": 0.3868715918018778,
+  "ttest_p": 0.5051182308622432,
+  "d_pooled_auc": -0.008321854912763937,
+  "d_pooled_auc_ci": [
+   -0.04151282051282057,
+   0.025210059171597684
+  ]
+ },
+ "E4_acceleration": {
+  "name": "E4_acceleration",
+  "description": "Baseline + acceleration (torso lengths / s^2).",
+  "params": 181442,
+  "seeds": 3,
+  "pooled_auc": 0.8396592184470971,
+  "pooled_auc_sd": 0.0024953325093377073,
+  "fold_auc": 0.8483095916429252,
+  "fold_auc_sd": 0.08615437577353623,
+  "pooled_eer": 0.24642255892255893,
+  "tpr_at_fpr_5": 0.32323232323232326,
+  "ece_raw": 0.10829619541569542,
+  "ece_platt": 0.013077641042412496,
+  "brier_platt": 0.06172784638530218,
+  "runtime_min": 122.52301395734152,
+  "rank1_id": 0.40404040404040403,
+  "by_view": {
+   "F": 0.8139780684370459,
+   "S": 0.8626126126126126
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.004451566951566947,
+  "wilcoxon_p": 0.571822039872608,
+  "ttest_p": 0.6272882213021529,
+  "d_pooled_auc": -0.010464493419038878,
+  "d_pooled_auc_ci": [
+   -0.02398865877712039,
+   0.008762681867431791
+  ]
+ },
+ "E4_angles_3d": {
+  "name": "E4_angles_3d",
+  "description": "Baseline + the six angles computed in 3D.",
+  "params": 141122,
+  "seeds": 3,
+  "pooled_auc": 0.8333524640342822,
+  "pooled_auc_sd": 0.0062182920361894345,
+  "fold_auc": 0.8336870845204177,
+  "fold_auc_sd": 0.11070920679344866,
+  "pooled_eer": 0.234006734006734,
+  "tpr_at_fpr_5": 0.34848484848484845,
+  "ece_raw": 0.10735629875679875,
+  "ece_platt": 0.0109672948952731,
+  "brier_platt": 0.06149876531913523,
+  "runtime_min": 76.3716796040535,
+  "rank1_id": 0.35858585858585856,
+  "by_view": {
+   "F": 0.8259677632448144,
+   "S": 0.8415307199090982
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.019074074074074073,
+  "wilcoxon_p": 0.12413036523658043,
+  "ttest_p": 0.0751341765678956,
+  "d_pooled_auc": -0.017810682583409787,
+  "d_pooled_auc_ci": [
+   -0.04535953503567139,
+   0.010182990348473588
+  ]
+ },
+ "E4_angles_ext": {
+  "name": "E4_angles_ext",
+  "description": "Baseline + trunk lean, pelvic obliquity, shoulder tilt, foot pitch, inter-thigh, shank angles.",
+  "params": 143810,
+  "seeds": 3,
+  "pooled_auc": 0.863100704009795,
+  "pooled_auc_sd": 0.004295428174159198,
+  "fold_auc": 0.8636134852801519,
+  "fold_auc_sd": 0.09394093406060579,
+  "pooled_eer": 0.2171717171717172,
+  "tpr_at_fpr_5": 0.4090909090909091,
+  "ece_raw": 0.11300000077700079,
+  "ece_platt": 0.012609575531782142,
+  "brier_platt": 0.05758819649923556,
+  "runtime_min": 110.09628534317017,
+  "rank1_id": 0.4292929292929293,
+  "by_view": {
+   "F": 0.831252477209671,
+   "S": 0.8884830776722669
+  },
+  "n_pairs": 39,
+  "d_fold_auc": 0.010852326685660012,
+  "wilcoxon_p": 0.1142498926932482,
+  "ttest_p": 0.09602203849581452,
+  "d_pooled_auc": 0.009565350474441403,
+  "d_pooled_auc_ci": [
+   -0.0005917159763313418,
+   0.01974311175612685
+  ]
+ },
+ "E4_angular_velocity": {
+  "name": "E4_angular_velocity",
+  "description": "Baseline + joint angular velocities.",
+  "params": 141122,
+  "seeds": 3,
+  "pooled_auc": 0.8510356086113662,
+  "pooled_auc_sd": 0.013330729753986784,
+  "fold_auc": 0.8502279202279203,
+  "fold_auc_sd": 0.09586686253943416,
+  "pooled_eer": 0.23295454545454544,
+  "tpr_at_fpr_5": 0.3686868686868687,
+  "ece_raw": 0.11722335897435898,
+  "ece_platt": 0.011146581457440552,
+  "brier_platt": 0.0597636419270832,
+  "runtime_min": 108.58868960142135,
+  "rank1_id": 0.42424242424242425,
+  "by_view": {
+   "F": 0.8229290527150218,
+   "S": 0.8752739225712199
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.002533238366571705,
+  "wilcoxon_p": 0.9436149903504203,
+  "ttest_p": 0.7217201346691912,
+  "d_pooled_auc": -0.001052188552188582,
+  "d_pooled_auc_ci": [
+   -0.012071005917159709,
+   0.011479855371900733
+  ]
+ },
+ "E4_biomech": {
+  "name": "E4_biomech",
+  "description": "Baseline + all biomechanical families.",
+  "params": 225794,
+  "seeds": 3,
+  "pooled_auc": 0.8353101724313845,
+  "pooled_auc_sd": 0.00920413171588446,
+  "fold_auc": 0.8393281101614435,
+  "fold_auc_sd": 0.1226127457626607,
+  "pooled_eer": 0.22769360269360273,
+  "tpr_at_fpr_5": 0.3686868686868687,
+  "ece_raw": 0.094135121989122,
+  "ece_platt": 0.010608982191917709,
+  "brier_platt": 0.05922557749379292,
+  "runtime_min": 74.68114492495855,
+  "rank1_id": 0.42424242424242425,
+  "by_view": {
+   "F": 0.8067776456599286,
+   "S": 0.8583110137164192
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.013433048433048421,
+  "wilcoxon_p": 0.4152407402853713,
+  "ttest_p": 0.2246041758652438,
+  "d_pooled_auc": -0.014214110805019886,
+  "d_pooled_auc_ci": [
+   -0.0408029664071511,
+   0.014813609467455652
+  ]
+ },
+ "E4_com": {
+  "name": "E4_com",
+  "description": "Baseline + centre-of-mass proxy (pelvis sway, trunk vector).",
+  "params": 138434,
+  "seeds": 3,
+  "pooled_auc": 0.8312417100295888,
+  "pooled_auc_sd": 0.01635535329479028,
+  "fold_auc": 0.8418993352326686,
+  "fold_auc_sd": 0.12180745234356335,
+  "pooled_eer": 0.2375841750841751,
+  "tpr_at_fpr_5": 0.40404040404040403,
+  "ece_raw": 0.1136858651903652,
+  "ece_platt": 0.010120372542028454,
+  "brier_platt": 0.059527062007996547,
+  "runtime_min": 55.154831357796986,
+  "rank1_id": 0.42929292929292934,
+  "by_view": {
+   "F": 0.8020214030915577,
+   "S": 0.8549224900576252
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.010861823361823357,
+  "wilcoxon_p": 0.25136609833574663,
+  "ttest_p": 0.2875683526313869,
+  "d_pooled_auc": -0.0207281144781144,
+  "d_pooled_auc_ci": [
+   -0.04428885524798154,
+   0.0029053254437869666
+  ]
+ },
+ "E4_coords_angles": {
+  "name": "E4_coords_angles",
+  "description": "Feature-group decomposition: coordinates + angles (no velocity).",
+  "params": 84674,
+  "seeds": 3,
+  "pooled_auc": 0.8562901744719927,
+  "pooled_auc_sd": 0.0032622192714680844,
+  "fold_auc": 0.8559069325735991,
+  "fold_auc_sd": 0.08847354485057105,
+  "pooled_eer": 0.23695286195286194,
+  "tpr_at_fpr_5": 0.3282828282828283,
+  "ece_raw": 0.13413923387723387,
+  "ece_platt": 0.016486234885638506,
+  "brier_platt": 0.05956804907658494,
+  "runtime_min": 64.63539199829101,
+  "rank1_id": 0.41919191919191917,
+  "by_view": {
+   "F": 0.8462808825472322,
+   "S": 0.870891161431702
+  },
+  "n_pairs": 39,
+  "d_fold_auc": 0.003145773979107305,
+  "wilcoxon_p": 0.9218739985541755,
+  "ttest_p": 0.7406071689606302,
+  "d_pooled_auc": 0.004208754208754217,
+  "d_pooled_auc_ci": [
+   -0.018587771203155773,
+   0.029880379996621357
+  ]
+ },
+ "E4_coords_only": {
+  "name": "E4_coords_only",
+  "description": "Feature-group decomposition: coordinates only.",
+  "params": 76610,
+  "seeds": 3,
+  "pooled_auc": 0.8554165391286603,
+  "pooled_auc_sd": 0.010539440204363933,
+  "fold_auc": 0.8586324786324786,
+  "fold_auc_sd": 0.08549354636064517,
+  "pooled_eer": 0.22643097643097643,
+  "tpr_at_fpr_5": 0.398989898989899,
+  "ece_raw": 0.16143037024087023,
+  "ece_platt": 0.013325120538273874,
+  "brier_platt": 0.05999258978663,
+  "runtime_min": 61.50260137716929,
+  "rank1_id": 0.4343434343434343,
+  "by_view": {
+   "F": 0.8261989694807769,
+   "S": 0.8781957633308984
+  },
+  "n_pairs": 39,
+  "d_fold_auc": 0.005871320037986707,
+  "wilcoxon_p": 0.5617503619121249,
+  "ttest_p": 0.5301019193511025,
+  "d_pooled_auc": 0.0003060912151821027,
+  "d_pooled_auc_ci": [
+   -0.02067603550295865,
+   0.022531448241061146
+  ]
+ },
+ "E4_foot": {
+  "name": "E4_foot",
+  "description": "Baseline + heel/toe heights and toe vertical velocity.",
+  "params": 141122,
+  "seeds": 3,
+  "pooled_auc": 0.8516350372410978,
+  "pooled_auc_sd": 0.0019447141411022305,
+  "fold_auc": 0.8494848053181386,
+  "fold_auc_sd": 0.10623622565743067,
+  "pooled_eer": 0.24242424242424243,
+  "tpr_at_fpr_5": 0.3434343434343434,
+  "ece_raw": 0.11445682711732712,
+  "ece_platt": 0.01769686137988741,
+  "brier_platt": 0.05971647005613911,
+  "runtime_min": 58.07035088141759,
+  "rank1_id": 0.41919191919191917,
+  "by_view": {
+   "F": 0.8261989694807769,
+   "S": 0.8745637529421314
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.0032763532763532845,
+  "wilcoxon_p": 0.8164504810982514,
+  "ttest_p": 0.7065623193400444,
+  "d_pooled_auc": -0.00022956841138654926,
+  "d_pooled_auc_ci": [
+   -0.01262765328106237,
+   0.011776338560429525
+  ]
+ },
+ "E4_full": {
+  "name": "E4_full",
+  "description": "Baseline + all biomechanical and rhythm families.",
+  "params": 267458,
+  "seeds": 3,
+  "pooled_auc": 0.8120344862769104,
+  "pooled_auc_sd": 0.03216696129453431,
+  "fold_auc": 0.8291096866096868,
+  "fold_auc_sd": 0.1350394946888657,
+  "pooled_eer": 0.2523148148148148,
+  "tpr_at_fpr_5": 0.3686868686868687,
+  "ece_raw": 0.08894777505827506,
+  "ece_platt": 0.012607049870222311,
+  "brier_platt": 0.061140412394802134,
+  "runtime_min": 84.01839046478271,
+  "rank1_id": 0.4292929292929293,
+  "by_view": {
+   "F": 0.7998084291187739,
+   "S": 0.825480886291697
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.023651471984805317,
+  "wilcoxon_p": 0.21663939353907558,
+  "ttest_p": 0.1264932876724828,
+  "d_pooled_auc": -0.030054331190694783,
+  "d_pooled_auc_ci": [
+   -0.0758578976365847,
+   0.013373356684108394
+  ]
+ },
+ "E4_interpretable": {
+  "name": "E4_interpretable",
+  "description": "Only interpretable biomechanics/rhythm, no raw coordinates or velocities.",
+  "params": 116930,
+  "seeds": 3,
+  "pooled_auc": 0.7534052647689012,
+  "pooled_auc_sd": 0.017181457085489522,
+  "fold_auc": 0.770391737891738,
+  "fold_auc_sd": 0.11642737912117769,
+  "pooled_eer": 0.31712962962962965,
+  "tpr_at_fpr_5": 0.23737373737373738,
+  "ece_raw": 0.12015771173271173,
+  "ece_platt": 0.006724831618065603,
+  "brier_platt": 0.06619079432049867,
+  "runtime_min": 53.159951663017274,
+  "rank1_id": 0.2727272727272727,
+  "by_view": {
+   "F": 0.7353679482098031,
+   "S": 0.7669020371723074
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.08236942070275405,
+  "wilcoxon_p": 5.6682366339295545e-05,
+  "ttest_p": 4.7140442218544734e-05,
+  "d_pooled_auc": -0.1017179369452097,
+  "d_pooled_auc_ci": [
+   -0.16637057251058146,
+   -0.04038060529537803
+  ]
+ },
+ "E4_jerk": {
+  "name": "E4_jerk",
+  "description": "Baseline + jerk.",
+  "params": 181442,
+  "seeds": 3,
+  "pooled_auc": 0.867762218141006,
+  "pooled_auc_sd": 0.010546972871649971,
+  "fold_auc": 0.8747673314339982,
+  "fold_auc_sd": 0.08102414136449332,
+  "pooled_eer": 0.2211700336700337,
+  "tpr_at_fpr_5": 0.37878787878787873,
+  "ece_raw": 0.09192224164724165,
+  "ece_platt": 0.012960814631233926,
+  "brier_platt": 0.05841362648925214,
+  "runtime_min": 121.54359131256739,
+  "rank1_id": 0.4393939393939394,
+  "by_view": {
+   "F": 0.8418549346016647,
+   "S": 0.8891932473013554
+  },
+  "n_pairs": 39,
+  "d_fold_auc": 0.022006172839506177,
+  "wilcoxon_p": 0.024521530760554425,
+  "ttest_p": 0.018136191168799085,
+  "d_pooled_auc": 0.016681971227425763,
+  "d_pooled_auc_ci": [
+   -0.004024012991670395,
+   0.04177212293637188
+  ]
+ },
+ "E4_scaled": {
+  "name": "E4_scaled",
+  "description": "Baseline with coordinates in torso lengths (distance-invariant).",
+  "params": 133058,
+  "seeds": 3,
+  "pooled_auc": 0.82385725946332,
+  "pooled_auc_sd": 0.014550574653995682,
+  "fold_auc": 0.8504273504273504,
+  "fold_auc_sd": 0.06890600252875324,
+  "pooled_eer": 0.25757575757575757,
+  "tpr_at_fpr_5": 0.30303030303030304,
+  "ece_raw": 0.1187575641025641,
+  "ece_platt": 0.013761758142066939,
+  "brier_platt": 0.06277360263838494,
+  "runtime_min": 53.08422968387604,
+  "rank1_id": 0.38888888888888884,
+  "by_view": {
+   "F": 0.8203197251948738,
+   "S": 0.8252576901225549
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.0023338081671415056,
+  "wilcoxon_p": 0.4208483202615547,
+  "ttest_p": 0.8618999560559516,
+  "d_pooled_auc": -0.030054331190694783,
+  "d_pooled_auc_ci": [
+   -0.07020019723865879,
+   0.022555598871315037
+  ]
+ },
+ "E4_stride": {
+  "name": "E4_stride",
+  "description": "Baseline + step/stride length, width, stance and double-support fractions, foot clearance.",
+  "params": 146498,
+  "seeds": 3,
+  "pooled_auc": 0.8573614937251302,
+  "pooled_auc_sd": 0.02046797857770186,
+  "fold_auc": 0.8591049382716051,
+  "fold_auc_sd": 0.10059183124136988,
+  "pooled_eer": 0.21317340067340065,
+  "tpr_at_fpr_5": 0.4343434343434343,
+  "ece_raw": 0.11894194017094017,
+  "ece_platt": 0.013936151724648219,
+  "brier_platt": 0.05828069431858429,
+  "runtime_min": 56.40112681786219,
+  "rank1_id": 0.4292929292929293,
+  "by_view": {
+   "F": 0.8388162240718721,
+   "S": 0.8722303384465547
+  },
+  "n_pairs": 39,
+  "d_fold_auc": 0.006343779677113008,
+  "wilcoxon_p": 0.8052451914279181,
+  "ttest_p": 0.6243260822273983,
+  "d_pooled_auc": 0.012721916131007038,
+  "d_pooled_auc_ci": [
+   -0.019034023668639134,
+   0.04860157588678861
+  ]
+ },
+ "E4_symmetry": {
+  "name": "E4_symmetry",
+  "description": "Baseline + per-frame left-right symmetry signals.",
+  "params": 139778,
+  "seeds": 3,
+  "pooled_auc": 0.8573933782267115,
+  "pooled_auc_sd": 1.8036597826414503e-05,
+  "fold_auc": 0.8618660968660969,
+  "fold_auc_sd": 0.09454794465291745,
+  "pooled_eer": 0.2272727272727273,
+  "tpr_at_fpr_5": 0.41414141414141414,
+  "ece_raw": 0.10829188383838384,
+  "ece_platt": 0.011716737358908373,
+  "brier_platt": 0.058314707440347634,
+  "runtime_min": 76.23962303797404,
+  "rank1_id": 0.4595959595959596,
+  "by_view": {
+   "F": 0.8357114546175187,
+   "S": 0.8775870465059654
+  },
+  "n_pairs": 39,
+  "d_fold_auc": 0.009104938271604933,
+  "wilcoxon_p": 0.4124537013852847,
+  "ttest_p": 0.3445680079028957,
+  "d_pooled_auc": 0.010407101316192269,
+  "d_pooled_auc_ci": [
+   -0.012627174107943256,
+   0.03653381642512071
+  ]
+ },
+ "E7_raw_bilstm": {
+  "name": "E7_raw_bilstm",
+  "description": "Deployed path + BiLSTM encoder comparison.",
+  "params": 379074,
+  "seeds": 3,
+  "pooled_auc": 0.8236723293541476,
+  "pooled_auc_sd": 0.017658483293878053,
+  "fold_auc": 0.828539886039886,
+  "fold_auc_sd": 0.09045034997656765,
+  "pooled_eer": 0.2375841750841751,
+  "tpr_at_fpr_5": 0.23232323232323235,
+  "ece_raw": 0.10178273581973583,
+  "ece_platt": 0.02629253599520287,
+  "brier_platt": 0.06655248335681814,
+  "runtime_min": 41.09403607050578,
+  "rank1_id": 0.22727272727272727,
+  "by_view": {
+   "F": 0.806348262650284,
+   "S": 0.8405161918675432
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.02422127255460589,
+  "wilcoxon_p": 0.15941146685704588,
+  "ttest_p": 0.08644871586869857,
+  "d_pooled_auc": -0.005127027854300525,
+  "d_pooled_auc_ci": [
+   -0.03335305719921111,
+   0.029534764273356322
+  ]
+ },
+ "E7_raw_freq": {
+  "name": "E7_raw_freq",
+  "description": "RQ5: deployed path + spectral comparison branch.",
+  "params": 257156,
+  "seeds": 3,
+  "pooled_auc": 0.8585475971839608,
+  "pooled_auc_sd": 0.006741466474124419,
+  "fold_auc": 0.8575451092117757,
+  "fold_auc_sd": 0.08921652352154687,
+  "pooled_eer": 0.2272727272727273,
+  "tpr_at_fpr_5": 0.398989898989899,
+  "ece_raw": 0.11648181274281276,
+  "ece_platt": 0.013240453038480487,
+  "brier_platt": 0.058914224645464384,
+  "runtime_min": 93.93018088340759,
+  "rank1_id": 0.404040404040404,
+  "by_view": {
+   "F": 0.8371977804201348,
+   "S": 0.8767754240727212
+  },
+  "n_pairs": 39,
+  "d_fold_auc": 0.0047839506172839405,
+  "wilcoxon_p": 0.8789456477525064,
+  "ttest_p": 0.565759094537562,
+  "d_pooled_auc": 0.010273186409550106,
+  "d_pooled_auc_ci": [
+   -0.0104536489151873,
+   0.03341686625264678
+  ]
+ },
+ "E7_raw_stgcn": {
+  "name": "E7_raw_stgcn",
+  "description": "RQ9: deployed path + skeleton-graph (ST-GCN) encoder comparison.",
+  "params": 323626,
+  "seeds": 3,
+  "pooled_auc": 0.8334162330374452,
+  "pooled_auc_sd": 0.018275880351275257,
+  "fold_auc": 0.8366476733143401,
+  "fold_auc_sd": 0.09249308085530318,
+  "pooled_eer": 0.242003367003367,
+  "tpr_at_fpr_5": 0.30808080808080807,
+  "ece_raw": 0.11029281857031858,
+  "ece_platt": 0.015779591057480943,
+  "brier_platt": 0.06261662636101145,
+  "runtime_min": 70.60152512788773,
+  "rank1_id": 0.3333333333333333,
+  "by_view": {
+   "F": 0.821178491214163,
+   "S": 0.8441482022563104
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.016113485280151954,
+  "wilcoxon_p": 0.24002213696528862,
+  "ttest_p": 0.2844656383567432,
+  "d_pooled_auc": -0.005567033976124902,
+  "d_pooled_auc_ci": [
+   -0.03694467842763296,
+   0.03400998737655004
+  ]
+ },
+ "E7_raw_transformer": {
+  "name": "E7_raw_transformer",
+  "description": "Deployed path + Transformer encoder comparison.",
+  "params": 712002,
+  "seeds": 3,
+  "pooled_auc": 0.8185580553004795,
+  "pooled_auc_sd": 0.012922731455898367,
+  "fold_auc": 0.8257882241215575,
+  "fold_auc_sd": 0.11262493965380248,
+  "pooled_eer": 0.24789562289562292,
+  "tpr_at_fpr_5": 0.24242424242424243,
+  "ece_raw": 0.14909032478632478,
+  "ece_platt": 0.01468310122510736,
+  "brier_platt": 0.06380973142124462,
+  "runtime_min": 59.63434508641561,
+  "rank1_id": 0.2676767676767677,
+  "by_view": {
+   "F": 0.8051922314704717,
+   "S": 0.8308578849119389
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.026972934472934477,
+  "wilcoxon_p": 0.02902777762696162,
+  "ttest_p": 0.043171052934756315,
+  "d_pooled_auc": -0.017753290480563177,
+  "d_pooled_auc_ci": [
+   -0.04173636569659291,
+   0.008418116071962238
+  ]
+ },
+ "E7_siamese": {
+  "name": "E7_siamese",
+  "description": "Metric learning: shared embedding, cosine-similarity verification.",
+  "params": 59970,
+  "seeds": 3,
+  "pooled_auc": 0.7721087133965922,
+  "pooled_auc_sd": 0.023774088446054494,
+  "fold_auc": 0.7696130104463438,
+  "fold_auc_sd": 0.12614068517346677,
+  "pooled_eer": 0.2826178451178451,
+  "tpr_at_fpr_5": 0.17676767676767677,
+  "ece_raw": 0.15250523659673662,
+  "ece_platt": 0.01202815135818353,
+  "brier_platt": 0.06680094499282137,
+  "runtime_min": 76.5746644337972,
+  "rank1_id": 0.15151515151515152,
+  "by_view": {
+   "F": 0.7926740652662175,
+   "S": 0.7574872169466764
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.08314814814814815,
+  "wilcoxon_p": 0.0020571493904877744,
+  "ttest_p": 0.0012444046914614347,
+  "d_pooled_auc": -0.07003749617385979,
+  "d_pooled_auc_ci": [
+   -0.13067159763313616,
+   0.00281231978085354
+  ]
+ },
+ "E7_stgcn_only": {
+  "name": "E7_stgcn_only",
+  "description": "RQ9: ST-GCN encoder comparison replacing raw differencing.",
+  "params": 218794,
+  "seeds": 3,
+  "pooled_auc": 0.8106634527089073,
+  "pooled_auc_sd": 0.011581392020562815,
+  "fold_auc": 0.8122673314339981,
+  "fold_auc_sd": 0.09892612581412398,
+  "pooled_eer": 0.2638888888888889,
+  "tpr_at_fpr_5": 0.25252525252525254,
+  "ece_raw": 0.13554643939393937,
+  "ece_platt": 0.010721765295187077,
+  "brier_platt": 0.06340219032731652,
+  "runtime_min": 70.31285418272019,
+  "rank1_id": 0.25757575757575757,
+  "by_view": {
+   "F": 0.8085612366230678,
+   "S": 0.8126978329681033
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.04049382716049383,
+  "wilcoxon_p": 0.007069679287196666,
+  "ttest_p": 0.0034955019573298337,
+  "d_pooled_auc": -0.03766835016835013,
+  "d_pooled_auc_ci": [
+   -0.07844644875326698,
+   0.0024284177232708963
+  ]
+ },
+ "E8_cross_view_F2S": {
+  "name": "E8_cross_view_F2S",
+  "description": "RQ6: enrol on frontal walks, verify side walks.",
+  "params": 133058,
+  "seeds": 3,
+  "pooled_auc": 0.7565538511484458,
+  "pooled_auc_sd": 0.0192834427596241,
+  "fold_auc": 0.7671533713200381,
+  "fold_auc_sd": 0.1579334872811402,
+  "pooled_eer": 0.30743243243243246,
+  "tpr_at_fpr_5": 0.16216216216216217,
+  "ece_raw": 0.12527337976437977,
+  "ece_platt": 0.012096111318433765,
+  "brier_platt": 0.06624759921684269,
+  "runtime_min": 70.68096532026927,
+  "rank1_id": 0.2882882882882883,
+  "by_view": {
+   "S": 0.7565538511484458
+  }
+ },
+ "E8_cross_view_S2F": {
+  "name": "E8_cross_view_S2F",
+  "description": "RQ6: enrol on side walks, verify frontal walks.",
+  "params": 133058,
+  "seeds": 3,
+  "pooled_auc": 0.7708085612366231,
+  "pooled_auc_sd": 0.026250132678883133,
+  "fold_auc": 0.8125593542260209,
+  "fold_auc_sd": 0.15052046820923032,
+  "pooled_eer": 0.29885057471264365,
+  "tpr_at_fpr_5": 0.2413793103448276,
+  "ece_raw": 0.15649049071618037,
+  "ece_platt": 0.018946537385084714,
+  "brier_platt": 0.06534266520016473,
+  "runtime_min": 70.7213795820872,
+  "rank1_id": 0.2988505747126437,
+  "by_view": {
+   "F": 0.7708085612366231
+  }
+ },
+ "E8_full_robustness": {
+  "name": "E8_full_robustness",
+  "description": "Robustness of the full engineered descriptor under the same suite.",
+  "params": 267458,
+  "seeds": 3,
+  "pooled_auc": 0.8120344862769104,
+  "pooled_auc_sd": 0.03216696129453431,
+  "fold_auc": 0.8291096866096868,
+  "fold_auc_sd": 0.1350394946888657,
+  "pooled_eer": 0.2523148148148148,
+  "tpr_at_fpr_5": 0.3686868686868687,
+  "ece_raw": 0.08894777505827506,
+  "ece_platt": 0.012607049870222311,
+  "brier_platt": 0.061140412394802134,
+  "runtime_min": 100.70540789763133,
+  "rank1_id": 0.4292929292929293,
+  "by_view": {
+   "F": 0.7998084291187739,
+   "S": 0.825480886291697
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.023651471984805317,
+  "wilcoxon_p": 0.21663939353907558,
+  "ttest_p": 0.1264932876724828,
+  "d_pooled_auc": -0.030054331190694783,
+  "d_pooled_auc_ci": [
+   -0.0758578976365847,
+   0.013373356684108394
+  ]
+ },
+ "E8_same_view": {
+  "name": "E8_same_view",
+  "description": "Signatures built from the query's own view only.",
+  "params": 133058,
+  "seeds": 3,
+  "pooled_auc": 0.7637677277828793,
+  "pooled_auc_sd": 0.007935857086201965,
+  "fold_auc": 0.7713366571699903,
+  "fold_auc_sd": 0.14804187456482254,
+  "pooled_eer": 0.3015572390572391,
+  "tpr_at_fpr_5": 0.25757575757575757,
+  "ece_raw": 0.12094532167832166,
+  "ece_platt": 0.006416246191155525,
+  "brier_platt": 0.06554653946955467,
+  "runtime_min": 70.69211450417836,
+  "rank1_id": 0.2626262626262626,
+  "by_view": {
+   "F": 0.7495375875280751,
+   "S": 0.7770473175878582
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.08142450142450143,
+  "wilcoxon_p": 2.6601911253937906e-05,
+  "ttest_p": 1.9000076532061248e-05,
+  "d_pooled_auc": -0.09376913070094883,
+  "d_pooled_auc_ci": [
+   -0.15531539217076093,
+   -0.040886587771203166
+  ]
+ },
+ "E8_scaled_robustness": {
+  "name": "E8_scaled_robustness",
+  "description": "Does distance-invariant scaling buy robustness? Same perturbation suite as E0.",
+  "params": 133058,
+  "seeds": 3,
+  "pooled_auc": 0.82385725946332,
+  "pooled_auc_sd": 0.014550574653995682,
+  "fold_auc": 0.8504273504273504,
+  "fold_auc_sd": 0.06890600252875324,
+  "pooled_eer": 0.25757575757575757,
+  "tpr_at_fpr_5": 0.30303030303030304,
+  "ece_raw": 0.1187575641025641,
+  "ece_platt": 0.013761758142066939,
+  "brier_platt": 0.06277360263838494,
+  "runtime_min": 70.87291320959727,
+  "rank1_id": 0.38888888888888884,
+  "by_view": {
+   "F": 0.8203197251948738,
+   "S": 0.8252576901225549
+  },
+  "n_pairs": 39,
+  "d_fold_auc": -0.0023338081671415056,
+  "wilcoxon_p": 0.4208483202615547,
+  "ttest_p": 0.8618999560559516,
+  "d_pooled_auc": -0.030054331190694783,
+  "d_pooled_auc_ci": [
+   -0.07020019723865879,
+   0.022555598871315037
+  ]
+ }
+}

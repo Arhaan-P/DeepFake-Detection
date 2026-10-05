@@ -83,7 +83,7 @@ def enroll_from_videos(
                     all_pose_sequences.append(result["pose_sequence"])
                     all_gait_features.append(result["gait_features"])
                     valid_videos += 1
-                    print(f"    ✓ Extracted {result['frame_count']} frames")
+                    print(f"    ✓ Extracted {result['valid_frames']} frames")
                 else:
                     print("    ✗ Failed to extract features")
             except Exception as e:
