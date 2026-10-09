@@ -130,3 +130,10 @@ outputs/future_work/checkpoints/
 outputs/future_work/logs/
 outputs/future_work/reports/*.jsonl
 .venv-*/
+
+# Generated gait features
+data/gait_features/gait_features.pkl
+data/gait_features/enrolled_identities.pkl
+
+# Training checkpoints
+outputs/checkpoints/checkpoint_epoch_*.pth
