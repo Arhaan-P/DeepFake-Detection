@@ -1,0 +1,29 @@
+{
+  "gaitpt_grew": {
+    "repository": "https://github.com/UbiquitousCognitiveSystems/GaitPT",
+    "revision": "4977618a36ef77ee9a2863c9f8e27ab862894d70",
+    "checkpoint_url": "https://drive.google.com/uc?id=1itpe5zwg-K4OtSKii7-83C7XH8tO9uAR",
+    "checkpoint_bytes": 18061251,
+    "checkpoint_sha256": "e6b287e2c2ae27a9344b8009077c9d4f70811d2d6f3ff20198b99bfa4f824637",
+    "license": "CC-BY-NC-ND-4.0",
+    "engineering_inference": "VERIFIED BY RUNNING CODE: synthetic fixture",
+    "readiness": "BLOCKED: source-dataset sample and Android-domain quality/semantic validation outstanding"
+  },
+  "gpgait": {
+    "repository": "https://github.com/BNU-IVC/FastPoseGait",
+    "revision": "d3ce631971a01d806eeb3a154774d482c0951813",
+    "checkpoint_url_grew": "https://drive.google.com/uc?id=1_cCKtVR0v1s3fhLVECSIm9QjveAHRSLv",
+    "checkpoint_url_casia": "https://drive.google.com/uc?id=1DxouTfJeuy9Ep0RuA-MAvV_WYH7MwGzf",
+    "license": "README restricts use to academic/noncommercial purposes; no standalone LICENSE found",
+    "readiness": "BLOCKED: weights not downloaded/loaded; native code uses CUDA"
+  },
+  "gpgaitpp_casia": {
+    "repository": "https://github.com/BNU-IVC/FastPoseGait",
+    "revision": "d3ce631971a01d806eeb3a154774d482c0951813",
+    "checkpoint_url": "https://drive.google.com/uc?id=1FIIXgG7Dxwr8TObo_nN3pwsUhWVC-XjG",
+    "checkpoint_bytes": 63712570,
+    "checkpoint_sha256": "87eb74fa0b2ce14dcff025d6f41fd1d4637afafd3af2aa0c6a06a690ff52a20d",
+    "license": "FastPoseGait README academic/noncommercial restriction",
+    "readiness": "BLOCKED: torch.load(weights_only=True) rejects GLOBAL getattr; native CUDA forward not validated"
+  }
+}

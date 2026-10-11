@@ -1,0 +1,25 @@
+{
+  "schema_version": "gait-verification-phase0-v1",
+  "preferred_encoder": "gaitpt_grew",
+  "challengers": ["gpgaitpp_grew", "gpgait_grew"],
+  "threshold": null,
+  "calibration_manifest_sha256": null,
+  "quality_policy": "pilot-provisional-v1",
+  "stabilization": {
+    "enabled": false,
+    "shakiness": 5,
+    "accuracy": 15,
+    "mincontrast": 0.2,
+    "smoothing": 10,
+    "optzoom": 0,
+    "crop": "black",
+    "interpol": "bicubic"
+  },
+  "capture": {
+    "planned_participants": 40,
+    "planned_originals_per_participant": 4,
+    "planned_seconds": 30,
+    "views": ["left45", "right45", "toward", "away"],
+    "independent_sessions": null
+  }
+}

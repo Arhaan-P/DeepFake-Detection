@@ -38,7 +38,7 @@ dependencies = [
 Repository = "https://github.com/Arhaan-P/DeepFake-Detection"
 
 [tool.setuptools.packages.find]
-include = ["models*", "utils*"]
+include = ["models*", "utils*", "gait_verification*"]
 
 [tool.ruff.lint]
 # Pin the rule set explicitly so new ruff releases don't change what CI enforces.

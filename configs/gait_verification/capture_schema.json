@@ -1,0 +1,14 @@
+{
+  "schema_version": "capture-manifest-v1",
+  "required_fields": [
+    "original_take_id", "subject_id", "session_id", "date", "view_label",
+    "viewing_angle_definition", "walking_direction", "camera_motion_mode",
+    "approximate_subject_distance_m", "phone_model", "camera_lens", "resolution",
+    "nominal_fps", "actual_frame_timestamps_ref", "camera_settings",
+    "capture_stabilization_mode", "duration_sec", "source_file_uri", "sha256",
+    "consent_ref", "operator_id_pseudonym", "recording_notes", "quality_review_status"
+  ],
+  "planned_views": ["left45", "right45", "toward", "away"],
+  "unknown_policy": "Use null for unmeasured capture properties; do not invent historical sessions or times. New cohort subject/session/take/date/hash/consent are mandatory non-null.",
+  "independence_unit": "original_take_id; windows and derivatives inherit subject, session and split"
+}

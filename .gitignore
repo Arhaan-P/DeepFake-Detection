@@ -97,7 +97,10 @@ events.out.tfevents.*
 *.ckpt
 
 Required for Research Paper/
-docs/
+docs/*
+!docs/gait_verification/
+docs/gait_verification/*
+!docs/gait_verification/*.md
 
 .gemini/
 .gsd/
@@ -137,3 +140,8 @@ data/gait_features/enrolled_identities.pkl
 
 # Training checkpoints
 outputs/checkpoints/checkpoint_epoch_*.pth
+
+# V2 external sources, weights and private derived biometric artifacts
+.cache/gait_verification/
+data/gait_verification/
+outputs/gait_verification/
