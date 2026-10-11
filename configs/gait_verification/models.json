@@ -6,7 +6,7 @@
     "checkpoint_bytes": 18061251,
     "checkpoint_sha256": "e6b287e2c2ae27a9344b8009077c9d4f70811d2d6f3ff20198b99bfa4f824637",
     "license": "CC-BY-NC-ND-4.0",
-    "engineering_inference": "VERIFIED BY RUNNING CODE: synthetic fixture",
+    "engineering_inference": "VERIFIED: official pretrained GREW checkpoint, strict loading, frozen CUDA inference, 256-dimensional normalized embeddings, deterministic repeatability on local pose cache",
     "readiness": "BLOCKED: source-dataset sample and Android-domain quality/semantic validation outstanding"
   },
   "gpgait": {
@@ -15,7 +15,11 @@
     "checkpoint_url_grew": "https://drive.google.com/uc?id=1_cCKtVR0v1s3fhLVECSIm9QjveAHRSLv",
     "checkpoint_url_casia": "https://drive.google.com/uc?id=1DxouTfJeuy9Ep0RuA-MAvV_WYH7MwGzf",
     "license": "README restricts use to academic/noncommercial purposes; no standalone LICENSE found",
-    "readiness": "BLOCKED: weights not downloaded/loaded; native code uses CUDA"
+    "readiness": "BLOCKED for research deployment: source-dataset reproduction, target-domain validation, and calibrated verification policy outstanding",
+    "checkpoint_sha256_grew_original": "929fc52bd74eed9d7f3bbf535a03ea5f531938ae300c67a7b219a909cd41d2a2",
+    "checkpoint_sha256_grew_model_only": "12c15082cbd9c464b6f250630ba2147728d6f6c205a2c7f87026625bc68a1302",
+    "model_only_checkpoint_path": ".cache/gait_verification/checkpoints/gpgait-grew-57-model-only.pt",
+    "engineering_inference": "VERIFIED: original GREW checkpoint safely reduced to model-only, 1310 state entries loaded strictly, frozen CUDA inference, 4864-dimensional normalized embeddings, repeatability and four invalid-input rejection checks passed on local RTMPose cache"
   },
   "gpgaitpp_casia": {
     "repository": "https://github.com/BNU-IVC/FastPoseGait",

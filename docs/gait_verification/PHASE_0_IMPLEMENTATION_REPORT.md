@@ -4,6 +4,73 @@
 **Starting revision:** `1bce2110571fe957edd079b5bcb7390bdba2c795`.
 **Disposition:** substantial Phase 0 engineering implemented; **not all PRD readiness gates passed**.
 
+## CUDA engineering validation amendment — 12 October 2026
+
+This amendment supersedes earlier statements that CUDA execution,
+RTMPose extraction, and pretrained GPGait inference were unverified.
+The original audit is retained as historical evidence.
+
+### Verified CUDA implementation
+
+- Environment: Python 3.11, PyTorch 2.10.0+cu128,
+  NVIDIA RTX 3050 6GB.
+- RTMPose: detector and pose ONNX models ran using CUDAExecutionProvider.
+  A real 90-frame COCO17 pose cache passed provisional quality checks.
+- GaitPT-GREW: official pretrained weights loaded strictly.
+  Frozen CUDA inference produced normalized 256-dimensional embeddings.
+- GPGait-GREW: official checkpoint was safely reduced to model-only.
+  Restricted checkpoint loading passed with 1,310 state entries,
+  zero missing keys, and zero unexpected keys.
+- GPGait preprocessing: official transformations generated a finite
+  input tensor of shape (1, 6, 90, 17, 1).
+- GPGait CUDA inference: produced an embedding of shape (1, 256, 19),
+  flattened and normalized to 4,864 dimensions.
+- GPGait repeatability: maximum difference between two runs was 0.0.
+- GPGait safety checks: insufficient frames, missing joints,
+  incorrect checkpoint checksum, and CPU execution were rejected.
+- The isolated inference worker and GPGaitEncoder are implemented.
+- Four new automated GPGait interface tests passed.
+
+### Checkpoint provenance
+
+Original GPGait GREW SHA-256:
+929fc52bd74eed9d7f3bbf535a03ea5f531938ae300c67a7b219a909cd41d2a2
+
+Extracted model-only GPGait SHA-256:
+12c15082cbd9c464b6f250630ba2147728d6f6c205a2c7f87026625bc68a1302
+
+GaitPT GREW SHA-256:
+e6b287e2c2ae27a9344b8009077c9d4f70811d2d6f3ff20198b99bfa4f824637
+
+FastPoseGait source revision:
+d3ce631971a01d806eeb3a154774d482c0951813
+
+### Regression evidence
+
+Final selected regression suite:
+38 passed, 2 deselected, 1 warning.
+
+The two excluded legacy tests perform synthetic training or
+calibration fitting. They remain excluded under the no-training
+and no-fitting constraint.
+
+### Remaining limitations
+
+- The planned 40-person dataset has not yet been collected.
+- Recognition accuracy and error rates have not been established.
+- No scientifically validated decision threshold exists.
+- The production verification policy remains blocked.
+- Official GREW dataset reproduction remains access-blocked.
+- GPGait++ pretrained inference is not validated.
+- Model licensing requires review before deployment.
+- Provisional quality rules and stabilization settings require
+  validation using the new recordings.
+
+These results demonstrate successful engineering functionality,
+not scientifically validated biometric performance.
+
+---
+
 ## A. Executive summary
 
 Implemented an isolated `gait_verification` package: timestamp-aware media ingestion,

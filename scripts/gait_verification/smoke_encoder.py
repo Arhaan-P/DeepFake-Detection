@@ -22,7 +22,7 @@ def main():
     parser.add_argument("--pose-cache")
     args = parser.parse_args()
     torch.set_num_threads(2)
-    encoder = GaitPTEncoder(args.source, args.checkpoint, args.sha256)
+    encoder = GaitPTEncoder(args.source, args.checkpoint, args.sha256, device="cuda")
     if args.pose_cache:
         sequence = load_pose(args.pose_cache)
     else:

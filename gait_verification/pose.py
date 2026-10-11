@@ -20,6 +20,7 @@ class RTMPoseDetector:
     def __init__(self, detection_model, pose_model):
         from rtmlib import Body
         import onnxruntime as ort
+        ort.preload_dlls()
 
         def input_size(path):
             session = ort.InferenceSession(
@@ -46,9 +47,15 @@ class RTMPoseDetector:
             det_input_size=input_size(detection_model),
             pose_input_size=input_size(pose_model),
             backend="onnxruntime",
-            device="cpu",
+            device="cuda",
             to_openpose=False,
         )
+        for name, model in (
+            ("detector", self.runtime.det_model),
+            ("pose", self.runtime.pose_model),
+        ):
+            if "CUDAExecutionProvider" not in model.session.get_providers():
+                raise RuntimeError(f"{name} did not initialize with CUDA")
 
     def __call__(self, frame):
         return self.runtime(frame)
