@@ -495,3 +495,44 @@ source observation; checkpoint compatibility is a separate gate. See
 tests, checkpoint hashes, licensing restrictions and remaining blockers.
 Author: Codex, implementing the owner's Phase 0 instruction; affected modules:
 V2 stabilization config/runner, model audit. No final model or threshold selected.
+
+## Phase 1A amendment — 12 October 2026
+
+Owner now assigns independent Phase 0 engineering verification, followed directly
+by Phase 1A RTMPose/runtime validation, temporal-window quality, paired RAW/S10/S15
+comparison and a student capture SOP draft. This phase excludes GPGait++ work,
+training, fitting and threshold selection. Working inference is engineering evidence;
+the future 40-person cohort, four-view moving-camera pilot and biometric validation
+are separate dependencies. Final SOP freezing remains conditional on actual pilot
+recordings, rather than required by this implementation-only milestone.
+
+A real audit found native RTMPose SimCC scores above one: preserve their values,
+not clipped probabilities. Temporal diagnostics retain missingness and all native
+candidate observations, while only unchanged fully observed contiguous segments
+reach encoders. Uncertain person tracks cannot be pooled. The previous all-frame
+gate remains available, and the new window path is opt-in with a versioned recipe.
+The API keeps the PRD's `CLAIM_NOT_ENROLLED` naming for conceptual `NOT_ENROLLED`;
+all non-decisions have a null verdict. No identification is introduced.
+
+The actual RAW/S10/S15 measurements on two short historical originals show no
+basis for promoting stabilization. They do not establish moving-camera performance
+or verification accuracy. See [Phase 1A report](PHASE_1A_CAPTURE_PILOT_REPORT.md)
+and [capture SOP draft](CAPTURE_SOP_DRAFT.md). Author: Codex; affected modules are
+V2 pose/cache/quality, opt-in aggregation, pilot runner, CUDA validation and docs.
+Historical E0, checkpoints and original videos are preserved.
+
+## Phase 1B amendment — 12 October 2026
+
+Codex began Phase 1B model integration, and Claude Code completed it after Codex
+ran out of usage. All four frozen pretrained candidates now load strictly and run
+repeatable CUDA inference on a real RTMPose cache: GaitPT-GREW (256-D),
+GPGait-GREW, GPGait++ GREW and GPGait++ CASIA-B (4,864-D each). The official
+GPGait++ GREW checkpoint (1,308,128,306 bytes, SHA `eb37d274…`, all ZIP CRCs
+verified) is safely reduced to model-only weights without unrestricted
+deserialization.
+
+This supersedes earlier statements that GPGait++ weights could not be loaded.
+CASIA-B GPGait++ is an engineering ablation, not a matched GREW comparator.
+Successful inference is not recognition evidence. No winner, threshold or
+calibration was chosen, and E0 is unchanged. See the
+[Phase 1B report](PHASE_1B_MODEL_INTEGRATION_REPORT.md).

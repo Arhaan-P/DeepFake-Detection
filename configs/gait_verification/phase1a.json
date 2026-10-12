@@ -1,0 +1,78 @@
+{
+  "schema_version": "gait-phase1a-v1",
+  "quality": {
+    "version": "pilot-window-provisional-v1",
+    "window_seconds": 2.0,
+    "min_frames": 31,
+    "min_confidence": 0.3,
+    "border_pixels": 2.0,
+    "min_valid_fraction": 0.8,
+    "max_interval_ratio": 3.0,
+    "max_joint_step_body_heights": 0.15,
+    "max_center_step_body_heights": 0.25,
+    "max_scale_step_fraction": 0.2,
+    "max_jitter_fraction": 0.1,
+    "min_ankle_excursion_body_heights": 0.005,
+    "blur_laplacian_variance": 20.0
+  },
+  "rtmpose": {
+    "detector": {
+      "bytes": 101400344,
+      "sha256": "3dea6513388889f0fff4b77bf7a26013600321b9eb9ceb0e9a400a82572f5f23",
+      "input_shape": [
+        1,
+        3,
+        640,
+        640
+      ],
+      "source_url": "https://download.openmmlab.com/mmpose/v1/projects/rtmposev1/onnx_sdk/yolox_m_8xb8-300e_humanart-c2c7a14a.zip",
+      "filename": "yolox_m_8xb8-300e_humanart-c2c7a14a.onnx",
+      "execution_provider": "CUDAExecutionProvider"
+    },
+    "pose": {
+      "bytes": 54330655,
+      "sha256": "5c0a4bf67953e6d2ac43ce15e77dc9d5d354ae18430a47d2c5963a7bc5683e3c",
+      "input_shape": [
+        "batch",
+        3,
+        256,
+        192
+      ],
+      "source_url": "https://download.openmmlab.com/mmpose/v1/projects/rtmposev1/onnx_sdk/rtmpose-m_simcc-body7_pt-body7_420e-256x192-e48f03d0_20230504.zip",
+      "filename": "rtmpose-m_simcc-body7_pt-body7_420e-256x192-e48f03d0_20230504.onnx",
+      "keypoint_count": 17,
+      "joint_order": [
+        "nose",
+        "left_eye",
+        "right_eye",
+        "left_ear",
+        "right_ear",
+        "left_shoulder",
+        "right_shoulder",
+        "left_elbow",
+        "right_elbow",
+        "left_wrist",
+        "right_wrist",
+        "left_hip",
+        "right_hip",
+        "left_knee",
+        "right_knee",
+        "left_ankle",
+        "right_ankle"
+      ],
+      "coordinate_convention": "display-oriented image pixels; x right/y down; native SimCC scores, not probabilities",
+      "execution_provider": "CUDAExecutionProvider"
+    }
+  },
+  "threshold": null,
+  "stabilization_variants": [
+    "raw",
+    "vidstab-s10",
+    "vidstab-s15"
+  ],
+  "notes": [
+    "All quality values are provisional engineering heuristics, not biometric acceptance thresholds",
+    "COCO17 observes ankles, not toes/heels",
+    "No automatic stabilization winner"
+  ]
+}

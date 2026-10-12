@@ -97,6 +97,7 @@ def stabilize(source, work_dir, recording, config=StabilizationConfig()):
         "timing_transform": None,
         "orientation_transform": f"FFmpeg display autorotation {original.rotation} degrees in BOTH passes",
         "quality_review": "NOT_ASSESSED: review black borders and feet",
+        "transformation_sha256": None,
     }
     try:
         if config.enabled:
@@ -106,6 +107,7 @@ def stabilize(source, work_dir, recording, config=StabilizationConfig()):
                         command, cwd=work, stdout=log, stderr=log, check=True
                     )
             derivative = probe_video(output)
+            manifest["transformation_sha256"] = sha256_file(work / "transforms.trf")
             manifest["output"] = metadata_dict(derivative)
             a, b = np.asarray(original.timestamps), np.asarray(derivative.timestamps)
             # MP4 may shift origin and quantize timestamps. Validate every frame.

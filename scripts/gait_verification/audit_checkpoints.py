@@ -33,5 +33,16 @@ def inspect(path):
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("checkpoints", nargs="+")
+    p.add_argument(
+        "--static-pickle",
+        action="store_true",
+        help="opcode-level structure audit only; never deserializes",
+    )
     args = p.parse_args()
-    print(json.dumps([inspect(path) for path in args.checkpoints], indent=2))
+    if args.static_pickle:
+        from gait_verification.backends.checkpoint_extract import static_pickle_audit
+
+        rows = [dict(path=c, **static_pickle_audit(c)) for c in args.checkpoints]
+    else:
+        rows = [inspect(path) for path in args.checkpoints]
+    print(json.dumps(rows, indent=2))

@@ -691,3 +691,55 @@ When owner explicitly changes a requirement: update PRD functional/nonfunctional
 Author: Codex, implementing the owner's Phase 0 request. Changes affect the new
 config, stabilization runner, model audit and tests only; historical E0 remains
 unchanged. See [implementation report](PHASE_0_IMPLEMENTATION_REPORT.md).
+
+## 17. Phase 1A owner scope and engineering amendment — 12 October 2026
+
+Author: Codex, following the owner's Phase 0 independent-verification → Phase 1A
+request. Phase 1A is RTMPose/runtime verification, temporal-window quality,
+paired RAW/S10/S15 analysis and a capture SOP **draft**. GPGait++ integration,
+training, calibration fitting and operational thresholds are excluded. The new
+cohort and representative 30-second moving-camera pilot remain uncollected or
+unprovided, and do not by themselves block implementation of this machinery.
+A final SOP requires empirical four-view pilot evidence; it is not frozen now.
+
+The existing detailed response contract remains: `OK` plus Boolean verdict,
+`CLAIM_NOT_ENROLLED` (the owner's conceptual `NOT_ENROLLED`) or explicit error/
+abstention plus null verdict. No identity search or deepfake attribution is added.
+
+Native RTMPose SimCC confidence can exceed one and is not a probability. Preserve
+finite nonnegative native scores without clipping. The native cache is extended
+additively with detection counts, tracking events, image-quality proxies and
+unassociated candidate poses; older caches remain loadable. Ambiguous people never
+become an alternative identity output. Temporal diagnostics may tolerate isolated
+missing frames, but encoder inputs remain unchanged fully observed contiguous
+segments. Pooling across uncertain person tracks is refused. Window recipe hashes
+bind the opt-in walk aggregation; the original Phase 0 gate remains available.
+All quality constants in `phase1a.json` are provisional engineering heuristics.
+
+See [Phase 1A report](PHASE_1A_CAPTURE_PILOT_REPORT.md) for independent Phase 0
+verdict, measured CUDA/RTMPose evidence, paired results and limitations, and
+[student recording draft](CAPTURE_SOP_DRAFT.md) for pending acquisition decisions.
+These amendments supersede any earlier claim that a final capture SOP must already
+be frozen at the end of this narrower engineering phase. E0 is unchanged.
+
+## 18. Phase 1B model-integration change log — 12 October 2026
+
+Author: Codex (interrupted), completed by Claude Code. Affected modules:
+`backends/{checkpoint_extract,fastpose_contract,fastpose_infer_worker,fastpose_worker,gpgait}.py`,
+`scripts/gait_verification/{extract_model_only,validate_model_integration,audit_checkpoints}.py`,
+`configs/gait_verification/models.json`, `tests/gait_verification/test_phase1b.py`.
+
+- **§3.1 status correction:** GPGait++ GREW is no longer blocked at checkpoint
+  load. Its weights pass the §3.2 engineering items (hash, strict load, measured
+  `d=4864`, determinism, frozen state). Source-sample reproduction (item 7) and
+  readiness remain BLOCKED.
+- **Checkpoint safety rule:** an official checkpoint that fails
+  `weights_only=True` may only be reduced through a hash-pinned, human-reviewed
+  static model-prefix audit (`AUDITED`), still deserialized by unchanged
+  `weights_only=True`. Unrestricted loading and safe-global allowlisting remain prohibited.
+- **Comparison rule:** each candidate keeps a separate model ID, recipe and
+  training dataset. CASIA-B GPGait++ is excluded from the matched GREW-pretraining
+  comparison unless a separate protocol is prespecified. Embeddings from different
+  architectures are never pooled.
+
+See [Phase 1B report](PHASE_1B_MODEL_INTEGRATION_REPORT.md).

@@ -29,7 +29,7 @@ def probe_video(path):
             "-show_streams",
             "-show_frames",
             "-show_entries",
-            "stream=index,width,height,codec_name,r_frame_rate,avg_frame_rate,time_base:stream_side_data=rotation:frame=pts_time",
+            "stream=index,width,height,codec_name,r_frame_rate,avg_frame_rate,time_base,duration:stream_side_data=rotation:frame=pts_time",
             "-of",
             "json",
             str(path),
@@ -67,6 +67,9 @@ def probe_video(path):
                 0,
             )
         ),
+        float(stream["duration"])
+        if stream.get("duration") not in (None, "N/A")
+        else None,
     )
 
 

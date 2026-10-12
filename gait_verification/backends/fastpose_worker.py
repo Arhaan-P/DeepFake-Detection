@@ -11,12 +11,16 @@ def main():
     p.add_argument("--source", required=True)
     p.add_argument("--input", required=True)
     p.add_argument("--output", required=True)
+    p.add_argument("--dataset", choices=("GREW", "CASIA-B"), default="GREW")
     args = p.parse_args()
     sys.path.insert(0, str(Path(args.source).resolve() / "fastposegait"))
     from data.transform import Affine, RescaleCenter, HOD_MultiInput, SkeletonInput
 
     native = np.load(args.input, allow_pickle=False)
-    for transform in (Affine(), RescaleCenter(), HOD_MultiInput(), SkeletonInput()):
+    transforms = (RescaleCenter(), HOD_MultiInput(), SkeletonInput())
+    if args.dataset == "GREW":
+        transforms = (Affine(),) + transforms
+    for transform in transforms:
         native = transform(native)
     with open(args.output, "xb") as f:
         np.save(f, native, allow_pickle=False)

@@ -152,6 +152,18 @@ def test_pose_cache_keeps_pts_provenance_and_refuses_overwrite(tmp_path):
         save_pose(seq, path)
 
 
+def test_native_simcc_scores_above_one_preserved(tmp_path):
+    seq = pose()
+    seq.confidence[0, 15] = 1.12
+    save_pose(seq, tmp_path / "native.npz")
+    restored = load_pose(tmp_path / "native.npz")
+    np.testing.assert_array_equal(restored.confidence, seq.confidence)
+    assert assess_quality(restored).usable
+    seq.confidence[0, 15] = -0.1
+    with pytest.raises(ValueError, match="Negative confidence"):
+        seq.validate()
+
+
 def test_true_false_and_abstention_paths():
     v = verifier()
     quality = QualityAssessment(True)

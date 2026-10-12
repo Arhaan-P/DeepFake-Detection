@@ -22,9 +22,14 @@ def load_source(path, name):
 
 
 class GaitPTEncoder:
-    def __init__(self, source_dir, checkpoint, expected_sha256, device="cpu"):
+    min_frames = 31  # Official GREW loader excludes sequences <=30 frames.
+
+    def __init__(self, source_dir, checkpoint, expected_sha256, device="cuda"):
         import torch
         import yaml
+
+        if str(device).startswith("cuda") and not torch.cuda.is_available():
+            raise RuntimeError("CUDA unavailable; no CPU substitution")
 
         source = Path(source_dir).resolve()
         revision = subprocess.check_output(

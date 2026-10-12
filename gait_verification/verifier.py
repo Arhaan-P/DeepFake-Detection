@@ -32,11 +32,13 @@ class VerificationPolicy:
 
 class ClaimVerifier:
     def __init__(
-        self, store, encoder=None, extractor=None, policy=None, allow_test_policy=False
+        self, store, encoder=None, extractor=None, policy=None, allow_test_policy=False,
+        quality_assessor=assess_quality,
     ):
         self.store, self.encoder, self.extractor = store, encoder, extractor
         self.policy = policy
         self.allow_test_policy = allow_test_policy
+        self.quality_assessor = quality_assessor
 
     def _score(self, claim, probe, templates, quality):
         if not quality.usable:
@@ -85,7 +87,7 @@ class ClaimVerifier:
             if self.extractor is None or self.encoder is None:
                 return VerificationResult(claim, Status.POLICY_NOT_READY)
             sequence = self.extractor.extract(video_path)
-            quality = assess_quality(sequence)
+            quality = self.quality_assessor(sequence)
             if not quality.usable:
                 return VerificationResult(claim, Status.INSUFFICIENT_GAIT)
             if self.encoder.metadata.readiness != "READY":

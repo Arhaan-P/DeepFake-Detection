@@ -52,6 +52,7 @@ class Recording:
     source_sha256: str
     split_role: str
     variant_id: str = "raw"
+
     parent_asset_id: Optional[str] = None
 
 
@@ -67,12 +68,13 @@ class VideoMetadata:
     timestamps: tuple[float, ...]
     codec: str
     rotation: int = 0
+    duration_sec: Optional[float] = None  # probed stream duration, not nominal FPS
 
 
 @dataclass(frozen=True)
 class PoseSequence:
-    xy: np.ndarray  # T,J,2; image pixels, x right/y down (unrotated stream)
-    confidence: np.ndarray  # T,J; [0,1], zero for missing
+    xy: np.ndarray  # T,J,2; display-oriented image pixels, x right/y down
+    confidence: np.ndarray  # T,J; native nonnegative scores, not probabilities
     observed: np.ndarray  # T,J; missing coordinates must be finite placeholders
     timestamps: np.ndarray  # actual source PTS seconds, no fabricated FPS clock
     layout: str
@@ -85,6 +87,17 @@ class PoseSequence:
     track_ids: np.ndarray
     bboxes: np.ndarray  # T,4; xyxy, zero for missing
     variant_id: str = "raw"
+
+    # Optional additive diagnostics; old native NPZ caches remain loadable.
+    detection_counts: Optional[np.ndarray] = None
+    tracking_events: Optional[np.ndarray] = (
+        None  # 0 stable,1 missing,2 multiple,3 jump,4 weak
+    )
+    blur_scores: Optional[np.ndarray] = None
+    border_dark_fraction: Optional[np.ndarray] = None
+    candidate_xy: Optional[np.ndarray] = None  # T,P,J,2; unassociated native detections
+    candidate_confidence: Optional[np.ndarray] = None
+    candidate_observed: Optional[np.ndarray] = None
 
     def validate(self):
         counts = {"coco17": 17, "halpe26": 26, "mediapipe33": 33}
@@ -105,16 +118,52 @@ class PoseSequence:
         for value in (self.xy, self.confidence, self.timestamps, self.bboxes):
             if not np.isfinite(value).all():
                 raise ValueError("NaN/Inf in pose cache")
-        if ((self.confidence < 0) | (self.confidence > 1)).any():
-            raise ValueError("Confidence outside [0,1]")
+        # RTMPose SimCC maxima can exceed one. Clipping would destroy the
+        # estimator's observations; quality policies use native score units.
+        if (self.confidence < 0).any():
+            raise ValueError("Negative confidence")
         if self.timestamps.shape != (n,) or np.any(np.diff(self.timestamps) <= 0):
             raise ValueError("PTS must strictly increase")
         if self.frame_indices.shape != (n,) or np.any(np.diff(self.frame_indices) <= 0):
             raise ValueError("Frame indices must strictly increase")
         if self.track_ids.shape != (n,) or self.bboxes.shape != (n, 4):
             raise ValueError("Track/bbox shape mismatch")
+        for name in (
+            "detection_counts",
+            "tracking_events",
+            "blur_scores",
+            "border_dark_fraction",
+        ):
+            value = getattr(self, name)
+            if value is not None and (
+                value.shape != (n,) or not np.isfinite(value).all() or (value < 0).any()
+            ):
+                raise ValueError(f"Invalid diagnostic array: {name}")
         if not self.original_take_id or not self.source_sha256 or not self.backend_id:
             raise ValueError("Missing pose provenance")
+        candidates = (
+            self.candidate_xy,
+            self.candidate_confidence,
+            self.candidate_observed,
+        )
+        if any(c is not None for c in candidates):
+            if any(c is None for c in candidates):
+                raise ValueError("Incomplete candidate diagnostics")
+            p = self.candidate_xy
+            if p.ndim != 4 or p.shape[0] != n or p.shape[2:] != self.xy.shape[1:]:
+                raise ValueError("Invalid native candidate shape")
+            if (
+                self.candidate_confidence.shape != p.shape[:3]
+                or self.candidate_observed.shape != p.shape[:3]
+            ):
+                raise ValueError("Invalid candidate masks/scores")
+            if (
+                not np.isfinite(p).all()
+                or not np.isfinite(self.candidate_confidence).all()
+                or (self.candidate_confidence < 0).any()
+                or self.candidate_observed.dtype != np.bool_
+            ):
+                raise ValueError("Invalid native candidate observations")
 
 
 @dataclass(frozen=True)

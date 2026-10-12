@@ -456,3 +456,44 @@ training tests are disclosed; pretrained inference itself remained frozen.
   user-provided untracked file. No commit or staging was performed.
 - Confirmed downloaded checkpoints and private generated pose/media artifacts
   are ignored. `graphify update .` failed: command not found.
+
+## Independent Phase 0 engineering audit — 12 October 2026
+
+This dated addendum preserves all historical findings and supersedes the old
+engineering blocker list only where fresh execution provides evidence. Baseline:
+clean branch `feat/gait-verification-v2`, HEAD `02b0312` (CUDA integration commit).
+
+**PHASE 0 ENGINEERING: COMPLETE after one genuine blocker was fixed.** Native
+RTMPose SimCC scores above one caused `PoseSequence.validate` to fail on a real
+historical original. Validation now accepts finite nonnegative native scores
+without clipping. A targeted roundtrip regression preserves values above one and
+rejects negative values. ORT runtime fallback is disabled after CUDA initialization;
+ordinary shape/administrative CPU nodes still exist alongside verified CUDA kernels.
+
+Before edits the inspected non-training suite reproduced 38 passed, 2 deselected;
+after the score fix it passed 39 tests. E0 source and historical outputs match the
+pre-V2 baseline. Source checkouts formerly referenced under `/tmp` were gone; the
+exact official revisions were restored into ignored `.cache/gait_verification/sources/`.
+Checkpoints were reused and their expected hashes matched. No weights were downloaded,
+replaced or trained. The old 90-frame CUDA cache has no matching checksum among
+current originals; it is preserved but is not the new audit's provenance evidence.
+
+Fresh RTMPose extraction on `data/videos/Aarav_S1.mp4` processed 140 display-portrait
+frames with actual source PTS. ONNX profiles counted 43,820 detector and 25,900 pose
+CUDA node executions (560/280 CPU node events also logged). Strict pretrained GaitPT
+and GPGait forwards produced normalized 256/4,864 dimensional vectors; repeated
+outputs differed by zero. GaitPT state was unchanged; GPGait worker uses strict,
+restricted model-only loading and frozen inference. Original GPGait SHA and
+model-only SHA both match the amendment above.
+
+The new CUDA manifest and repeatable validation command are in the
+[Phase 1A report](PHASE_1A_CAPTURE_PILOT_REPORT.md). The current environment has
+NumPy 2.4.6, rather than the older CPU requirements' 2.2.6, and both ORT distribution
+metadata entries; observed runtime is ORT-GPU 1.23.2. A separate CUDA dependency
+snapshot and setup instructions were added without changing working environments.
+
+Official source-dataset reproduction/access, Android-domain semantic validity,
+GPGait++ compatibility, licenses for deployment, calibration and scientific accuracy
+remain unvalidated; these do not undo the owner's defined Phase 0 engineering verdict.
+The final capture pilot and 30-second quality validation belong to later empirical
+work. Phase 1A began only after this engineering gate passed. No commits or pushes.
