@@ -6,13 +6,15 @@ their model IDs comparable.
 """
 
 from dataclasses import asdict
-from datetime import datetime
+from datetime import datetime, timezone
 import hashlib
+import json
+import os
 from pathlib import Path
 import re
 from .contracts import Recording, valid_claim
 from .enrollments import SCHEMA, EnrollmentTemplate
-from .media import probe_video
+from .media import probe_video, sha256_file
 from .pose import NativePoseExtractor, load_pose, save_pose
 from .pose_quality import WindowQualityPolicy, analyze_pose, assess_window_quality
 from .skeleton_contracts import InsufficientGait
@@ -26,15 +28,98 @@ class EnrollmentRefused(ValueError):
     """The recording is not an eligible enrollment; carries a stable reason code."""
 
 
-class CachedPoseExtractor:
-    """Real pose extraction with an immutable cache keyed by bytes + pose recipe + take.
+POSE_ARTIFACT_SCHEMA = "pose-artifact-v1"
 
+
+class CacheIntegrityError(ValueError):
+    """A pose cache entry is unsealed, altered, stale or unreadable. Never trusted."""
+
+    def __init__(self, reason):
+        super().__init__(f"Pose cache is not trustworthy: {reason}")
+        self.reason = reason
+
+
+def extractor_config():
+    """Pose-extraction settings that change the artifact; sealed into every sidecar."""
+    e = NativePoseExtractor(None, collect_diagnostics=True)
+    return {
+        "extractor": "native-pose-v1",
+        "max_center_jump": e.max_center_jump,
+        "collect_diagnostics": e.collect_diagnostics,
+    }
+
+
+def pose_cache_key(source_sha256, backend_id, variant_id, take):
+    """Artifact name: bytes + pose recipe + variant + take (unchanged since Phase 1C)."""
+    text = f"{source_sha256}:{backend_id}:{variant_id}:{take}"
+    return hashlib.sha256(text.encode()).hexdigest()[:24]
+
+
+def check_pose_artifact(npz, expect):
+    """Verify a pose cache entry against `expect` (source/backend/variant/take/config).
+
+    Returns the sidecar record. Raises CacheIntegrityError with a stable reason code.
+    Read-only; the caller decides whether to quarantine.
+    """
+    side = Path(npz).with_suffix(".json")
+    try:
+        record = json.loads(side.read_text())
+    except (OSError, ValueError):
+        raise CacheIntegrityError("SIDECAR_MISSING_OR_UNREADABLE") from None
+    if (
+        not isinstance(record, dict)
+        or record.get("schema_version") != POSE_ARTIFACT_SCHEMA
+    ):
+        raise CacheIntegrityError("SIDECAR_SCHEMA")
+    for name, value in expect.items():
+        if record.get(name) != value:
+            raise CacheIntegrityError(f"STALE_{name.upper()}")
+    checksum = record.get("npz_sha256")
+    if not isinstance(checksum, str) or not re.fullmatch(r"[0-9a-f]{64}", checksum):
+        raise CacheIntegrityError("SIDECAR_CHECKSUM")
+    if not isinstance(record.get("frames"), int) or record["frames"] < 1:
+        raise CacheIntegrityError("SIDECAR_FRAMES")
+    try:
+        if sha256_file(npz) != record["npz_sha256"]:
+            raise CacheIntegrityError("ARTIFACT_CHECKSUM_MISMATCH")
+    except OSError:
+        raise CacheIntegrityError("ARTIFACT_UNREADABLE") from None
+    return record
+
+
+def _publish_exclusive(write, final):
+    """Write to a private temp file, fsync, then hard-link: all-or-nothing, no overwrite."""
+    tmp = final.with_name(f".{final.name}.{os.getpid()}.tmp")
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    try:
+        with os.fdopen(fd, "wb") as f:
+            write(f)
+            f.flush()
+            os.fsync(f.fileno())
+        os.link(tmp, final)
+    finally:
+        tmp.unlink(missing_ok=True)
+
+
+class CachedPoseExtractor:
+    """Real pose extraction with an immutable, integrity-sealed cache.
+
+    Entries are keyed by bytes + pose recipe + variant + take. Each is an NPZ plus a
+    sidecar recording the NPZ's SHA-256, the source SHA-256 and the extractor settings;
+    both are published atomically (NPZ first). A hit is reused only if the sidecar
+    matches and the NPZ bytes still hash to it. `require_integrity` refuses entries
+    with no sidecar (legacy Phase 1C-1D caches); otherwise those keep the old checks.
     Diagnostics are always collected so a transient bystander frame cannot silently
     abort or silently pass; the Phase 1A window analysis decides what is usable.
     """
 
     def __init__(
-        self, detector, cache_dir=None, original_take_id=None, variant_id="raw"
+        self,
+        detector,
+        cache_dir=None,
+        original_take_id=None,
+        variant_id="raw",
+        require_integrity=False,
     ):
         self.detector, self.original_take_id, self.variant_id = (
             detector,
@@ -42,31 +127,73 @@ class CachedPoseExtractor:
             variant_id,
         )
         self.cache_dir = Path(cache_dir) if cache_dir else None
+        self.require_integrity = require_integrity
 
     def extract(self, video_path):
         meta = probe_video(video_path)
         take = self.original_take_id or meta.sha256
-        key = hashlib.sha256(
-            f"{meta.sha256}:{self.detector.backend_id}:{self.variant_id}:{take}".encode()
-        ).hexdigest()[:24]
+        key = pose_cache_key(
+            meta.sha256, self.detector.backend_id, self.variant_id, take
+        )
         cached = self.cache_dir / f"{key}.npz" if self.cache_dir else None
         if cached is not None and cached.exists():
-            sequence = load_pose(cached)
+            if self.require_integrity or cached.with_suffix(".json").exists():
+                check_pose_artifact(
+                    cached,
+                    dict(
+                        source_sha256=meta.sha256,
+                        backend_id=self.detector.backend_id,
+                        variant_id=self.variant_id,
+                        original_take_id=take,
+                        extractor=extractor_config(),
+                    ),
+                )
+            try:
+                sequence = load_pose(cached)
+            except (OSError, ValueError, KeyError, EOFError) as exc:
+                raise CacheIntegrityError("ARTIFACT_UNREADABLE") from exc
             if (
                 sequence.source_sha256 != meta.sha256
                 or sequence.original_take_id != take
                 or list(sequence.timestamps) != list(meta.timestamps)
                 or not sequence.backend_id.startswith(self.detector.backend_id)
             ):
-                raise ValueError("Pose cache does not match its source recording")
+                raise CacheIntegrityError("CACHE_DOES_NOT_MATCH_SOURCE")
             return sequence
         sequence = NativePoseExtractor(
             self.detector, take, self.variant_id, collect_diagnostics=True
         ).extract(video_path)
         if cached is not None:
-            cached.parent.mkdir(parents=True, exist_ok=True)
-            save_pose(sequence, cached)  # exclusive create; caches are immutable
+            self._store(sequence, cached, key, meta, take)
         return sequence
+
+    def _store(self, sequence, cached, key, meta, take):
+        self.cache_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+        tmp = cached.with_name(f".{cached.name}.{os.getpid()}.part")
+        try:
+            save_pose(sequence, tmp)  # exclusive create
+            with tmp.open("rb") as f:
+                os.fsync(f.fileno())
+            digest = sha256_file(tmp)
+            record = dict(
+                schema_version=POSE_ARTIFACT_SCHEMA,
+                key=key,
+                source_sha256=meta.sha256,
+                backend_id=self.detector.backend_id,
+                variant_id=self.variant_id,
+                original_take_id=take,
+                extractor=extractor_config(),
+                npz_sha256=digest,
+                npz_bytes=tmp.stat().st_size,
+                frames=len(sequence.timestamps),
+                created_at=datetime.now(timezone.utc).isoformat(),
+            )
+            os.chmod(tmp, 0o600)
+            os.link(tmp, cached)  # FileExistsError rather than replacing
+            data = json.dumps(record, indent=2, sort_keys=True).encode()
+            _publish_exclusive(lambda f: f.write(data), cached.with_suffix(".json"))
+        finally:
+            tmp.unlink(missing_ok=True)
 
 
 def query_verifier(store, encoder, extractor, policy=None, **kwargs):

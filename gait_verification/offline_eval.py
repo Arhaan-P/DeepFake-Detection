@@ -25,6 +25,7 @@ import time
 import numpy as np
 from .capture_registry import ProvenanceError, write_new_json
 from .contracts import GaitEmbedding, QualityAssessment, Status
+from .decisions import require_decision
 from .evaluation import (
     paired_comparison,
     subject_bootstrap,
@@ -62,11 +63,37 @@ class ClaimRequest:
     reference_original_take_ids: tuple
 
 
+class RecordIntegrityError(ValueError):
+    """A sealed record was edited after it was written."""
+
+
+def canonical(obj):
+    return json.dumps(obj, sort_keys=True, separators=(",", ":"), allow_nan=False)
+
+
+def digest(obj, n=24):
+    return hashlib.sha256(canonical(obj).encode()).hexdigest()[:n]
+
+
+def seal(record):
+    """Add a checksum over the whole record; any later edit is detectable."""
+    body = {k: v for k, v in record.items() if k != "integrity_sha256"}
+    return {**body, "integrity_sha256": digest(body, 64)}
+
+
+def sealed_ok(record):
+    try:
+        return isinstance(record, dict) and record == seal(record)
+    except (ValueError, TypeError):
+        return False
+
+
 class QueryEmbeddingStore:
     """One private JSON per (query asset, encoder). Holds no subject identity."""
 
-    def __init__(self, root):
+    def __init__(self, root, *, require_integrity=False):
         self.root = Path(root)
+        self.require_integrity = require_integrity
 
     def _path(self, asset_id, encoder_key):
         key = hashlib.sha256(f"{asset_id}|{encoder_key}".encode()).hexdigest()[:32]
@@ -78,12 +105,30 @@ class QueryEmbeddingStore:
             return None
         record = json.loads(path.read_text())
         if (
-            record.get("schema_version") != QUERY_SCHEMA
-            or record["asset_id"] != asset_id
-            or record["encoder_key"] != encoder_key
+            not isinstance(record, dict)
+            or record.get("schema_version") != QUERY_SCHEMA
+            or record.get("asset_id") != asset_id
+            or record.get("encoder_key") != encoder_key
         ):
             raise ValueError("Query embedding record does not match its key")
+        # Only genuine Phase 1D records can use the legacy unsealed path. Processing
+        # fingerprints or an explicit strict reader require a seal even if removed.
+        needs_seal = self.require_integrity or any(
+            k in record for k in ("integrity_sha256", "recipe", "pose_npz_sha256")
+        )
+        if needs_seal and not sealed_ok(record):
+            raise RecordIntegrityError(
+                "Query embedding record fails its integrity seal"
+            )
         return record
+
+    def quarantine(self, asset_id, encoder_key):
+        """Rename an untrusted record aside (kept for audit) so a fresh one can be put."""
+        path = self._path(asset_id, encoder_key)
+        n = 1
+        while path.with_name(f"{path.name}.invalid-{n}").exists():
+            n += 1
+        path.rename(path.with_name(f"{path.name}.invalid-{n}"))
 
     def put(self, record):
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -235,7 +280,42 @@ class EmbeddingTrialScorer:
 
     def __call__(self, request):
         r = request
-        record = self.query_store.get(r.query_asset_id, self.encoder_key)
+        try:
+            record = self.query_store.get(r.query_asset_id, self.encoder_key)
+            if record is not None:
+                if (
+                    any(
+                        not isinstance(record.get(k), str) or not record[k]
+                        for k in (
+                            "source_sha256",
+                            "original_take_id",
+                            "variant_id",
+                            "reason",
+                        )
+                    )
+                    or record.get("status") not in _PERSISTED
+                ):
+                    raise ValueError("Incomplete query scoring record")
+                if record["status"] == "EMBEDDED":
+                    if (
+                        not isinstance(record.get("model_id"), str)
+                        or not record["model_id"]
+                    ):
+                        raise ValueError("Invalid query model recipe")
+                    GaitEmbedding(
+                        record["values"],
+                        record["model_id"],
+                        record["original_take_id"],
+                        record["source_sha256"],
+                    ).normalized()
+        except (OSError, ValueError, KeyError, TypeError):
+            return (
+                Status.PROCESSING_ERROR,
+                "QUERY_EMBEDDING_INTEGRITY",
+                None,
+                None,
+                False,
+            )
         asset = self.registry.asset(r.query_asset_id)
         if record is not None:
             self.runtime[r.query_asset_id] = (
@@ -357,7 +437,7 @@ def run_evaluation(
     system,
     evidence_class,
     authorization=None,
-    target_fars=(0.05,),
+    target_fars=None,  # OWN-05: never defaulted
     bootstrap_repetitions=1000,
     bootstrap_seed=0,
 ):
@@ -366,6 +446,7 @@ def run_evaluation(
     `system` = {label, encoder_key, training_dataset}. The scorer only ever gets a
     ClaimRequest. Nothing is dropped: missing data become explicit statuses.
     """
+    target_fars = tuple(require_decision(target_fars, "OWN-05", "run_evaluation"))
     if evidence_class not in EVIDENCE_CLASSES:
         raise ValueError("Unknown evidence class")
     if (evidence_class == "STUDY_LOCKED_FINAL") != (
@@ -525,26 +606,44 @@ def read_run(run_dir):
     return report, [json.loads(line) for line in lines.splitlines()]
 
 
-def compare_runs(run_a, run_b, repetitions=1000, seed=0, target_far=0.05):
+def compare_runs(
+    run_a,
+    run_b,
+    repetitions=1000,
+    seed=0,
+    target_far=None,
+    *,
+    comparison_policy="matched-pretraining-v1",
+):
     """Paired descriptive comparison of two systems on the identical frozen manifest.
 
     Refuses different manifests/registries/splits, the same system twice, and
     different pretraining datasets (GPGait++ CASIA-B stays outside the matched GREW
     comparison). Never names a winner.
     """
+    require_decision(target_far, "OWN-05", "compare_runs")
     (ra, oa), (rb, ob) = run_a, run_b
     if ra["inputs"] != rb["inputs"]:
         raise ValueError("Runs used different registries, splits or trial manifests")
     if ra["system"]["label"] == rb["system"]["label"]:
         raise ValueError("Compare two different systems")
-    if ra["system"]["training_dataset"] != rb["system"]["training_dataset"]:
-        raise ValueError(
-            "Different pretraining datasets are not a matched comparison "
-            "(CASIA-B is reported separately from GREW candidates)"
-        )
+    from .common_eval import ARCHITECTURE_POLICY, validate_comparison_policy
+
+    validate_comparison_policy(ra["system"], rb["system"], comparison_policy)
+    if (
+        comparison_policy == ARCHITECTURE_POLICY
+        and ra["evidence_class"] != rb["evidence_class"]
+    ):
+        raise ValueError("Architecture comparison requires the same evidence class")
     comparison = paired_comparison(oa, ob, repetitions, seed, target_far)
+    if comparison_policy == ARCHITECTURE_POLICY:
+        comparison["interpretation"] += (
+            " Historical E0 and GREW training populations differ; no causal architecture-superiority claim is supported."
+        )
     return {
+        "comparison_policy": comparison_policy,
         "systems": [ra["system"], rb["system"]],
+        "full_manifest_coverage": [ra["coverage"], rb["coverage"]],
         "inputs": ra["inputs"],
         "evidence_class": sorted({ra["evidence_class"], rb["evidence_class"]}),
         **comparison,

@@ -231,7 +231,9 @@ def analyze_pose(sequence, policy=WindowQualityPolicy()):
         frames=n,
         pts_span_sec=float(sequence.timestamps[-1] - sequence.timestamps[0]),
         person_detection_fraction=float(person_detected.mean()),
-        ambiguous_detection_fraction=float((counts > 1).mean()) if counts is not None else None,
+        ambiguous_detection_fraction=float((counts > 1).mean())
+        if counts is not None
+        else None,
         tracking_failure_fraction=float((~detection).mean()),
         full_body_visibility_fraction=float(complete.mean()),
         valid_ankle_fraction=float(ankles.mean()),
@@ -331,10 +333,15 @@ class WindowedEncoder:
         recipe = hashlib.sha256(
             json.dumps(asdict(self.policy), sort_keys=True).encode()
         ).hexdigest()[:16]
+        # A non-RAW pose variant is part of the recipe, so a stabilized query can never
+        # match RAW references (RAW ids are unchanged). Phase 2 fix: it was missing.
+        variant = (
+            "" if sequence.variant_id == "raw" else f":variant={sequence.variant_id}"
+        )
         # Equal weights per accepted segment are a declared engineering recipe.
         result = GaitEmbedding(
             np.mean([e.normalized() for e in embeddings], axis=0),
-            embeddings[0].model_id + ":windows=" + recipe,
+            embeddings[0].model_id + ":windows=" + recipe + variant,
             sequence.original_take_id,
             sequence.source_sha256,
         )

@@ -21,7 +21,8 @@
     "note": "Impostor count and seed are protocol decisions recorded in every trial manifest."
   },
   "metrics": {
-    "target_fars": [0.05],
+    "target_fars": null,
+    "target_far_note": "OWN-05: the owner declares the operating FAR(s); no default exists.",
     "score_orientation": "higher cosine similarity supports the claim",
     "bootstrap": {"cluster": "probe_subject", "repetitions": 1000, "seed": 0, "min_valid_fraction": 0.9}
   },

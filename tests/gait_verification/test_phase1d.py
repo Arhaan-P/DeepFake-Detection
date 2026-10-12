@@ -817,7 +817,14 @@ def test_offline_run_preserves_every_trial_and_separates_coverage(
 
     watching.recipes, watching.runtime = scorer.recipes, scorer.runtime
     report, outcomes = run_evaluation(
-        doc, reg, split, watching, system, "SYNTHETIC_FIXTURE", bootstrap_repetitions=50
+        doc,
+        reg,
+        split,
+        watching,
+        system,
+        "SYNTHETIC_FIXTURE",
+        target_fars=(0.05,),
+        bootstrap_repetitions=50,
     )
     assert len(outcomes) == doc["counts"]["trials"]
     assert [o["trial_id"] for o in outcomes] == [t["trial_id"] for t in doc["trials"]]
@@ -926,7 +933,14 @@ def test_no_operational_policy_unless_isolated_test_only(synthetic_eval):
         reg, split, store, queries, ENCODER_KEY, demo, allow_test_policy=True
     )
     report, outcomes = run_evaluation(
-        doc, reg, split, scorer, system, "SYNTHETIC_FIXTURE", bootstrap_repetitions=20
+        doc,
+        reg,
+        split,
+        scorer,
+        system,
+        "SYNTHETIC_FIXTURE",
+        target_fars=(0.05,),
+        bootstrap_repetitions=20,
     )
     decided = [o for o in outcomes if o["operational_decision_available"]]
     assert decided and all(isinstance(o["verdict"], bool) for o in decided)
@@ -952,7 +966,14 @@ def test_runs_compare_only_on_identical_manifests_and_matched_pretraining(
     reg, split, doc, store, queries, system, _ = synthetic_eval
     scorer = EmbeddingTrialScorer(reg, split, store, queries, ENCODER_KEY)
     run_a = run_evaluation(
-        doc, reg, split, scorer, system, "SYNTHETIC_FIXTURE", bootstrap_repetitions=20
+        doc,
+        reg,
+        split,
+        scorer,
+        system,
+        "SYNTHETIC_FIXTURE",
+        target_fars=(0.05,),
+        bootstrap_repetitions=20,
     )
 
     def e0_like(request):
@@ -968,24 +989,38 @@ def test_runs_compare_only_on_identical_manifests_and_matched_pretraining(
 
     e0 = dict(system, label="E0-standin", encoder_key="e0")
     run_b = run_evaluation(
-        doc, reg, split, e0_like, e0, "SYNTHETIC_FIXTURE", bootstrap_repetitions=20
+        doc,
+        reg,
+        split,
+        e0_like,
+        e0,
+        "SYNTHETIC_FIXTURE",
+        target_fars=(0.05,),
+        bootstrap_repetitions=20,
     )
     assert [o["trial_id"] for o in run_a[1]] == [o["trial_id"] for o in run_b[1]]
-    comparison = compare_runs(run_a, run_b, repetitions=20)
+    comparison = compare_runs(run_a, run_b, repetitions=20, target_far=0.05)
     assert comparison["trials"] == doc["counts"]["trials"]
     with pytest.raises(ValueError, match="same system|different systems"):
-        compare_runs(run_a, run_a)
+        compare_runs(run_a, run_a, target_far=0.05)
     casia = (run_b[0] | {"system": dict(e0, training_dataset="CASIA-B")}, run_b[1])
     with pytest.raises(ValueError, match="CASIA-B"):
-        compare_runs(run_a, casia)
+        compare_runs(run_a, casia, target_far=0.05)
     other = generate_verification_trials(
         reg, split, trial_policy(seed=9), "development"
     )
     run_c = run_evaluation(
-        other, reg, split, e0_like, e0, "SYNTHETIC_FIXTURE", bootstrap_repetitions=20
+        other,
+        reg,
+        split,
+        e0_like,
+        e0,
+        "SYNTHETIC_FIXTURE",
+        target_fars=(0.05,),
+        bootstrap_repetitions=20,
     )
     with pytest.raises(ValueError, match="different"):
-        compare_runs(run_a, run_c)
+        compare_runs(run_a, run_c, target_far=0.05)
 
 
 def test_v2_package_never_imports_historical_e0_code():
@@ -1100,7 +1135,8 @@ def test_cli_registry_split_trials_run_and_compare(tmp_path):
         )
     common = [*trial_args, "--trials", tmp_path / "trials.json",
               "--enrollments", tmp_path / "enroll", "--query-store", tmp_path / "queries",
-              "--evidence-class", "SYNTHETIC_FIXTURE", "--bootstrap", 20]  # fmt: skip
+              "--evidence-class", "SYNTHETIC_FIXTURE", "--bootstrap", 20,
+              "--target-far", 0.05]  # fmt: skip
     out = run("run", *common, "--model", "gaitpt", "--out", tmp_path / "run-a")
     assert "POLICY_NOT_READY" in out
     report = json.loads((tmp_path / "run-a/report.json").read_text())
@@ -1111,7 +1147,7 @@ def test_cli_registry_split_trials_run_and_compare(tmp_path):
     b = json.loads((tmp_path / "run-b/report.json").read_text())
     assert b["coverage"]["score"] == 0.0
     run("compare", "--run", tmp_path / "run-a", "--run", tmp_path / "run-b",
-        "--bootstrap", 20, "--out", tmp_path / "cmp.json")  # fmt: skip
+        "--bootstrap", 20, "--target-far", 0.05, "--out", tmp_path / "cmp.json")  # fmt: skip
     run("run", *common, "--model", "gpgaitpp_casia", "--out", tmp_path / "run-c")
     run("compare", "--run", tmp_path / "run-a", "--run", tmp_path / "run-c",
         "--out", tmp_path / "cmp2.json", ok=False)  # fmt: skip

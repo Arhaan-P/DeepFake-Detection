@@ -1,0 +1,19 @@
+{
+  "model_family": "e0_tcn",
+  "training_origin": "historical-local-13-subject-shipped",
+  "controlled_loso_checkpoint_available": false,
+  "source_checkpoint": "outputs/checkpoints/checkpoint_epoch_46_best.pth",
+  "source_checkpoint_sha256": "6c37f3b9b9172b42e6329a310f3e51d0b9882a5a9d59806851687731d67b1589",
+  "model_only_checkpoint": ".cache/gait_verification/checkpoints/e0-shipped-head-v1.pt",
+  "model_only_sha256": "f65c44cde5af178b154efbcf47b9aa18dc67c37db19b63e25d27b9a781be65fd",
+  "input_shape": [60, 78],
+  "hidden": 64,
+  "dropout": 0.1,
+  "head_parameters": 133058,
+  "score_semantics": "class1-minus-class0-logit; higher supports claim; uncalibrated",
+  "reference_aggregation": "mean-zscored-reference-feature-signature-v1",
+  "threshold": null,
+  "readiness": "BLOCKED",
+  "production_ready": false,
+  "research_only": true
+}

@@ -562,3 +562,55 @@ by bytes; the managed workflow refuses it rather than treating it as new. Split 
 impostor sampling and the target FAR remain owner decisions. All metrics so far come from
 synthetic fixtures: no accuracy, threshold, calibration or model winner exists, and E0 is
 unchanged. See the [Phase 1D report](PHASE_1D_EVALUATION_FRAMEWORK_REPORT.md).
+
+## Phase 2 owner-decision amendment — 12 October 2026
+
+Physical collection and empirical validation are deferred until completion of the software architecture. Engineering work may proceed using clearly labeled test fixtures. Scientific and deployment readiness remain blocked. All deferred recordings, owner decisions, scientific validations and security items are tracked in [DEFERRED_EVIDENCE_AND_DECISIONS.md](DEFERRED_EVIDENCE_AND_DECISIONS.md). Earlier scope descriptions above are preserved unchanged.
+
+## Phase 2 engineering continuation — 12 October 2026
+
+Claude Code built the dataset-processing architecture; Codex recovered its exact
+uncommitted worktree, reproduced the committed Phase 1D baseline and independently
+verified/fixed ingestion, deterministic planning, cache integrity, recovery, CUDA
+resource controls and derivative provenance. Phase 2 engineering is complete. The
+[implementation report](PHASE_2_DATASET_INTEGRATION_REPORT.md) records the final checks,
+36 additional regression cases, preserved prior CUDA smoke and next proposed software
+slice. The [operator guide](PHASE_2_OPERATOR_GUIDE.md) matches the CLI, and IMP-01…IMP-10
+are DONE in the [deferred register](DEFERRED_EVIDENCE_AND_DECISIONS.md).
+
+This completes software engineering only. The owner's collection deferral is preserved:
+no new pilot/cohort, scientific validation, training, threshold, model winner or locked-final
+study occurred. All four candidates remain BLOCKED for deployment and E0 is unchanged.
+Unsealed Phase 1D query records remain explicitly compatible; new processing records
+require integrity checks. Checksums are not authenticated/encrypted storage. Physical
+collection follows completion of the agreed architecture, rather than being requested
+as the next prerequisite for further software work.
+
+## Phase 2B frozen E0/common-trial amendment — 12 October 2026
+
+Author: Codex, following the owner's architecture-only Phase 2B assignment. Existing
+weights are frozen; this phase does not authorize the earlier roadmap's new-cohort
+E0 retraining, calibration, collection or model selection.
+
+The controlled LOSO E0 bundle is absent, but the shipped wrapper contains the exact
+133,058-parameter temporal head and its feature statistics. Safe hash-pinned static
+extraction plus unchanged restricted loading preserves those decisive tensors.
+The integrated baseline is explicitly `historical-local-13-subject-shipped`; old
+controlled metrics are not reproduced by labeling those different weights E0.
+
+Native MediaPipe33 heel/toe/xyz features remain separate from pretrained RTMPose
+skeleton inputs. Detected-index resampling, hip-relative coordinates, six angles,
+last-row difference padding and checkpoint z-scoring remain historical. A versioned
+mean reference-feature signature scores only the supplied claim; logit margin is
+uncalibrated. Neither legacy identity search nor historical thresholds are imported.
+
+The existing trial runner and Phase 2 integrity/source/split controls now support
+E0 and pretrained runs on one manifest. An explicit architecture comparison permits
+the audited E0-versus-GREW training regimes while keeping the default matched guard;
+training populations differ and causal superiority claims are unsupported. CASIA-B
+remains a separate ablation; raw score scales are never combined. Full coverage,
+pairwise subsets and an all-primary scoreable intersection are reported separately.
+Successful inference remains POLICY_NOT_READY with null verdict; all candidates,
+including E0, stay research-only/deployment blocked. The
+[Phase 2B report](PHASE_2B_E0_INTEGRATION_REPORT.md) records actual tests, parity,
+checkpoint distinction, quality/security limits and the next architecture-only audit.

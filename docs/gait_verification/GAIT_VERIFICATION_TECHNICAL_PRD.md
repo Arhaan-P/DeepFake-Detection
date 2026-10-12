@@ -796,3 +796,69 @@ extended `evaluation.py`, `pipeline.py`, `enrollments.py`, `verifier.py`, `regis
   pretraining datasets (CASIA-B separate from GREW) and locked-final rows, report full
   coverage plus a named common-scoreable subset, and never select a model.
 - Multi-recipe enrollment of one original is now a single atomic write.
+
+## 21. Phase 2 owner-decision amendment — 12 October 2026
+
+Author: Claude Code, recording an explicit instruction from the project owner.
+
+- **Owner decision:** Physical collection and empirical validation are deferred until completion of the software architecture. Engineering work may proceed using clearly labeled test fixtures. Scientific and deployment readiness remain blocked.
+- **Scope effect:** §7.4 (collection pilot gate) and §10 Phase 1 stay in force as *scientific* gates; they are not prerequisites for Phase 2 *engineering*. Phase 2 (§10 "Dataset ingestion") is therefore built and tested against synthetic/generated fixtures only. Nothing in it satisfies a scientific gate.
+- **Register:** every deferred collection item, owner decision, scientific validation and security/licensing item is tracked in [DEFERRED_EVIDENCE_AND_DECISIONS.md](DEFERRED_EVIDENCE_AND_DECISIONS.md). No item there is complete because a software interface exists.
+- Historical §7, §8 and §10 text above is unchanged.
+
+## 22. Phase 2 dataset-integration engineering change log — 12 October 2026
+
+Authors: Claude Code (initial implementation), Codex (independent continuation).
+Phase 2 engineering is complete; the owner's §21 deferral remains in force. The
+registry-driven ingestion report, read-only deterministic plan, explicit-selection
+pose/quality/embedding runner, cooperative per-user CUDA slots, resumable ledger,
+recipe/cache integrity checks and RAW/S10/S15 derivative path are implemented.
+Processing never creates enrollments, locks splits or chooses scientific policies.
+
+New processing query records require canonical-JSON SHA-256 seals; genuine legacy
+Phase 1D unsealed records remain supported explicitly. Declared processing fingerprints
+cannot bypass seal checks by removing the seal. Scoring returns an explicit processing
+error with no score/verdict for compromised records. Sources/ancestry/transforms are
+checked; artifact directories cannot contain registered sources. Supplied/declared
+locked-final roles are refused by the CLI. Checksums do not authenticate storage.
+
+Affected: `dataset_ingest.py`, `dataset_processing.py`, `decisions.py`, capture registry,
+offline evaluator, cached pose extractor, variant-bound window recipe, CLI, config,
+tests and Phase 2 documentation. See [Phase 2 report](PHASE_2_DATASET_INTEGRATION_REPORT.md)
+for reproduced Phase 1D results, final regression/CUDA evidence, corrected defects,
+limitations and proposed next architecture slice. IMP-01…IMP-10 are reconciled in the
+[deferred register](DEFERRED_EVIDENCE_AND_DECISIONS.md). All external/owner/scientific/
+security items remain OPEN. E0 is unchanged, all four models remain BLOCKED, and no
+threshold, training, empirical winner or locked-final evaluation is authorized.
+
+## 23. Phase 2B owner scope and engineering amendment — 12 October 2026
+
+Author: Codex, following the owner's explicit frozen-E0/common-trial assignment.
+For this phase, the earlier §8.3 new-cohort E0 retraining step is **not authorized**:
+integrate existing frozen artifacts for engineering, with collection and scientific
+selection still deferred. Historical text and all scientific gates are preserved.
+
+The controlled LOSO E0 bundle is absent. The actual shipped checkpoint supplies an
+identical 133,058-parameter decisive temporal head and its original z-score tensors;
+label it `historical-local-13-subject-shipped`, never a controlled-metric replay.
+Hash-pinned static tensor-section extraction retains those tensors while omitting
+unsafe NumPy/training objects; unchanged `weights_only=True` remains mandatory.
+Original weights/source/RGBs are immutable. Legacy imports remain in an isolated
+worker outside the V2 package; legacy identity-search APIs are never called.
+
+E0 preserves native MediaPipe33 normalized-image xyz, original joint/angle ordering,
+60 detected-index steps and last-difference padding. COCO17 cannot substitute for
+heel/toe landmarks. A versioned mean of z-scored independent claimed references
+forms the historical signature; the score is class-1 minus class-0 logit, uncalibrated.
+No threshold exists; all successful scores return POLICY_NOT_READY with null verdict.
+E0 caches reuse Phase 2 integrity/write/quarantine/ledger/source/split primitives.
+
+Default matched-pretraining comparisons remain unchanged. The explicit
+`historical-e0-versus-grew-architecture-v1` contract permits only the audited shipped
+E0 origin versus GREW on identical nonfinal trials and evidence, discloses differing
+training populations and forbids causal superiority claims. CASIA-B stays a separate
+ablation. Each score scale is evaluated separately; all-primary common-scoreable
+coverage supplements full-manifest and pairwise coverage. No score fusion or shared
+numeric threshold is allowed. Scientific E0 parity, quality validation, licenses and
+every external/owner/security decision remain open. See the
+[Phase 2B report](PHASE_2B_E0_INTEGRATION_REPORT.md) for evidence and limitations.

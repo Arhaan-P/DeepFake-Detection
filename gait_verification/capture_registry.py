@@ -303,6 +303,10 @@ class CaptureRegistry:
                         frame_count=len(m.timestamps),
                         pts_span_sec=m.timestamps[-1] - m.timestamps[0],
                         duration_sec=m.duration_sec,
+                        display_width=m.height if m.rotation % 180 else m.width,
+                        display_height=m.width if m.rotation % 180 else m.height,
+                        median_frame_interval_sec=_median_dt(m.timestamps),
+                        max_frame_interval_sec=_max_dt(m.timestamps),
                     )
                 except ValueError as exc:
                     errors.append(f"{a.asset_id}: unreadable media ({exc})")
@@ -355,6 +359,18 @@ def load_registry(path, schema=None, now=None):
     except (OSError, json.JSONDecodeError, UnicodeDecodeError) as exc:
         raise ProvenanceError("Unreadable capture registry") from exc
     return CaptureRegistry(document, schema, now)
+
+
+def _median_dt(pts):
+    return (
+        float(sorted(b - a for a, b in zip(pts, pts[1:]))[(len(pts) - 2) // 2])
+        if len(pts) > 1
+        else None
+    )
+
+
+def _max_dt(pts):
+    return float(max(b - a for a, b in zip(pts, pts[1:]))) if len(pts) > 1 else None
 
 
 def _asset_key(row):
