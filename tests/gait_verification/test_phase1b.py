@@ -24,7 +24,11 @@ from gait_verification.contracts import (
     QualityAssessment,
     Status,
 )
-from gait_verification.enrollments import EnrollmentTemplate, MemoryEnrollmentStore
+from gait_verification.enrollments import (
+    EnrollmentTemplate,
+    MemoryEnrollmentStore,
+    validate_templates,
+)
 from gait_verification.pose_quality import (
     WindowedEncoder,
     slice_pose,
@@ -87,7 +91,7 @@ def test_independent_backbone_ids_and_worker_failures(encoder_setup, monkeypatch
     s = Store()
     result = ClaimVerifier(
         s, b, SimpleNamespace(extract=lambda _: moving_pose())
-    ).verify("fixture", "S1")
+    ).verify(__file__, "S1")
     assert result.status == Status.PROCESSING_ERROR and result.verdict is None
     assert s.calls == ["S1"] and "private" not in str(result.public_dict())
 
@@ -156,8 +160,9 @@ def test_cross_model_or_recipe_enrollment_rejected(mismatch):
     a = GaitEmbedding(np.array([1.0, 0.0]), "gaitpt:checkpoint", "r1", "r1-hash")
     b = replace(a, model_id=mismatch, original_take_id="r2", source_sha256="r2-hash")
     store = MemoryEnrollmentStore()
+    # Phase 1C: one claim may hold several recipes, but they are never pooled.
     with pytest.raises(ValueError, match="Mixed enrollment recipes"):
-        store.enroll(
+        validate_templates(
             "S1",
             [
                 EnrollmentTemplate("S1", a, recording()),
@@ -171,7 +176,7 @@ def test_cross_model_or_recipe_enrollment_rejected(mismatch):
         allow_test_policy=True,
     )
     result = v.verify_embedding(b, "S1", QualityAssessment(True))
-    assert result.status == Status.POLICY_NOT_READY and result.verdict is None
+    assert result.status == Status.CLAIM_NOT_ENROLLED and result.verdict is None
 
 
 def test_unaudited_checkpoint_rejected_without_deserialization(tmp_path, monkeypatch):

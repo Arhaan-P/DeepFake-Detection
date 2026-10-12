@@ -228,9 +228,10 @@ def test_invalid_embeddings_recipe_and_probe_reference_overlap():
         == Status.INVALID_INPUT
     )
     bad = replace(embedding(), model_id="another-checkpoint")
+    # Phase 1C: no reference with the probe's recipe means no valid enrollment.
     assert (
         v.verify_embedding(bad, "S1", QualityAssessment(True)).status
-        == Status.POLICY_NOT_READY
+        == Status.CLAIM_NOT_ENROLLED
     )
     for values in [(0, 0), (float("nan"), 0), (1, 2, 3)]:
         r = v.verify_embedding(embedding(values), "S1", QualityAssessment(True))
@@ -323,7 +324,9 @@ def test_private_directory_store_claim_lookup_and_no_overwrite(tmp_path):
     from gait_verification.enrollments import DirectoryEnrollmentStore
 
     s = DirectoryEnrollmentStore(tmp_path)
-    templates = store().get_claim("S1")
+    templates = tuple(
+        replace(t, enrollment_id="enr-1") for t in store().get_claim("S1")
+    )
     s.enroll("S1", templates)
     assert s.get_claim("S2") == ()
     assert s.get_claim("S1")[0].recording == templates[0].recording
@@ -331,7 +334,10 @@ def test_private_directory_store_claim_lookup_and_no_overwrite(tmp_path):
         s.enroll("S1", templates)
 
 
-def test_video_orchestration_quality_and_errors():
+def test_video_orchestration_quality_and_errors(tmp_path):
+    video = tmp_path / "fixture.mp4"
+    video.write_bytes(b"x")  # extractor is injected; only existence is checked
+
     class Extractor:
         def extract(self, path):
             return pose(12)
@@ -341,13 +347,13 @@ def test_video_orchestration_quality_and_errors():
             raise AssertionError("Bad quality must not reach encoder")
 
     v = ClaimVerifier(store(), Encoder(), Extractor())
-    assert v.verify("fixture.mp4", "S1").status == Status.INSUFFICIENT_GAIT
+    assert v.verify(video, "S1").status == Status.INSUFFICIENT_GAIT
 
     class Broken:
         def extract(self, path):
             raise RuntimeError("internal path should not appear in public response")
 
-    result = ClaimVerifier(store(), Encoder(), Broken()).verify("fixture.mp4", "S1")
+    result = ClaimVerifier(store(), Encoder(), Broken()).verify(video, "S1")
     assert result.status == Status.PROCESSING_ERROR and result.verdict is None
     assert "internal" not in json.dumps(result.public_dict())
 

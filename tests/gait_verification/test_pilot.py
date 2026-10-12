@@ -270,7 +270,7 @@ def test_temporal_quality_abstains_before_encoder_or_boolean():
     v = ClaimVerifier(
         Store(), object(), Extractor(), quality_assessor=assess_window_quality
     )
-    result = v.verify("fixture", "S1")
+    result = v.verify(__file__, "S1")
     assert result.status == Status.INSUFFICIENT_GAIT and result.verdict is None
 
 

@@ -743,3 +743,23 @@ Author: Codex (interrupted), completed by Claude Code. Affected modules:
   architectures are never pooled.
 
 See [Phase 1B report](PHASE_1B_MODEL_INTEGRATION_REPORT.md).
+
+
+## 19. Phase 1C enrollment/verification change log — 12 October 2026
+
+Author: Claude Code. Affected: `enrollments.py`, `verifier.py`, `media.py`, new
+`scoring.py`, `pipeline.py`, `registry.py`, `scripts/gait_verification/{enroll_subject,verify_claim}.py`,
+`tests/gait_verification/test_phase1c.py`. E0 unchanged. See
+[Phase 1C report](PHASE_1C_ENROLLMENT_VERIFICATION_REPORT.md).
+
+- **§6.3 implemented:** one reference per independent original and per recipe
+  (`enrollment-v2`); prototype derived on demand; alternatives (mean/max/top-2 mean,
+  claimed subject only) exist as development-only strategies, none selected.
+- **§1.2 status precedence fixed** (invalid input → store error → not enrolled →
+  insufficient gait → runtime error → `POLICY_NOT_READY` → `OK`). **New engineering
+  decision:** a probe whose recipe has no matching reference returns
+  `CLAIM_NOT_ENROLLED`, not `POLICY_NOT_READY`.
+- Scoring now runs before the policy gate so restricted diagnostics exist; the public
+  result is unchanged and no threshold or policy is installed (`POLICY_NOT_READY`).
+- Known limitation: an undeclared re-encoded/stabilized copy of an enrolled original
+  cannot be detected from bytes; query lineage must come from the capture manifest.

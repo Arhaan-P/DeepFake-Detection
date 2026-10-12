@@ -9,6 +9,10 @@ import numpy as np
 from .contracts import VideoMetadata
 
 
+class InvalidMedia(ValueError):
+    """Unreadable, truncated or structurally unsupported video (maps to INVALID_INPUT)."""
+
+
 def sha256_file(path):
     h = hashlib.sha256()
     with open(path, "rb") as f:
@@ -19,7 +23,27 @@ def sha256_file(path):
 
 def probe_video(path):
     path = Path(path).resolve(strict=True)
-    result = subprocess.run(
+    try:
+        result = _run_ffprobe(path)
+    except subprocess.CalledProcessError as exc:
+        raise InvalidMedia("ffprobe could not read the video") from exc
+    if result.stderr.strip():
+        raise InvalidMedia("ffprobe reported decode errors")
+    try:
+        data = json.loads(result.stdout)
+    except json.JSONDecodeError as exc:
+        raise InvalidMedia("ffprobe returned no stream data") from exc
+    if len(data.get("streams", [])) != 1:
+        raise InvalidMedia("Exactly one video stream required")
+    stream = data["streams"][0]
+    pts = tuple(float(f["pts_time"]) for f in data.get("frames", []))
+    if not pts or not np.isfinite(pts).all() or np.any(np.diff(pts) <= 0):
+        raise InvalidMedia("Missing/nonmonotonic presentation timestamps")
+    return _metadata(path, stream, pts)
+
+
+def _run_ffprobe(path):
+    return subprocess.run(
         [
             "ffprobe",
             "-v",
@@ -38,15 +62,9 @@ def probe_video(path):
         text=True,
         check=True,
     )
-    if result.stderr.strip():
-        raise ValueError("ffprobe reported decode errors")
-    data = json.loads(result.stdout)
-    if len(data.get("streams", [])) != 1:
-        raise ValueError("Exactly one video stream required")
-    stream = data["streams"][0]
-    pts = tuple(float(f["pts_time"]) for f in data.get("frames", []))
-    if not pts or not np.isfinite(pts).all() or np.any(np.diff(pts) <= 0):
-        raise ValueError("Missing/nonmonotonic presentation timestamps")
+
+
+def _metadata(path, stream, pts):
     return VideoMetadata(
         str(path),
         sha256_file(path),
@@ -76,7 +94,7 @@ def probe_video(path):
 def decode_frames(metadata):
     """Decode native orientation in presentation order; require one frame per PTS."""
     if metadata.rotation % 90:
-        raise ValueError("Only right-angle display rotations are supported")
+        raise InvalidMedia("Only right-angle display rotations are supported")
     command = [
         "ffmpeg",
         "-v",
@@ -103,7 +121,7 @@ def decode_frames(metadata):
             for i, pts in enumerate(metadata.timestamps):
                 raw = proc.stdout.read(size)
                 if len(raw) != size:
-                    raise ValueError("Decoded frames do not match source PTS")
+                    raise InvalidMedia("Decoded frames do not match source PTS")
                 frame = np.frombuffer(raw, np.uint8).reshape(
                     metadata.height, metadata.width, 3
                 )
@@ -114,12 +132,12 @@ def decode_frames(metadata):
                     np.ascontiguousarray(np.rot90(frame, metadata.rotation // 90)),
                 )
             if proc.stdout.read(1):
-                raise ValueError("Additional decoded frame without PTS")
+                raise InvalidMedia("Additional decoded frame without PTS")
             if proc.wait() != 0:
-                raise ValueError("ffmpeg decode failed")
+                raise InvalidMedia("ffmpeg decode failed")
             errors.seek(0)
             if errors.read():
-                raise ValueError("ffmpeg reported damaged media")
+                raise InvalidMedia("ffmpeg reported damaged media")
         finally:
             proc.stdout.close()
             if proc.poll() is None:

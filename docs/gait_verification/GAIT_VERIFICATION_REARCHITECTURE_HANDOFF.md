@@ -536,3 +536,15 @@ CASIA-B GPGait++ is an engineering ablation, not a matched GREW comparator.
 Successful inference is not recognition evidence. No winner, threshold or
 calibration was chosen, and E0 is unchanged. See the
 [Phase 1B report](PHASE_1B_MODEL_INTEGRATION_REPORT.md).
+
+
+## Phase 1C amendment — 12 October 2026
+
+Claude Code completed enrollment and the real `(video, claimed_id)` path: per-original
+reference storage (atomic, private-by-permission, not encrypted), claim-only lookup,
+cosine scoring against the claimed subject's prototype, recipe and original-take
+leakage checks, and an end-to-end CUDA run for all four frozen candidates. No threshold
+exists, so usable enrolled claims return `POLICY_NOT_READY` with a null verdict; raw
+scores are restricted diagnostics. This is engineering only: no accuracy, model winner
+or threshold is claimed, and the four-view pilot and 40-person cohort are still pending.
+See the [Phase 1C report](PHASE_1C_ENROLLMENT_VERIFICATION_REPORT.md).
