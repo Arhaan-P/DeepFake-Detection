@@ -2,10 +2,11 @@
 
 from dataclasses import dataclass, asdict
 from pathlib import Path
-import json
+import os
 import subprocess
 import numpy as np
 from .media import probe_video, metadata_dict, sha256_file
+from .capture_registry import write_new_json
 
 
 @dataclass(frozen=True)
@@ -79,7 +80,7 @@ def stabilize(source, work_dir, recording, config=StabilizationConfig()):
         raise ValueError("Only right-angle display rotations are supported")
     work = Path(work_dir).resolve()
     # Dedicated new work directory prevents sidecar collision and overwrite.
-    work.mkdir(parents=True, exist_ok=False)
+    work.mkdir(parents=True, exist_ok=False, mode=0o700)
     output = work / "stabilized.mp4"
     commands = stabilization_commands(source, output, config) if config.enabled else []
     manifest = {
@@ -102,7 +103,12 @@ def stabilize(source, work_dir, recording, config=StabilizationConfig()):
     try:
         if config.enabled:
             for i, command in enumerate(commands):
-                with open(work / f"pass{i + 1}.log", "xb") as log:
+                fd = os.open(
+                    work / f"pass{i + 1}.log",
+                    os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                    0o600,
+                )
+                with os.fdopen(fd, "wb") as log:
                     subprocess.run(
                         command, cwd=work, stdout=log, stderr=log, check=True
                     )
@@ -146,6 +152,8 @@ def stabilize(source, work_dir, recording, config=StabilizationConfig()):
         manifest["error"] = f"{type(exc).__name__}: {exc}"
         raise
     finally:
-        with open(work / "manifest.json", "x") as f:
-            json.dump(manifest, f, indent=2)
+        for artifact in (output, work / "transforms.trf"):
+            if artifact.is_file():
+                os.chmod(artifact, 0o600)
+        write_new_json(work / "manifest.json", manifest)
     return manifest

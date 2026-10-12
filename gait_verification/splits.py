@@ -165,9 +165,18 @@ def revise_split(locked, moves, revision_id, rationale, authorized_by):
 
 def check_transition(old, new):
     """Reject any role change of a LOCKED split not explained by one new revision."""
-    if old["status"] != "LOCKED" or _content(new) == _content(old):
-        return
+    validate_split(old)
     validate_split(new)
+    if old["status"] != "LOCKED":
+        return
+    if new["status"] != "LOCKED":
+        raise ValueError("A locked split cannot be unlocked")
+    if {s for s, r in old["assignments"].items() if r == "locked_final"} != {
+        s for s, r in new["assignments"].items() if r == "locked_final"
+    }:
+        raise ValueError("Locked-final membership cannot be revised")
+    if _content(new) == _content(old):
+        return
     revisions = new["revisions"]
     if (
         new["status"] != "LOCKED"

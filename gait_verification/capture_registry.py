@@ -348,7 +348,7 @@ class CaptureRegistry:
         ):
             raise ValueError("manifest checksum mismatch")
         manifest = json.loads(path.read_text())
-        if manifest.get("status") != "OK":
+        if not isinstance(manifest, dict) or manifest.get("status") != "OK":
             raise ValueError("transformation did not complete")
         return manifest
 

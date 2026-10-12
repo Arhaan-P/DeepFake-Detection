@@ -123,9 +123,14 @@ class Ledger:
         import fcntl
 
         line = canonical({"ts": _now(), **event}) + "\n"
-        fd = os.open(self.path, os.O_RDWR | os.O_APPEND | os.O_CREAT, 0o600)
+        fd = os.open(
+            self.path, os.O_RDWR | os.O_APPEND | os.O_CREAT | os.O_NOFOLLOW, 0o600
+        )
         with os.fdopen(fd, "a+") as f:
             fcntl.flock(f, fcntl.LOCK_EX)
+            if os.fstat(fd).st_nlink != 1:
+                raise ValueError("Ledger must not be a hard-linked file")
+            os.fchmod(fd, 0o600)
             if (
                 os.fstat(fd).st_size
                 and os.pread(fd, 1, os.fstat(fd).st_size - 1) != b"\n"
@@ -143,7 +148,14 @@ class Ledger:
         rows = []
         for line in self.path.read_text().splitlines():
             try:
-                rows.append(json.loads(line))
+                row = json.loads(line)
+                if (
+                    isinstance(row, dict)
+                    and isinstance(row.get("task_id"), str)
+                    and row["task_id"]
+                    and isinstance(row.get("state"), str)
+                ):
+                    rows.append(row)
             except ValueError:  # a torn final line from a crash is ignored, not trusted
                 continue
         return rows
@@ -513,6 +525,8 @@ def final_test_denied(asset, split=None, authorization=None):
     role = split["assignments"].get(asset.subject_id)
     if role is None:
         return True  # a subject missing from the supplied split is never assumed safe
+    if asset.declared_split_role not in (None, role):
+        return True  # conflicting registry/split declarations never authorize access
     if role != "locked_final":
         return False
     try:

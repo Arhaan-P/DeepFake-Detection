@@ -11,6 +11,21 @@ MATCHED_POLICY = "matched-pretraining-v1"
 ARCHITECTURE_POLICY = "historical-e0-versus-grew-architecture-v1"
 
 
+def quality_asymmetry(systems):
+    """Disclose native quality gates without equating their scientific validity."""
+    gates = {s["label"]: s.get("quality_gate", {"status": "UNKNOWN"}) for s in systems}
+    known = all(gate.get("status") != "UNKNOWN" for gate in gates.values())
+    return {
+        "unequal_gates": any(
+            gate != next(iter(gates.values())) for gate in gates.values()
+        )
+        if known
+        else None,
+        "per_system": gates,
+        "interpretation": "Quality coverage is pipeline-specific. Historical E0 MediaPipe uses a minimal native gate; RTMPose uses provisional temporal-window checks. Unequal gates confound coverage and scoreable-subset comparisons; neither gate is biometrically validated. UNKNOWN means the artifact did not declare its gate.",
+    }
+
+
 def validate_comparison_policy(system_a, system_b, policy):
     if policy == MATCHED_POLICY:
         if system_a["training_dataset"] != system_b["training_dataset"]:
@@ -128,6 +143,9 @@ def compare_common_runs(
             }
             for r in ablations
         ],
+        "quality_asymmetry": quality_asymmetry(
+            [report["system"] for report, _ in runs]
+        ),
         "interpretation": "Descriptive comparisons only; training populations differ for E0 versus GREW. "
         "No causal architecture-superiority claim, score fusion or common numeric threshold is supported.",
     }

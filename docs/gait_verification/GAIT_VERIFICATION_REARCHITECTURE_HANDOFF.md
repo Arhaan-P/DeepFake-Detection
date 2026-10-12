@@ -614,3 +614,28 @@ Successful inference remains POLICY_NOT_READY with null verdict; all candidates,
 including E0, stay research-only/deployment blocked. The
 [Phase 2B report](PHASE_2B_E0_INTEGRATION_REPORT.md) records actual tests, parity,
 checkpoint distinction, quality/security limits and the next architecture-only audit.
+
+## Phase 2C independent architecture audit amendment — 13 October 2026
+
+Author: Codex. An adversarial review reproduced engineering defects beyond the passing
+Phase 2B tests: protected-data paths in older embedding/verification entry points,
+direct-scorer ownership/role omissions, split-transition loopholes, mutable trial policy,
+linked ledger writes, stale source/variant records and invalid report contracts. Bounded
+corrections strengthen the existing architecture; they do not change E0 feature semantics,
+scientific sampling, model selection or the owner's collection deferral.
+
+Managed verification now needs `--data-root` and `--split`; `embed` needs `--split`;
+pretrained scoring also needs `--data-root`. New v3 trial manifests bind policy/counts/
+headers as well as unchanged trial rows, and reproduce the existing generator. Old v2
+archives are preserved and refused for managed use until regenerated into new files from
+the same explicit inputs. Claim lookup precedes CUDA loading. All successful uncalibrated
+scores still return `POLICY_NOT_READY`, null verdict, without another-person disclosure.
+
+New private pose/derivative artifacts, safe ledger handling, source/ancestry/ownership
+checks and report validation have regression evidence. E0 CUDA dispatch holds the shared
+cooperative slot; comparisons disclose the minimal MediaPipe gate versus RTMPose temporal
+checks, and E0 timing explicitly excludes per-trial loading/scoring. Single-writer storage,
+partial GPU scheduling, power-loss durability and clean-machine reproduction remain
+documented engineering limits. No source dataset, controlled LOSO bundle, pilot, cohort,
+threshold, scientific winner, deployment license or security certification is invented.
+See [Phase 2C audit](PHASE_2C_ARCHITECTURE_ACCEPTANCE_AUDIT.md) for the final verdict and evidence.

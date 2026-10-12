@@ -126,7 +126,7 @@ def manifest_hash(trials):
     ).hexdigest()
 
 
-TRIAL_SCHEMA = "verification-trials-v2"
+TRIAL_SCHEMA = "verification-trials-v3"
 REFERENCE_RULE = (
     "exclude_probe_view: references are the claimed subject's raw originals whose "
     "view differs from the probe view (never the probe's own original or its "
@@ -149,7 +149,10 @@ class TrialPolicy:
             self.impostor_claims_per_query < 1
         ):
             raise ValueError("impostor_claims_per_query must be a positive integer")
-        if self.min_reference_originals < 1:
+        if (
+            type(self.min_reference_originals) is not int
+            or self.min_reference_originals < 1
+        ):
             raise ValueError("At least one reference original is required")
 
 
@@ -176,7 +179,7 @@ def _bound_split(registry, split):
         registry.recording(a.asset_id, split["assignments"][a.subject_id])
 
 
-def generate_verification_trials(registry, split, policy, role, authorization=None):
+def _generate_verification_trials(registry, split, policy, role, authorization=None):
     """Deterministic genuine + sampled impostor claims for ONE split role.
 
     Each registered query original (or its single registered `query_variant_id`
@@ -270,6 +273,14 @@ def generate_verification_trials(registry, split, policy, role, authorization=No
         "trials": [asdict(t) for t in trials],
         "manifest_sha256": manifest_hash(trials),
     }
+    from .capture_registry import canonical_sha256
+
+    doc["contract_sha256"] = canonical_sha256(doc)
+    return doc
+
+
+def generate_verification_trials(registry, split, policy, role, authorization=None):
+    doc = _generate_verification_trials(registry, split, policy, role, authorization)
     validate_trial_manifest(doc, registry, split, authorization)
     return doc
 
@@ -301,6 +312,13 @@ def validate_trial_manifest(doc, registry, split, authorization=None):
     if manifest_hash(trials) != doc["manifest_sha256"]:
         raise ValueError("Trial manifest content does not match its hash")
     version = doc["trial_policy"]["version"]
+    policy_fields = {
+        k: v for k, v in doc["trial_policy"].items() if k != "reference_rule"
+    }
+    policy = TrialPolicy(**policy_fields)
+    policy.validate()
+    if doc["trial_policy"].get("reference_rule") != REFERENCE_RULE:
+        raise ValueError("Unsupported reference rule")
     takes = {o.original_take_id: o for o in registry.originals()}
     ids, semantic = set(), set()
     for t in trials:
@@ -355,6 +373,18 @@ def validate_trial_manifest(doc, registry, split, authorization=None):
             doc["split_fingerprint"],
         ):
             raise ValueError("Trial fingerprints disagree with the manifest")
+    from .capture_registry import canonical_sha256
+
+    body = {k: v for k, v in doc.items() if k != "contract_sha256"}
+    if doc.get("contract_sha256") != canonical_sha256(body):
+        raise ValueError("Trial policy/content contract hash mismatch")
+    expected = _generate_verification_trials(
+        registry, split, policy, role, authorization
+    )
+    if canonical_sha256(doc) != canonical_sha256(expected):
+        raise ValueError(
+            "Trials/counts do not follow the declared deterministic policy"
+        )
     return trials
 
 

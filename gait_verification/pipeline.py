@@ -282,6 +282,8 @@ def build_template(
     split_role="development",
     asset_id=None,
 ):
+    if sequence.variant_id != "raw":
+        raise EnrollmentRefused("enrollment_requires_original_pose")
     if (
         embedding.original_take_id != take_id
         or embedding.source_sha256 != sequence.source_sha256
@@ -335,6 +337,7 @@ def enroll_original(
     split_role="development",
     asset_id=None,
     skip_enrolled=False,
+    expected_source_sha256=None,
 ):
     """Extract once, then store one INDEPENDENT reference per encoder recipe.
 
@@ -347,7 +350,12 @@ def enroll_original(
     validate_enrollment_metadata(
         subject_id, take_id, session_id, recorded_at, consent_ref
     )
+    initial_sha = expected_source_sha256 or sha256_file(video_path)
+    if sha256_file(video_path) != initial_sha:
+        raise EnrollmentRefused("source_missing_or_checksum_mismatch")
     sequence = extractor.extract(video_path)
+    if sequence.source_sha256 != initial_sha:
+        raise EnrollmentRefused("pose_source_mismatch")
     report = check_eligibility(sequence, policy)
     done = set()
     if skip_enrolled:
@@ -382,6 +390,8 @@ def enroll_original(
             )
         )
     if templates:
+        if sha256_file(video_path) != initial_sha:
+            raise EnrollmentRefused("source_changed_during_enrollment")
         store.add_references(subject_id, templates)
     return templates
 
@@ -441,6 +451,7 @@ def enroll_registered(
                 split_role=recording.split_role,
                 asset_id=asset_id,
                 skip_enrolled=True,
+                expected_source_sha256=asset.sha256,
             )
             row.update(
                 status="ENROLLED" if made else "ALREADY_ENROLLED",
@@ -456,7 +467,15 @@ def enroll_registered(
     return results
 
 
-def verify_registered(registry, video_path, claimed_subject_id, make_verifier):
+def verify_registered(
+    registry,
+    video_path,
+    claimed_subject_id,
+    make_verifier,
+    *,
+    data_root=None,
+    split=None,
+):
     """Managed-study query: lineage comes from the capture registry, never from flags.
 
     The file is identified by its ACTUAL bytes. Unregistered or unreadable files fail
@@ -465,8 +484,35 @@ def verify_registered(registry, video_path, claimed_subject_id, make_verifier):
     passed to the claim-only verifier.
     """
     from .contracts import Status, VerificationResult
+    from .dataset_processing import final_test_denied, source_issue
+    from .splits import validate_split
 
     claim = claimed_subject_id if valid_claim(claimed_subject_id) else ""
+
+    def refused(reason, status=Status.INVALID_INPUT):
+        return VerificationResult(claim, status), {
+            "status": status.value,
+            "reason": reason,
+        }
+
+    if not claim:
+        return refused("INVALID_CLAIM")
+    if data_root is None or split is None:
+        return refused("MANAGED_CONTEXT_REQUIRED")
+    try:
+        validate_split(split, registry.subjects())
+        if split["assignments"].get(claim) == "locked_final":
+            return refused("LOCKED_FINAL_ACCESS_DENIED")
+        # Check registered paths before hashing or initializing any model. A byte
+        # alias is checked again after resolution; filenames never establish identity.
+        supplied = Path(video_path).resolve()
+        for candidate in registry.assets():
+            if registry.path_of(candidate, data_root) == supplied and final_test_denied(
+                candidate, split
+            ):
+                return refused("LOCKED_FINAL_ACCESS_DENIED")
+    except (OSError, ValueError, KeyError, TypeError):
+        return refused("MANAGED_CONTEXT_INVALID")
     try:
         asset = registry.resolve_file(video_path)
     except OSError:
@@ -474,10 +520,25 @@ def verify_registered(registry, video_path, claimed_subject_id, make_verifier):
     else:
         reason = "UNREGISTERED_PROVENANCE"
     if asset is None:
-        diag = {"status": Status.INVALID_INPUT.value, "reason": reason}
-        return VerificationResult(claim, Status.INVALID_INPUT), diag
-    verifier = make_verifier(asset.original_take_id, asset.variant_id)
-    result, diag = verifier.verify_detailed(
-        video_path, claimed_subject_id, registry.lineage_ids(asset.asset_id)
-    )
+        return refused(reason)
+    if final_test_denied(asset, split):
+        return refused("LOCKED_FINAL_ACCESS_DENIED")
+    if reason := source_issue(registry, asset, data_root):
+        return refused(reason)
+    try:
+        verifier = make_verifier(asset.original_take_id, asset.variant_id)
+        result, diag = verifier.verify_detailed(
+            video_path, claimed_subject_id, registry.lineage_ids(asset.asset_id)
+        )
+    except Exception:
+        return refused("PIPELINE_SETUP_ERROR", Status.PROCESSING_ERROR)
+    try:
+        changed = (
+            source_issue(registry, asset, data_root)
+            or sha256_file(video_path) != asset.sha256
+        )
+    except OSError:
+        changed = True
+    if changed:
+        return refused("SOURCE_CHANGED_DURING_VERIFICATION")
     return result, dict(diag, query_asset_id=asset.asset_id)

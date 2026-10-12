@@ -14,7 +14,7 @@ Outputs are private local research artifacts (0600): per-trial scores never belo
 in public reports, and no embedding, consent record or file path is written to them.
 """
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -32,7 +32,7 @@ from .evaluation import (
     validate_trial_manifest,
     verification_metrics,
 )
-from .media import InvalidMedia, sha256_file
+from .media import InvalidMedia
 from .skeleton_contracts import InsufficientGait
 from .verifier import ClaimVerifier
 
@@ -114,7 +114,13 @@ class QueryEmbeddingStore:
         # Only genuine Phase 1D records can use the legacy unsealed path. Processing
         # fingerprints or an explicit strict reader require a seal even if removed.
         needs_seal = self.require_integrity or any(
-            k in record for k in ("integrity_sha256", "recipe", "pose_npz_sha256")
+            k in record
+            for k in (
+                "integrity_sha256",
+                "recipe",
+                "pose_npz_sha256",
+                "ingestion_recipe",
+            )
         )
         if needs_seal and not sealed_ok(record):
             raise RecordIntegrityError(
@@ -175,6 +181,10 @@ def embed_registered_queries(
     encoder,
     quality_assessor,
     store,
+    *,
+    split=None,
+    roles=("development",),
+    recipe=None,
 ):
     """Embed EXPLICIT registered query assets once per encoder (idempotent).
 
@@ -182,19 +192,53 @@ def embed_registered_queries(
     runtime errors and missing/altered files are reported but not persisted, so a
     rerun retries them. `extractor_factory` receives lineage only.
     """
+    from .dataset_processing import final_test_denied, protect_sources, source_issue
+    from .splits import require_roles, validate_split
+
+    if split is not None:
+        validate_split(split, registry.subjects())
+        require_roles(split, roles)
     encoder_key = encoder.metadata.model_id
+    policy = getattr(encoder, "policy", None)
+    recipe = recipe or digest(
+        {
+            "encoder_key": encoder_key,
+            "window_policy": asdict(policy) if policy else None,
+        },
+        64,
+    )
     results = []
     for asset_id in sorted(set(asset_ids)):
         row = {"asset_id": asset_id}
         results.append(row)
         try:
             asset = registry.asset(asset_id)
-            if store.get(asset_id, encoder_key) is not None:
-                row["status"] = "EXISTS"
+            if final_test_denied(asset, split) or (
+                split is not None
+                and split["assignments"][asset.subject_id] not in roles
+            ):
+                row.update(
+                    status="REFUSED", reason="LOCKED_FINAL_OR_ROLE_ACCESS_DENIED"
+                )
                 continue
+            protect_sources(registry, data_root, store.root)
             path = registry.path_of(asset, data_root)
-            if not path.is_file() or sha256_file(path) != asset.sha256:
+            if source_issue(registry, asset, data_root):
                 row.update(status="REFUSED", reason="SOURCE_MISSING_OR_CHANGED")
+                continue
+            cached = store.get(asset_id, encoder_key)
+            if cached is not None:
+                if (
+                    cached.get("ingestion_recipe"),
+                    cached.get("source_sha256"),
+                    cached.get("original_take_id"),
+                    cached.get("variant_id"),
+                ) != (recipe, asset.sha256, asset.original_take_id, asset.variant_id):
+                    row.update(
+                        status="REFUSED", reason="STALE_QUERY_RECIPE_OR_PROVENANCE"
+                    )
+                else:
+                    row["status"] = "EXISTS"
                 continue
         except (ProvenanceError, ValueError, OSError) as exc:
             row.update(status="REFUSED", reason=f"{type(exc).__name__}: {exc}")
@@ -210,24 +254,34 @@ def embed_registered_queries(
         row.update(status=status, reason=reason)
         if status not in _PERSISTED:
             continue
+        if source_issue(registry, asset, data_root) or (
+            embedding is not None
+            and (embedding.source_sha256, embedding.original_take_id)
+            != (asset.sha256, asset.original_take_id)
+        ):
+            row.update(status="REFUSED", reason="SOURCE_CHANGED_DURING_PROCESSING")
+            continue
         values = embedding.normalized().tolist() if embedding is not None else None
         store.put(
-            {
-                "schema_version": QUERY_SCHEMA,
-                "asset_id": asset_id,
-                "original_take_id": asset.original_take_id,
-                "variant_id": asset.variant_id,
-                "source_sha256": asset.sha256,
-                "encoder_key": encoder_key,
-                "model_id": embedding.model_id if embedding is not None else None,
-                "status": status,
-                "reason": reason,
-                "quality_reasons": reasons,
-                "values": values,
-                "runtime_sec": time.perf_counter() - began,
-                "peak_cuda_mib": _cuda_peak(False),
-                "created_at": datetime.now(timezone.utc).isoformat(),
-            }
+            seal(
+                {
+                    "schema_version": QUERY_SCHEMA,
+                    "asset_id": asset_id,
+                    "original_take_id": asset.original_take_id,
+                    "variant_id": asset.variant_id,
+                    "source_sha256": asset.sha256,
+                    "encoder_key": encoder_key,
+                    "model_id": embedding.model_id if embedding is not None else None,
+                    "status": status,
+                    "reason": reason,
+                    "quality_reasons": reasons,
+                    "values": values,
+                    "runtime_sec": time.perf_counter() - began,
+                    "peak_cuda_mib": _cuda_peak(False),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                    "ingestion_recipe": recipe,
+                }
+            )
         )
     return results
 
@@ -257,6 +311,8 @@ class EmbeddingTrialScorer:
         policy=None,
         allow_test_policy=False,
         model_ready=False,
+        data_root=None,
+        authorization=None,
     ):
         if policy is not None and not (
             policy.ready(allow_test_policy) and (policy.test_only or model_ready)
@@ -265,6 +321,7 @@ class EmbeddingTrialScorer:
         self.registry, self.split, self.store = registry, split, store
         self.query_store, self.encoder_key = query_store, encoder_key
         self.policy, self.allow_test_policy = policy, allow_test_policy
+        self.data_root, self.authorization = data_root, authorization
         self.recipes, self.runtime, self.lookups = set(), {}, []
         self._claims = {}
         self._originals = {o.original_take_id: o for o in registry.originals()}
@@ -280,6 +337,72 @@ class EmbeddingTrialScorer:
 
     def __call__(self, request):
         r = request
+        from .dataset_processing import final_test_denied, source_issue
+        from .splits import require_roles
+
+        try:
+            asset = self.registry.asset(r.query_asset_id)
+            role = self.split["assignments"].get(asset.subject_id)
+            if (
+                role is None
+                or self.split["assignments"].get(r.claimed_subject_id) != role
+                or final_test_denied(asset, self.split, self.authorization)
+            ):
+                return (
+                    Status.INVALID_INPUT,
+                    "LOCKED_FINAL_OR_ROLE_ACCESS_DENIED",
+                    None,
+                    None,
+                    False,
+                )
+            require_roles(self.split, (role,), self.authorization)
+            if (asset.original_take_id, asset.variant_id) != (
+                r.query_original_take_id,
+                r.query_variant_id,
+            ):
+                return (
+                    Status.INVALID_INPUT,
+                    "QUERY_PROVENANCE_MISMATCH",
+                    None,
+                    None,
+                    False,
+                )
+            if not r.reference_original_take_ids or len(
+                set(r.reference_original_take_ids)
+            ) != len(r.reference_original_take_ids):
+                return Status.INVALID_INPUT, "INVALID_REFERENCE_SET", None, None, False
+            refs = [self._originals[take] for take in r.reference_original_take_ids]
+            if any(
+                ref.subject_id != r.claimed_subject_id
+                or final_test_denied(ref, self.split, self.authorization)
+                for ref in refs
+            ):
+                return (
+                    Status.INVALID_INPUT,
+                    "REFERENCE_OWNERSHIP_MISMATCH",
+                    None,
+                    None,
+                    False,
+                )
+            if self.data_root is not None and any(
+                source_issue(self.registry, item, self.data_root)
+                for item in (asset, *refs)
+            ):
+                return (
+                    Status.INVALID_INPUT,
+                    "SOURCE_MISSING_OR_CHANGED",
+                    None,
+                    None,
+                    False,
+                )
+        except (ValueError, KeyError, PermissionError):
+            return (
+                Status.INVALID_INPUT,
+                "QUERY_OR_REFERENCE_PROVENANCE_INVALID",
+                None,
+                None,
+                False,
+            )
         try:
             record = self.query_store.get(r.query_asset_id, self.encoder_key)
             if record is not None:
@@ -308,6 +431,14 @@ class EmbeddingTrialScorer:
                         record["original_take_id"],
                         record["source_sha256"],
                     ).normalized()
+                for field in ("runtime_sec", "peak_cuda_mib"):
+                    value = record.get(field)
+                    if value is not None and (
+                        type(value) not in (int, float)
+                        or not np.isfinite(value)
+                        or value < 0
+                    ):
+                        raise ValueError("Invalid query runtime metadata")
         except (OSError, ValueError, KeyError, TypeError):
             return (
                 Status.PROCESSING_ERROR,
@@ -316,15 +447,19 @@ class EmbeddingTrialScorer:
                 None,
                 False,
             )
-        asset = self.registry.asset(r.query_asset_id)
         if record is not None:
             self.runtime[r.query_asset_id] = (
                 record.get("runtime_sec"),
                 record.get("peak_cuda_mib"),
             )
-            if (record["source_sha256"], record["original_take_id"]) != (
+            if (
+                record["source_sha256"],
+                record["original_take_id"],
+                record["variant_id"],
+            ) != (
                 asset.sha256,
                 r.query_original_take_id,
+                r.query_variant_id,
             ):
                 return (
                     Status.INVALID_INPUT,
@@ -453,6 +588,16 @@ def run_evaluation(
         trial_doc["split_role"] == "locked_final"
     ):
         raise ValueError("Evidence class disagrees with the trial split role")
+    expected_evidence = {
+        "development": "STUDY_DEVELOPMENT",
+        "calibration": "STUDY_CALIBRATION",
+        "locked_final": "STUDY_LOCKED_FINAL",
+    }
+    if (
+        evidence_class.startswith("STUDY_")
+        and evidence_class != expected_evidence[trial_doc["split_role"]]
+    ):
+        raise ValueError("Evidence class disagrees with the trial split role")
     trials = validate_trial_manifest(trial_doc, registry, split, authorization)
     outcomes = []
     for t in trials:
@@ -467,6 +612,15 @@ def run_evaluation(
             )
         )
         status = Status(status)
+        from .contracts import VerificationResult
+
+        VerificationResult(t.claimed_subject_id, status, verdict)
+        if (status == Status.OK and score is None) or (
+            score is not None and (type(quality) is not bool or not quality)
+        ):
+            raise ValueError(
+                "Scored status requires a score and quality-evaluable input"
+            )
         if score is not None and status not in (Status.OK, Status.POLICY_NOT_READY):
             raise ValueError("Scorer returned a score with an abstention status")
         outcomes.append(
@@ -527,6 +681,7 @@ def run_evaluation(
             "split_fingerprint": split["fingerprint"],
             "split_status": split["status"],
             "trial_manifest_sha256": trial_doc["manifest_sha256"],
+            "trial_contract_sha256": trial_doc["contract_sha256"],
             "trial_policy": trial_doc["trial_policy"],
             "split_role": trial_doc["split_role"],
         },
@@ -567,6 +722,7 @@ def run_evaluation(
         if n
         else {"status": "UNDEFINED_METRIC", "reason": "No trials"},
         "runtime": {
+            "scope": system.get("runtime_scope", "UNKNOWN: timing scope not declared"),
             "queries_measured": len(runtime),
             "runtime_sec_median": float(np.median([v[0] for v in runtime]))
             if runtime
@@ -627,14 +783,15 @@ def compare_runs(
         raise ValueError("Runs used different registries, splits or trial manifests")
     if ra["system"]["label"] == rb["system"]["label"]:
         raise ValueError("Compare two different systems")
-    from .common_eval import ARCHITECTURE_POLICY, validate_comparison_policy
+    from .common_eval import (
+        ARCHITECTURE_POLICY,
+        quality_asymmetry,
+        validate_comparison_policy,
+    )
 
     validate_comparison_policy(ra["system"], rb["system"], comparison_policy)
-    if (
-        comparison_policy == ARCHITECTURE_POLICY
-        and ra["evidence_class"] != rb["evidence_class"]
-    ):
-        raise ValueError("Architecture comparison requires the same evidence class")
+    if ra["evidence_class"] != rb["evidence_class"]:
+        raise ValueError("Comparison requires the same evidence class")
     comparison = paired_comparison(oa, ob, repetitions, seed, target_far)
     if comparison_policy == ARCHITECTURE_POLICY:
         comparison["interpretation"] += (
@@ -646,5 +803,6 @@ def compare_runs(
         "full_manifest_coverage": [ra["coverage"], rb["coverage"]],
         "inputs": ra["inputs"],
         "evidence_class": sorted({ra["evidence_class"], rb["evidence_class"]}),
+        "quality_asymmetry": quality_asymmetry([ra["system"], rb["system"]]),
         **comparison,
     }

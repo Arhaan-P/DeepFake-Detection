@@ -1075,6 +1075,10 @@ def test_multi_recipe_add_is_atomic_and_retry_safe(tmp_path, monkeypatch):
 
 def test_cli_registry_split_trials_run_and_compare(tmp_path):
     rows = cohort_rows(6)
+    for row in rows:
+        source = tmp_path / row["source_file_uri"]
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_bytes(row["original_take_id"].encode())
     registry_path = tmp_path / "registry.json"
     registry_path.write_text(json.dumps({"schema_version": SCHEMA, "assets": rows}))
     cli = [sys.executable, str(REPO / "scripts/gait_verification/evaluate_claims.py")]
@@ -1133,7 +1137,7 @@ def test_cli_registry_split_trials_run_and_compare(tmp_path):
                 values=(v / np.linalg.norm(v)).tolist(),
             )
         )
-    common = [*trial_args, "--trials", tmp_path / "trials.json",
+    common = [*trial_args, "--data-root", tmp_path, "--trials", tmp_path / "trials.json",
               "--enrollments", tmp_path / "enroll", "--query-store", tmp_path / "queries",
               "--evidence-class", "SYNTHETIC_FIXTURE", "--bootstrap", 20,
               "--target-far", 0.05]  # fmt: skip
@@ -1264,18 +1268,24 @@ def test_managed_query_resolves_undeclared_derivative_and_fails_closed(tmp_path)
     # Stabilized derivative of the enrolled original, submitted WITHOUT any declared
     # lineage flags: the registry resolves it and the comparison is refused.
     derivative = tmp_path / child["source_file_uri"]
-    result, diag = verify_registered(reg, derivative, "S001", make_verifier)
+    result, diag = verify_registered(
+        reg, derivative, "S001", make_verifier, data_root=tmp_path, split=split
+    )
     assert result.status == Status.INVALID_INPUT and diag["reason"] == "SHARED_ORIGINAL"
     # Independent registered original: scored, no threshold -> POLICY_NOT_READY.
     other = tmp_path / reg.originals("S001")[1].source_uri
-    result, diag = verify_registered(reg, other, "S001", make_verifier)
+    result, diag = verify_registered(
+        reg, other, "S001", make_verifier, data_root=tmp_path, split=split
+    )
     assert result.status == Status.POLICY_NOT_READY and -1 <= diag["score"] <= 1
     # Unregistered re-encode of the enrolled original: cannot be linked by bytes,
     # so the managed workflow fails closed instead of treating it as a new original.
     copy = tmp_path / "copy.mp4"
     subprocess.run(["ffmpeg", "-v", "error", "-i", str(derivative), "-c:v", "libx264",
                     "-crf", "30", str(copy)], check=True)  # fmt: skip
-    result, diag = verify_registered(reg, copy, "S001", make_verifier)
+    result, diag = verify_registered(
+        reg, copy, "S001", make_verifier, data_root=tmp_path, split=split
+    )
     assert (
         result.status == Status.INVALID_INPUT
         and diag["reason"] == "UNREGISTERED_PROVENANCE"
@@ -1283,7 +1293,14 @@ def test_managed_query_resolves_undeclared_derivative_and_fails_closed(tmp_path)
     assert result.verdict is None and set(result.public_dict()) == {
         "schema_version", "claimed_subject_id", "status", "verdict"
     }  # fmt: skip
-    missing = verify_registered(reg, tmp_path / "absent.mp4", "S001", make_verifier)[1]
+    missing = verify_registered(
+        reg,
+        tmp_path / "absent.mp4",
+        "S001",
+        make_verifier,
+        data_root=tmp_path,
+        split=split,
+    )[1]
     assert missing["reason"] == "VIDEO_NOT_FOUND"
     # The derivative bytes registered as an "original" are exposed by verification.
     disguised = raw_row("S001", "toward", sha256=child["sha256"],

@@ -2,6 +2,7 @@
 
 from dataclasses import asdict
 import json
+import os
 import numpy as np
 from .contracts import PoseSequence
 from .media import probe_video, decode_frames, sha256_file
@@ -244,7 +245,8 @@ def save_pose(sequence, path):
     arrays = {k: v for k, v in fields.items() if isinstance(v, np.ndarray)}
     metadata = {k: v for k, v in fields.items() if k not in arrays}
     # Exclusive creation: caches are immutable artifacts too.
-    with open(path, "xb") as f:
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(fd, "wb") as f:
         np.savez_compressed(f, **arrays, metadata=json.dumps(metadata, sort_keys=True))
 
 

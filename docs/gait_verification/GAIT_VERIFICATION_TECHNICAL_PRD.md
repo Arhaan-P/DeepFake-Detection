@@ -862,3 +862,32 @@ coverage supplements full-manifest and pairwise coverage. No score fusion or sha
 numeric threshold is allowed. Scientific E0 parity, quality validation, licenses and
 every external/owner/security decision remain open. See the
 [Phase 2B report](PHASE_2B_E0_INTEGRATION_REPORT.md) for evidence and limitations.
+
+## 24. Phase 2C architecture acceptance corrections — 13 October 2026
+
+Author: Codex, independent pre-collection audit and bounded engineering corrections.
+The owner's collection deferral and all scientific/deployment gates remain unchanged.
+No model semantics, split allocation, trial seed/count, threshold or winner is selected.
+
+- Managed query verification requires registry, data root and validated split; protected
+  roles and registered query paths are checked before model setup, with source/ancestry
+  validation before and after scoring. Claim lookup precedes lazy CUDA loading.
+- The legacy `embed` CLI now requires a split and full manifest validation. All scoring
+  CLIs require a data root to recheck immutable sources. Direct embedding scorers validate
+  query lineage, roles and exact claimed-reference ownership before artifact access.
+- `verification-trials-v3` retains the row hash and adds a canonical full-contract hash;
+  policy/count/header mutations and trials inconsistent with the existing deterministic
+  generator are refused. Archived v2 files remain unchanged and require regeneration
+  into new files from the same explicit approved inputs before managed use. This changes
+  integrity/schema validation, not the reference rule or scientific sampling procedure.
+- Locked split transitions cannot unlock or move final membership, even through a
+  recomputed revision. Cache variants/recipes, source substitutions, outcome/verdict/
+  quality and evidence-role contracts are checked. Genuine legacy unsealed artifacts
+  remain an explicitly lower-trust offline compatibility path, not authenticated data.
+- Linked ledger writes are refused; malformed events/manifests fail safely. Newly saved
+  pose and stabilization artifacts use private permissions. Historical files are preserved.
+- E0 CUDA score dispatch uses the shared cooperative slot. Reports name the unequal native
+  quality gates and E0 extraction-only timing. Native E0 preprocessing/weights are unchanged.
+
+See [Phase 2C audit](PHASE_2C_ARCHITECTURE_ACCEPTANCE_AUDIT.md) for actual evidence,
+acceptance verdict, residual single-writer/GPU/durability limits and deferred requirements.

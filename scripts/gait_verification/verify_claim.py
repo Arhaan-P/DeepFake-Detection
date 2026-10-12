@@ -18,9 +18,10 @@ import json
 import os
 from pathlib import Path
 import sys
+from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from gait_verification.capture_registry import ProvenanceError, load_registry
+from gait_verification.capture_registry import load_registry
 from gait_verification.enrollments import DirectoryEnrollmentStore
 from gait_verification.pipeline import (
     CachedPoseExtractor,
@@ -33,8 +34,10 @@ from gait_verification.registry import (
     load_encoder,
     load_quality_policy,
     load_rtmpose,
+    model_entry,
 )
 from gait_verification.scoring import STRATEGIES
+from gait_verification.splits import validate_split
 
 
 def main():
@@ -49,6 +52,10 @@ def main():
         "--checkpoint-root", default=".cache/gait_verification/checkpoints"
     )
     parser.add_argument("--pose-cache-dir")
+    parser.add_argument(
+        "--data-root", help="required for managed ancestry verification"
+    )
+    parser.add_argument("--split", help="required managed subject-split manifest")
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument(
         "--capture-registry",
@@ -78,17 +85,38 @@ def main():
     args = parser.parse_args()
     if args.capture_registry and (args.query_take_id or args.derivative_manifest):
         parser.error("with --capture-registry, lineage comes only from the registry")
+    if args.capture_registry and not (args.data_root and args.split):
+        parser.error("managed verification requires --data-root and --split")
     policy = load_quality_policy()
     store = DirectoryEnrollmentStore(args.enrollments)
 
+    class LazyEncoder:
+        metadata = SimpleNamespace(readiness=model_entry(args.model)["readiness"])
+
+        def encode(self, sequence):
+            return load_encoder(
+                args.model, args.source_root, args.checkpoint_root, policy
+            ).encode(sequence)
+
+    class LazyExtractor:
+        def __init__(self, take_id, variant_id):
+            self.take_id, self.variant_id = take_id, variant_id
+
+        def extract(self, video):
+            return CachedPoseExtractor(
+                load_rtmpose(args.rtmpose_dir),
+                args.pose_cache_dir,
+                self.take_id,
+                self.variant_id,
+                require_integrity=bool(args.capture_registry),
+            ).extract(video)
+
     def make_verifier(take_id, variant_id):
-        # Models load only after the query is resolved; no subject ID is passed.
+        # Claim lookup and known-lineage refusal precede any CUDA/model setup.
         return query_verifier(
             store,
-            load_encoder(args.model, args.source_root, args.checkpoint_root, policy),
-            CachedPoseExtractor(
-                load_rtmpose(args.rtmpose_dir), args.pose_cache_dir, take_id, variant_id
-            ),
+            LazyEncoder(),
+            LazyExtractor(take_id, variant_id),
             policy,
             scoring_strategy=args.scoring_strategy,  # deliberately no decision policy
         )
@@ -96,11 +124,19 @@ def main():
     if args.capture_registry:
         try:
             registry = load_registry(args.capture_registry)
-        except ProvenanceError as exc:
+            split = validate_split(
+                json.loads(Path(args.split).read_text()), registry.subjects()
+            )
+        except (OSError, ValueError) as exc:
             print(json.dumps({"error": f"capture registry rejected: {exc}"}))
             return 3
         result, diagnostics = verify_registered(
-            registry, args.video, args.claimed_id, make_verifier
+            registry,
+            args.video,
+            args.claimed_id,
+            make_verifier,
+            data_root=args.data_root,
+            split=split,
         )
     else:
         lineage = (

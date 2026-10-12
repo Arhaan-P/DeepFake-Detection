@@ -154,6 +154,7 @@ def main():
     e = sub.add_parser("embed")
     e.add_argument("--registry", required=True)
     e.add_argument("--trials", required=True)
+    e.add_argument("--split", required=True, help="validated locked subject split")
     e.add_argument("--data-root", required=True)
     e.add_argument("--model", required=True, choices=MODELS)
     e.add_argument("--query-store", required=True)
@@ -377,12 +378,24 @@ def main():
             )
 
             registry, doc = load_registry(a.registry), read(a.trials)
-            if doc["dataset_fingerprint"] != registry.fingerprint:
-                raise ValueError("Trial manifest belongs to another registry")
-            if doc["split_role"] not in ROLES:
-                raise PermissionError("No locked-final access in Phase 1D")
+            from gait_verification.evaluation import validate_trial_manifest
+
+            split = validate_split(read(a.split), registry.subjects())
+            validate_trial_manifest(doc, registry, split)
             policy = load_quality_policy()
             detector = load_rtmpose(a.rtmpose_dir)
+            encoder = load_encoder(a.model, a.source_root, a.checkpoint_root, policy)
+            from gait_verification.dataset_processing import (
+                ModelSpec,
+                ProcessingConfig,
+                protect_sources,
+            )
+
+            if a.pose_cache_dir:
+                protect_sources(registry, a.data_root, a.pose_cache_dir)
+            recipe = ProcessingConfig(detector.backend_id, policy).recipe(
+                ModelSpec(a.model, encoder.metadata.model_id, None)
+            )
             results = embed_registered_queries(
                 registry,
                 [t["query_asset_id"] for t in doc["trials"]],
@@ -390,9 +403,12 @@ def main():
                 lambda take, variant: CachedPoseExtractor(
                     detector, a.pose_cache_dir, take, variant
                 ),
-                load_encoder(a.model, a.source_root, a.checkpoint_root, policy),
+                encoder,
                 lambda s: assess_window_quality(s, policy),
                 QueryEmbeddingStore(a.query_store),
+                split=split,
+                roles=(doc["split_role"],),
+                recipe=recipe,
             )
             write_new_json(a.out, {"model": a.model, "results": results})
             counts = {}
@@ -521,10 +537,20 @@ def make_scorer(registry, split, data_root, spec):
             "feature_recipe_id": store.recipe_id,
             "readiness": "BLOCKED",
             "research_only": True,
+            "quality_gate": {
+                "version": "e0-native-minimum-finite-landmarks-v1",
+                "backend": "MediaPipe33 IMAGE Pose Lite",
+                "provisional": True,
+                "minimum_detected_poses": 10,
+                "limitation": "Native landmark/finite-feature checks; no RTMPose temporal, crop, walking or multi-person gate",
+            },
+            "runtime_scope": "Per-query native feature extraction only; excludes per-trial E0 worker startup, checkpoint loading and scoring",
         }
         return system, scorer
-    if not spec.get("enrollments") or not spec.get("query_store"):
-        raise ValueError("Pretrained run requires enrollments and query-store")
+    if not data_root or not spec.get("enrollments") or not spec.get("query_store"):
+        raise ValueError(
+            "Pretrained run requires data-root, enrollments and query-store"
+        )
     entry = model_entry(model)
     return {
         "label": model,
@@ -532,12 +558,20 @@ def make_scorer(registry, split, data_root, spec):
         "training_dataset": entry["training_dataset"],
         "readiness": entry["readiness"],
         "score_semantics": "cosine similarity; higher supports claim; uncalibrated",
+        "quality_gate": {
+            "version": "rtmpose-temporal-window-family-v1",
+            "backend": "RTMPose COCO17",
+            "provisional": True,
+            "policy_binding": "Exact window policy and pose recipe are bound by recipe_model_ids; no empirical quality validity is established",
+        },
+        "runtime_scope": "Per-query preparation recorded in cache; excludes enrollment, earlier cached pose extraction and per-trial scoring",
     }, EmbeddingTrialScorer(
         registry,
         split,
         DirectoryEnrollmentStore(spec["enrollments"]),
         QueryEmbeddingStore(spec["query_store"]),
         entry["model_id"],
+        data_root=data_root,
     )
 
 

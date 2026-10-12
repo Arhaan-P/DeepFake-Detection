@@ -147,3 +147,45 @@ match RAW enrollment references (the RAW-versus-stabilized policy, `OWN-08`, is 
 They do not create a split, trials, thresholds or calibration, and they do not enroll anyone. Those later steps
 (`split` → `lock` → `trials` → `enroll_subject.py batch` → `run` → `compare`) are Phase 1D commands and need the
 owner decisions in `DEFERRED_EVIDENCE_AND_DECISIONS.md`.
+
+## Phase 2C managed-workflow corrections — 13 October 2026
+
+Use newly generated `verification-trials-v3` manifests. Their original row hash is
+retained, and `contract_sha256` binds the complete policy, counts and header. The
+validator also checks that the unchanged deterministic generator reproduces them.
+Archived v2 manifests are preserved; managed embedding/scoring refuses them. Regenerate
+from their existing explicit policy and the same registry/split into a new file; do
+not overwrite an archive or choose new scientific values during migration.
+
+The older `embed` command now requires `--split` and validates the complete manifest
+before loading models. New records are sealed and bind their ingestion recipe;
+stale records are refused. Use a fresh query directory for an older unbound cache,
+or prefer the versioned `process` stores above. Every `run`/`run-common` needs
+`--data-root`, including pretrained systems, to recheck source ancestry and bytes
+before using prepared artifacts. No CLI authorizes locked-final subjects.
+
+```bash
+$CL embed --registry $R --split split.json --trials trials-v3.json --data-root $D \
+          --model gaitpt --query-store NEW_QUERIES --pose-cache-dir $W/pose \
+          --out reports/embed.json
+$CL run --registry $R --split split.json --trials trials-v3.json --data-root $D \
+        --model gaitpt --enrollments ENROLLMENTS --query-store PREPARED_QUERIES \
+        --evidence-class SYNTHETIC_FIXTURE --target-far 0.05 --out NEW_RUN
+.venv-gait-v2-cuda/bin/python scripts/gait_verification/verify_claim.py \
+    --capture-registry $R --split split.json --data-root $D --video QUERY.mp4 \
+    --claimed-id CLAIM --model gaitpt --enrollments ENROLLMENTS
+```
+
+`SYNTHETIC_FIXTURE` and 0.05 in this example illustrate engineering fixtures only;
+they are not approved real-study settings. Use the appropriate evidence class and
+explicit owner decisions for a later study. Managed verification checks roles and
+ancestry; claim lookup/shared-original refusal occur before CUDA setup. Without an
+authorized policy a successful score remains `POLICY_NOT_READY`, null verdict.
+
+New pose NPZs and stabilization manifests/logs are private; new stabilization work
+directories are 0700. Existing artifacts are preserved rather than silently changing
+their permissions. A linked ledger is refused. Run one writer per artifact directory
+and one active GPU workflow: processing/E0 cooperative slots are not a hard VRAM
+scheduler, and direct enrollment/verification/legacy embedding loaders do not share
+every scheduling path. Reports disclose unequal E0/RTMPose quality gates and the
+extraction-only scope of E0 runtime. See [Phase 2C audit](PHASE_2C_ARCHITECTURE_ACCEPTANCE_AUDIT.md).

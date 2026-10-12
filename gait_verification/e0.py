@@ -1,6 +1,7 @@
 """Small frozen E0 interface; legacy imports/deserialization stay outside V2."""
 
 import json
+from contextlib import nullcontext
 from pathlib import Path
 import subprocess
 import sys
@@ -89,7 +90,12 @@ class FrozenE0:
             raise ValueError("E0 requires independent claimed references")
         # Canonical tensor ordering makes averaging independent of request order.
         refs.sort(key=lambda r: r.tobytes())
-        with tempfile.TemporaryDirectory() as td:
+        from .dataset_processing import default_gpu_lock_dir, gpu_slot
+
+        slot = (
+            gpu_slot(default_gpu_lock_dir()) if self.device == "cuda" else nullcontext()
+        )
+        with slot, tempfile.TemporaryDirectory() as td:
             inp = Path(td) / "pair.npz"
             np.savez(inp, query=q, references=np.stack(refs))
             result = worker(

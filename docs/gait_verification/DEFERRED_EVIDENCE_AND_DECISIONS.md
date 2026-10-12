@@ -127,3 +127,29 @@ Added before implementation. These tasks do not satisfy scientific or deployment
 
 - 2026-10-12: Phase 2B started; E0-01…E0-10 OPEN. All EXT/OWN/SCI/SEC items remain OPEN.
 - 2026-10-12: Phase 2B engineering verified and documented; E0-01…E0-10 DONE with the evidence above. All EXT/OWN/SCI/SEC items remain OPEN. Native/source and frozen inference parity do not establish empirical new-cohort parity or recreate the absent controlled LOSO weights.
+
+## IMPLEMENTABLE_NOW — Phase 2C independent engineering acceptance audit
+
+Opened before source corrections on 12 October 2026 at `f1213c7`, with a clean
+`feat/gait-verification-v2` worktree. DONE means inspected and verified engineering
+evidence, including documented limitations; it does not close scientific or deployment gates.
+
+| ID | Audit task | Status | Evidence / outcome |
+|---|---|---|---|
+| AUD-01 | End-to-end contract audit | DONE | [Phase 2C audit](PHASE_2C_ARCHITECTURE_ACCEPTANCE_AUDIT.md) §7, §10, §17: both native paths and complete common-trial workflow |
+| AUD-02 | Input and capture-registry audit | DONE | [Phase 2C audit](PHASE_2C_ARCHITECTURE_ACCEPTANCE_AUDIT.md) §6, §12: schema, bytes, duplicate and metadata checks |
+| AUD-03 | Source/derivative lineage audit | DONE | [Phase 2C audit](PHASE_2C_ARCHITECTURE_ACCEPTANCE_AUDIT.md) C-01/C-06, §12: ancestry, source substitution and same-original refusal |
+| AUD-04 | Split and locked-final protection audit | DONE | [Phase 2C audit](PHASE_2C_ARCHITECTURE_ACCEPTANCE_AUDIT.md) C-01/C-03, §8: protected entry points and locked transitions corrected |
+| AUD-05 | Pose, quality and model compatibility audit | DONE | [Phase 2C audit](PHASE_2C_ARCHITECTURE_ACCEPTANCE_AUDIT.md) §14/§16: four pinned frozen CUDA candidates; scientific gates still open |
+| AUD-06 | Enrollment and claim-only access audit | DONE | [Phase 2C audit](PHASE_2C_ARCHITECTURE_ACCEPTANCE_AUDIT.md) C-02/C-06/C-12: claim/owner spies, independent references and lazy status precedence |
+| AUD-07 | E0 baseline parity and limitation audit | DONE | [Phase 2C audit](PHASE_2C_ARCHITECTURE_ACCEPTANCE_AUDIT.md) §13/§17: historical feature/head parity and fresh native MediaPipe/CUDA smoke; LOSO absent |
+| AUD-08 | Cache, checkpoint and artifact integrity audit | DONE | [Phase 2C audit](PHASE_2C_ARCHITECTURE_ACCEPTANCE_AUDIT.md) C-04/C-06/C-08/C-09: seals, restricted loads, CRCs, link refusal, private writes/recovery |
+| AUD-09 | Trial generation and statistical evaluation audit | DONE | [Phase 2C audit](PHASE_2C_ARCHITECTURE_ACCEPTANCE_AUDIT.md) C-05/C-07, §15: deterministic v3 policy, metric and paired/evidence validation |
+| AUD-10 | CUDA resource/recovery audit | DONE | [Phase 2C audit](PHASE_2C_ARCHITECTURE_ACCEPTANCE_AUDIT.md) C-10/C-14, §16: actual CUDA/busy/OOM/recovery; single-workflow throughput limits |
+| AUD-11 | Privacy/security/license readiness audit | DONE | [Phase 2C audit](PHASE_2C_ARCHITECTURE_ACCEPTANCE_AUDIT.md) §11/§21: privacy/permission/ignore review; all SEC licensing/deployment items still OPEN |
+| AUD-12 | Complete operator-workflow acceptance tests | DONE | [Phase 2C audit](PHASE_2C_ARCHITECTURE_ACCEPTANCE_AUDIT.md) §17/§18: full default and real-weight CUDA operator workflows with explicit injected observations |
+| AUD-13 | Reproducibility and final architecture acceptance report | DONE | [Phase 2C audit](PHASE_2C_ARCHITECTURE_ACCEPTANCE_AUDIT.md) §18–24: 404 default/415 CUDA passes, static/preservation checks and acceptance with limitations |
+
+- 2026-10-12: Phase 2C AUD-01…AUD-13 opened. All deferred EXT/OWN/SCI/SEC items preserved OPEN. No training, calibration, collection or final evaluation authorized.
+
+- 2026-10-13: Phase 2C AUD-01…AUD-13 DONE after independent inspection, adversarial regressions, bounded corrections, both permitted suites and preservation checks. Verdict: ARCHITECTURE ACCEPTED WITH DOCUMENTED ENGINEERING LIMITATIONS. All EXT/OWN/SCI/SEC remain OPEN. No collection, training, fitting, threshold, winner, locked-final study or deployment occurred.
