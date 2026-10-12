@@ -124,8 +124,11 @@ class MemoryEnrollmentStore:
         self._index, self._records[claim] = index, templates
 
     def add_reference(self, claim, template):
+        self.add_references(claim, (template,))
+
+    def add_references(self, claim, templates):
         old = self._records.get(claim, ())
-        self.enroll(claim, old + (template,))
+        self.enroll(claim, old + tuple(templates))
 
     def get_claim(self, claimed_subject_id):
         return self._records.get(claimed_subject_id, ())
@@ -271,6 +274,10 @@ class DirectoryEnrollmentStore:
 
     def add_reference(self, claim, template):
         self._add(claim, (template,), create_only=False)
+
+    def add_references(self, claim, templates):
+        """All recipes of one original in ONE atomic write: all stored or none."""
+        self._add(claim, tuple(templates), create_only=False)
 
     def revoke_reference(self, claim, enrollment_id, reason):
         """Exclude one reference from lookups; its vector and record stay on disk."""

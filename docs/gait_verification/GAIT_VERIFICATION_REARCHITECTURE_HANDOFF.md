@@ -548,3 +548,17 @@ exists, so usable enrolled claims return `POLICY_NOT_READY` with a null verdict;
 scores are restricted diagnostics. This is engineering only: no accuracy, model winner
 or threshold is claimed, and the four-view pilot and 40-person cohort are still pending.
 See the [Phase 1C report](PHASE_1C_ENROLLMENT_VERIFICATION_REPORT.md).
+
+## Phase 1D amendment — 12 October 2026
+
+Claude Code built the evaluation framework that the future cohort will use: a capture
+registry that resolves every managed-study file by its actual checksum to its original
+take (so a stabilized copy of an enrolled original is refused even when nobody declares
+it), subject-level split manifests with a lock and a locked-test authorization guard,
+deterministic genuine/impostor trial manifests, batch enrollment and query ingestion, and a
+restricted offline evaluator with coverage, ROC/EER/TAR, subject-cluster bootstrap and
+paired model comparisons. An edited copy that was never registered still cannot be traced
+by bytes; the managed workflow refuses it rather than treating it as new. Split counts,
+impostor sampling and the target FAR remain owner decisions. All metrics so far come from
+synthetic fixtures: no accuracy, threshold, calibration or model winner exists, and E0 is
+unchanged. See the [Phase 1D report](PHASE_1D_EVALUATION_FRAMEWORK_REPORT.md).

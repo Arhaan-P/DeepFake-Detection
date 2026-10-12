@@ -2,6 +2,9 @@
 
   check   pose + window quality only (no gait model): is this video enrollable?
   add     store one reference per --models recipe for ONE original take
+          (manual metadata: development use; all recipes are written atomically)
+  batch   managed study: explicitly selected REGISTERED development originals, all
+          metadata from the capture registry and locked split; idempotent rerun
   show    non-biometric summary of ONE subject's references (never lists other subjects)
   revoke  exclude one reference from lookups (record kept)
 
@@ -17,13 +20,16 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from gait_verification.capture_registry import load_registry, write_new_json
 from gait_verification.enrollments import DirectoryEnrollmentStore
 from gait_verification.pipeline import (
     CachedPoseExtractor,
     EnrollmentRefused,
     check_eligibility,
     enroll_original,
+    enroll_registered,
 )
+from gait_verification.splits import validate_split
 from gait_verification.registry import (
     MODELS,
     load_encoder,
@@ -60,6 +66,21 @@ def main():
     add.add_argument(
         "--checkpoint-root", default=".cache/gait_verification/checkpoints"
     )
+    batch = sub.add_parser("batch")
+    batch.add_argument("--capture-registry", required=True)
+    batch.add_argument("--split", required=True, help="LOCKED subject split")
+    batch.add_argument("--data-root", required=True)
+    batch.add_argument(
+        "--assets", nargs="+", required=True, help="registered asset IDs"
+    )
+    batch.add_argument("--models", nargs="+", choices=MODELS, required=True)
+    batch.add_argument("--report-out", required=True, help="new JSON result file")
+    batch.add_argument("--rtmpose-dir", default="~/.cache/rtmlib/hub/checkpoints")
+    batch.add_argument("--pose-cache-dir")
+    batch.add_argument("--source-root", default=".cache/gait_verification/sources")
+    batch.add_argument(
+        "--checkpoint-root", default=".cache/gait_verification/checkpoints"
+    )
     show = sub.add_parser("show")
     show.add_argument("--subject-id", required=True)
     revoke = sub.add_parser("revoke")
@@ -88,6 +109,35 @@ def main():
                     {"subject_id": args.subject_id, "references": rows}, indent=2
                 )
             )
+        elif args.command == "batch":
+            registry = load_registry(args.capture_registry)
+            split = validate_split(
+                json.loads(Path(args.split).read_text()), registry.subjects()
+            )
+            if split["status"] != "LOCKED":
+                raise ValueError("Batch enrollment needs a LOCKED split")
+            detector = load_rtmpose(args.rtmpose_dir)
+            results = enroll_registered(
+                registry,
+                split,
+                args.assets,
+                args.data_root,
+                lambda take, variant: CachedPoseExtractor(
+                    detector, args.pose_cache_dir, take, variant
+                ),
+                [
+                    load_encoder(m, args.source_root, args.checkpoint_root, policy)
+                    for m in args.models
+                ],
+                store,
+                policy,
+            )
+            write_new_json(args.report_out, {"models": args.models, "results": results})
+            counts = {}
+            for row in results:
+                counts[row["status"]] = counts.get(row["status"], 0) + 1
+            print(json.dumps(counts))
+            return 0 if set(counts) <= {"ENROLLED", "ALREADY_ENROLLED"} else 2
         elif args.command == "revoke":
             store.revoke_reference(args.subject_id, args.enrollment_id, args.reason)
             print(json.dumps({"revoked": args.enrollment_id}))

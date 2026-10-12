@@ -1,0 +1,31 @@
+{
+  "schema_version": "gait-phase1d-evaluation-v1",
+  "status": "FRAMEWORK_ONLY: no cohort, no approved split, no threshold",
+  "capture_registry_schema": "capture-registry-v1",
+  "split_schema": "subject-split-v1",
+  "trial_schema": "verification-trials-v2",
+  "query_embedding_schema": "query-embedding-v1",
+  "run_schema": "offline-evaluation-v1",
+  "split_policy": {
+    "roles": ["development", "calibration", "locked_final"],
+    "counts": {"development": null, "calibration": null, "locked_final": null},
+    "seed": null,
+    "note": "Owner must set counts and seed before locking. The PRD 24/8/8 is illustrative, not approved. Pilot participants who influenced settings must be pinned to development."
+  },
+  "trial_policy": {
+    "reference_rule": "exclude_probe_view",
+    "impostor_claims_per_query": null,
+    "seed": null,
+    "query_variant_id": "raw",
+    "min_reference_originals": 1,
+    "note": "Impostor count and seed are protocol decisions recorded in every trial manifest."
+  },
+  "metrics": {
+    "target_fars": [0.05],
+    "score_orientation": "higher cosine similarity supports the claim",
+    "bootstrap": {"cluster": "probe_subject", "repetitions": 1000, "seed": 0, "min_valid_fraction": 0.9}
+  },
+  "threshold": null,
+  "calibration": null,
+  "locked_final_access": "Requires a recorded LockedTestAuthorization bound to the locked split and a frozen bundle hash; no CLI path exists in Phase 1D."
+}

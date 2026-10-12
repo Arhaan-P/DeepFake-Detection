@@ -763,3 +763,36 @@ Author: Claude Code. Affected: `enrollments.py`, `verifier.py`, `media.py`, new
   result is unchanged and no threshold or policy is installed (`POLICY_NOT_READY`).
 - Known limitation: an undeclared re-encoded/stabilized copy of an enrolled original
   cannot be detected from bytes; query lineage must come from the capture manifest.
+
+## 20. Phase 1D evaluation-framework change log — 12 October 2026
+
+Author: Claude Code. Affected: new `capture_registry.py`, `splits.py`, `offline_eval.py`,
+`scripts/gait_verification/evaluate_claims.py`, `configs/gait_verification/phase1d_evaluation.json`;
+extended `evaluation.py`, `pipeline.py`, `enrollments.py`, `verifier.py`, `registry.py`,
+`verify_claim.py`, `enroll_subject.py`. E0 unchanged. See
+[Phase 1D report](PHASE_1D_EVALUATION_FRAMEWORK_REPORT.md).
+
+- **§7.2/§8.1 lineage authority:** for managed-study workflows the validated
+  `capture-registry-v1` (raw rows = capture-manifest-v1 rows; registered derivatives with
+  parent + transformation manifest) is the only lineage source. Files resolve by actual
+  SHA-256; unregistered files fail closed (`INVALID_INPUT`), never become new originals.
+  `verify_claim.py` requires `--capture-registry` or the development-only
+  `--development-unmanaged` mode. Registry dates must be actual datetimes with UTC offset.
+  Known limit: an unregistered modified copy cannot be linked to its source by bytes.
+- **§1.2 precedence refinement:** registry-resolved lineage overlap is refused before
+  pose extraction (still rank 1, `INVALID_INPUT`).
+- **§7.3 splits:** subject-level, seeded, counts never defaulted (24/8/8 not chosen);
+  pilot subjects can be pinned to development; LOCKED splits change only via a recorded
+  revision, and locked-final membership cannot be revised. Locked-final access requires a
+  `LockedTestAuthorization` (split fingerprint + frozen bundle hash); no CLI path exists.
+- **§8.1 trial policy v1 (engineering default, owner to confirm):** reference rule
+  `exclude_probe_view` (cross-view rotation; equal reference counts for genuine and
+  impostor claims) and seeded sampling of `impostor_claims_per_query` same-role subjects.
+  Count and seed are owner decisions recorded in each manifest.
+- **§8.2 coverage:** `coverage` keeps the PRD meaning (status OK / submitted). Score
+  coverage is reported separately; a scored `POLICY_NOT_READY` trial is evaluable for
+  descriptive ROC/EER/TAR but is never an operational decision or a quality failure.
+- **§8.4 comparisons:** paired comparisons require identical manifests, refuse different
+  pretraining datasets (CASIA-B separate from GREW) and locked-final rows, report full
+  coverage plus a named common-scoreable subset, and never select a model.
+- Multi-recipe enrollment of one original is now a single atomic write.

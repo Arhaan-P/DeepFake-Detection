@@ -158,6 +158,11 @@ class ClaimVerifier:
         templates, early = self._lookup(claim)
         if early:
             return early
+        # Registry-resolved lineage is known before extraction: refuse leakage first.
+        if lineage_ids and set(lineage_ids) & set().union(
+            *(_origin_ids(t.embedding, t.recording) for t in templates)
+        ):
+            return self._out(claim, Status.INVALID_INPUT, {}, "SHARED_ORIGINAL")
         if self.extractor is None or self.encoder is None:
             return self._out(
                 claim, Status.POLICY_NOT_READY, {}, "PIPELINE_NOT_INSTALLED"

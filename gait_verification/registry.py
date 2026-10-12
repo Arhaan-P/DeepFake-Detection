@@ -11,6 +11,13 @@ from .pose_quality import WindowQualityPolicy, WindowedEncoder
 
 ROOT = Path(__file__).resolve().parents[1]
 MODELS = ("gaitpt", "gpgait", "gpgaitpp", "gpgaitpp_casia")
+# CLI model name -> entry in configs/gait_verification/models.json
+REGISTRY_KEYS = {
+    "gaitpt": "gaitpt_grew",
+    "gpgait": "gpgait",
+    "gpgaitpp": "gpgaitpp_grew",
+    "gpgaitpp_casia": "gpgaitpp_casia",
+}
 
 
 def load_json(relative):
@@ -19,6 +26,13 @@ def load_json(relative):
 
 def load_quality_policy(config="configs/gait_verification/phase1a.json"):
     return WindowQualityPolicy(**load_json(config)["quality"])
+
+
+def model_entry(name):
+    """Registry facts for one candidate (no weights loaded)."""
+    if name not in MODELS:
+        raise ValueError(f"Unknown model {name!r}; choose from {MODELS}")
+    return load_json("configs/gait_verification/models.json")[REGISTRY_KEYS[name]]
 
 
 def load_encoder(name, source_root, checkpoint_root, policy=None):
