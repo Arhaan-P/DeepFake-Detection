@@ -1,0 +1,53 @@
+{
+  "asset_ids": [
+    "S001_left45_set1",
+    "S001_left45_set2",
+    "S001_right45_set1",
+    "S001_right45_set2",
+    "S001_toward_set1",
+    "S001_toward_set2",
+    "S001_away_set1",
+    "S001_away_set2",
+    "S002_left45_set1",
+    "S002_left45_set2",
+    "S002_right45_set1",
+    "S002_right45_set2",
+    "S002_toward_set1",
+    "S002_toward_set2",
+    "S002_away_set1",
+    "S002_away_set2"
+  ],
+  "augmentations": [],
+  "data_root": "data/gait_verification/pilot_2subjects",
+  "evidence_class": "TWO_SUBJECT_PILOT_DIAGNOSTIC",
+  "intake": "data/gait_verification/pilot_2subjects/intake.json",
+  "media_kind": "REAL_PARTICIPANT_RECORDINGS",
+  "models": [
+    "e0",
+    "gaitpt",
+    "gpgait",
+    "gpgaitpp",
+    "gpgaitpp_casia"
+  ],
+  "preview_assets": [],
+  "preview_flagged_frames": 2,
+  "registry": "data/gait_verification/pilot_2subjects/registry.json",
+  "runtime": {
+    "checkpoint_root": ".cache/gait_verification/checkpoints",
+    "e0_checkpoint": ".cache/gait_verification/checkpoints/e0-shipped-head-v1.pt",
+    "e0_pose_model": ".cache/gait_verification/checkpoints/pose_landmarker_lite.task",
+    "rtmpose_dir": "~/.cache/rtmlib/hub/checkpoints",
+    "source_root": ".cache/gait_verification/sources"
+  },
+  "schema_version": "two-subject-pilot-workflow-v1",
+  "set_swap": false,
+  "subjects": [
+    "S001",
+    "S002"
+  ],
+  "variants": [
+    "vidstab-s10",
+    "vidstab-s15"
+  ],
+  "work_dir": "outputs/gait_verification/pilot_2subjects/work"
+}

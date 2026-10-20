@@ -1275,7 +1275,14 @@ def coverage_report(
 
 
 def derive_variants(
-    registry, data_root, asset_ids, variants, stabilizer=None, *, split=None
+    registry,
+    data_root,
+    asset_ids,
+    variants,
+    stabilizer=None,
+    *,
+    split=None,
+    recipes=None,
 ):
     """Create vid.stab derivatives of EXPLICIT original assets; return (results, new_rows).
 
@@ -1289,7 +1296,12 @@ def derive_variants(
     stabilizer = stabilizer or stabilize
     if not asset_ids or not variants:
         raise ValueError("Explicit assets and variants are required")
-    unknown = sorted(set(variants) - set(VARIANTS))
+    recipes = dict(recipes or {})
+    for name, recipe in recipes.items():
+        recipe.validate()
+        if name != recipe.variant_id:
+            raise ValueError("Variant ID does not match augmentation recipe")
+    unknown = sorted(set(variants) - set(VARIANTS) - recipes.keys())
     if unknown:
         raise ValueError(
             f"Unsupported variant(s) {unknown}; RAW is the control, never derived"
@@ -1298,6 +1310,9 @@ def derive_variants(
     base = Path(data_root).resolve()
     for asset_id in sorted(set(asset_ids)):
         for variant in sorted(set(variants)):
+            config = recipes.get(variant)
+            if config is None:
+                config = StabilizationConfig(enabled=True, smoothing=int(variant[-2:]))
             row = dict(asset_id=asset_id, variant=variant)
             results.append(row)
             try:
@@ -1310,6 +1325,9 @@ def derive_variants(
                 if existing:
                     if reason := source_issue(registry, existing, data_root):
                         raise ProvenanceError(reason)
+                    manifest_path = registry.path_of(existing, data_root).parent
+                    if not _verified_manifest(manifest_path, asset, variant, config):
+                        raise ProvenanceError("Registered derivative recipe mismatch")
                     row.update(status="ALREADY_REGISTERED")
                     continue
                 source = registry.path_of(asset, data_root)
@@ -1319,7 +1337,7 @@ def derive_variants(
                 if not work.resolve().is_relative_to(base):
                     raise ProvenanceError("Derivative path escapes data root")
                 protect_sources(registry, data_root, work)
-                reused = _verified_manifest(work, asset, variant)
+                reused = _verified_manifest(work, asset, variant, config)
                 if not reused:
                     if work.exists():
                         quarantine(work)
@@ -1330,9 +1348,9 @@ def derive_variants(
                         source,
                         work,
                         recording,
-                        StabilizationConfig(enabled=True, smoothing=int(variant[-2:])),
+                        config,
                     )
-                if not _verified_manifest(work, asset, variant):
+                if not _verified_manifest(work, asset, variant, config):
                     raise ProvenanceError(
                         "Derivative artifact or recipe failed validation"
                     )
@@ -1362,7 +1380,7 @@ def derive_variants(
     return results, rows
 
 
-def _verified_manifest(work, asset, variant):
+def _verified_manifest(work, asset, variant, config=None):
     """True when `work` holds a completed derivative of this exact original."""
     try:
         from .stabilization import StabilizationConfig
@@ -1372,7 +1390,9 @@ def _verified_manifest(work, asset, variant):
             manifest["status"] == "OK"
             and manifest.get("variant_id") == variant
             and manifest.get("config")
-            == asdict(StabilizationConfig(enabled=True, smoothing=int(variant[-2:])))
+            == asdict(
+                config or StabilizationConfig(enabled=True, smoothing=int(variant[-2:]))
+            )
             and manifest["input"]["sha256"] == asset.sha256
             and sha256_file(work / "stabilized.mp4") == manifest["output"]["sha256"]
         )

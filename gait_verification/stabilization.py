@@ -6,7 +6,93 @@ import os
 import subprocess
 import numpy as np
 from .media import probe_video, metadata_dict, sha256_file
-from .capture_registry import write_new_json
+from .capture_registry import canonical_sha256, write_new_json
+
+
+@dataclass(frozen=True)
+class AugmentationConfig:
+    """One conservative spatial/encoding perturbation; never temporal remapping.
+
+    FFmpeg eq brightness/contrast, gblur sigma, or libx264 CRF. Units and
+    invocation are recorded verbatim. Bounds are engineering limits, not evidence
+    that any perturbation improves pose or verification. No composition is allowed.
+    """
+
+    kind: str
+    value: float
+    recipe_version: str = "controlled-ffmpeg-v1"
+    enabled: bool = True
+
+    def validate(self):
+        bounds = {
+            "brightness": (-0.1, 0.1),
+            "contrast": (0.85, 1.15),
+            "blur": (0.1, 1.0),
+            "compression": (23, 32),
+        }
+        if (
+            self.kind not in bounds
+            or self.recipe_version != "controlled-ffmpeg-v1"
+            or self.enabled is not True
+        ):
+            raise ValueError("Unsupported controlled augmentation")
+        lo, hi = bounds[self.kind]
+        if (
+            type(self.value) not in (int, float)
+            or not np.isfinite(self.value)
+            or not lo <= self.value <= hi
+        ):
+            raise ValueError("Augmentation outside conservative engineering bounds")
+        if self.kind == "compression" and int(self.value) != self.value:
+            raise ValueError("Compression requires integer CRF")
+
+    @property
+    def variant_id(self):
+        self.validate()
+        return f"{self.kind}-{canonical_sha256(asdict(self))[:16]}"
+
+
+def augmentation_commands(source, output, config):
+    config.validate()
+    value = format(config.value, ".12g")
+    filters = {
+        "brightness": f"eq=brightness={value}",
+        "contrast": f"eq=contrast={value}",
+        "blur": f"gblur=sigma={value}",
+        "compression": "null",
+    }
+    return [
+        [
+            "ffmpeg",
+            "-hide_banner",
+            "-nostdin",
+            "-n",
+            "-i",
+            str(Path(source).resolve()),
+            "-map",
+            "0:v:0",
+            "-vf",
+            filters[config.kind],
+            "-fps_mode",
+            "passthrough",
+            "-enc_time_base",
+            "-1",
+            "-c:v",
+            "libx264",
+            "-threads",
+            "1",
+            "-crf",
+            value if config.kind == "compression" else "17",
+            "-preset",
+            "medium",
+            "-pix_fmt",
+            "yuv420p",
+            "-map_metadata",
+            "-1",
+            "-an",
+            str(Path(output).resolve()),
+        ]
+    ]
 
 
 @dataclass(frozen=True)
@@ -82,11 +168,22 @@ def stabilize(source, work_dir, recording, config=StabilizationConfig()):
     # Dedicated new work directory prevents sidecar collision and overwrite.
     work.mkdir(parents=True, exist_ok=False, mode=0o700)
     output = work / "stabilized.mp4"
-    commands = stabilization_commands(source, output, config) if config.enabled else []
+    controlled = isinstance(config, AugmentationConfig)
+    commands = (
+        (
+            augmentation_commands(source, output, config)
+            if controlled
+            else stabilization_commands(source, output, config)
+        )
+        if config.enabled
+        else []
+    )
     manifest = {
         "schema_version": "video-variant-v1",
         "recording": asdict(recording),
-        "variant_id": f"vidstab-s{config.smoothing}" if config.enabled else "raw",
+        "variant_id": config.variant_id
+        if controlled
+        else (f"vidstab-s{config.smoothing}" if config.enabled else "raw"),
         "config": asdict(config),
         "input": metadata_dict(original),
         "output": None,
@@ -113,7 +210,8 @@ def stabilize(source, work_dir, recording, config=StabilizationConfig()):
                         command, cwd=work, stdout=log, stderr=log, check=True
                     )
             derivative = probe_video(output)
-            manifest["transformation_sha256"] = sha256_file(work / "transforms.trf")
+            if not controlled:
+                manifest["transformation_sha256"] = sha256_file(work / "transforms.trf")
             manifest["output"] = metadata_dict(derivative)
             a, b = np.asarray(original.timestamps), np.asarray(derivative.timestamps)
             # MP4 may shift origin and quantize timestamps. Validate every frame.

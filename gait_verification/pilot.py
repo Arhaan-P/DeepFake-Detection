@@ -3,6 +3,7 @@
 from dataclasses import asdict
 from pathlib import Path
 import json
+import os
 import numpy as np
 from .evaluation import validate_recordings
 from .media import probe_video, decode_frames, sha256_file
@@ -121,12 +122,14 @@ def compare_reports(reports):
     )
 
 
-def write_overlay(video, sequence, output):
+def write_overlay(video, sequence, output, selected_indices=None):
     """Three local diagnostic frames, no public upload."""
     import cv2
 
     xy, confidence, observed = coco_arrays(sequence)
     selected = set(np.linspace(0, len(xy) - 1, min(3, len(xy)), dtype=int).tolist())
+    if selected_indices is not None:
+        selected = {int(i) for i in selected_indices if 0 <= i < len(xy)}
     meta = probe_video(video)
     for i, pts, frame in decode_frames(meta):
         if i not in selected:
@@ -157,7 +160,8 @@ def write_overlay(video, sequence, output):
         ok, data = cv2.imencode(".jpg", frame)
         if not ok:
             raise RuntimeError("Overlay encoding failed")
-        with open(path, "xb") as f:
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(fd, "wb") as f:
             f.write(data.tobytes())
 
 
